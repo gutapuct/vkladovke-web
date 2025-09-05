@@ -7,8 +7,8 @@ import {
   getDoc,
   updateDoc,
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDjRqjqWbtx_QIPsobH4J72jg98xNTt-BM",
   authDomain: "vkladovke-8254f.firebaseapp.com",
@@ -19,23 +19,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-const db = getFirestore(app);
-
-const getHighscore = async () => {
-  const docRef = doc(db, "HighScore", "Current");
-  const docSnap = await getDoc(docRef);
-
-  return docSnap.data().score;
-};
-
-const uploadHighscore = async (newScore) => {
-  const docRef = doc(db, "HighScore", "Current");
-  const result = await updateDoc(docRef, {
-    score: parseInt(newScore),
-  });
-
-  return newScore;
-};
-
-export { getHighscore, uploadHighscore };
+export { auth };
