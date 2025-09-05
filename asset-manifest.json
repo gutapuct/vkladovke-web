@@ -1,16 +1,15 @@
 {
   "files": {
-    "main.css": "/vkladovke-web/static/css/main.f855e6bc.css",
-    "main.js": "/vkladovke-web/static/js/main.cbbbb8bd.js",
+    "main.css": "/vkladovke-web/static/css/main.e6c13ad2.css",
+    "main.js": "/vkladovke-web/static/js/main.bceba0a5.js",
     "static/js/453.ef1797bb.chunk.js": "/vkladovke-web/static/js/453.ef1797bb.chunk.js",
-    "static/media/logo.svg": "/vkladovke-web/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/vkladovke-web/index.html",
-    "main.f855e6bc.css.map": "/vkladovke-web/static/css/main.f855e6bc.css.map",
-    "main.cbbbb8bd.js.map": "/vkladovke-web/static/js/main.cbbbb8bd.js.map",
+    "main.e6c13ad2.css.map": "/vkladovke-web/static/css/main.e6c13ad2.css.map",
+    "main.bceba0a5.js.map": "/vkladovke-web/static/js/main.bceba0a5.js.map",
     "453.ef1797bb.chunk.js.map": "/vkladovke-web/static/js/453.ef1797bb.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.cbbbb8bd.js"
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.bceba0a5.js"
   ]
 }
