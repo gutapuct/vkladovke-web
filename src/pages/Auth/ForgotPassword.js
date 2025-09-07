@@ -4,7 +4,6 @@ import {
     Button,
     Container,
     createTheme,
-    Grid,
     TextField,
     Typography,
     Link,
@@ -18,27 +17,26 @@ import {
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth, getErrorMessage } from "../../utils/firebase_firestore";
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
-import PasswordTextField from "../../components/PasswordTextField";
 
 const defaultTheme = createTheme();
 
-const Signup = () => {
+const ForgotPassword = () => {
+    const navigate = useNavigate();
+
+    const [email, setEmail] = useState("");
     const [openModal, setOpenModal] = useState(false);
 
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+        try {
+            await sendPasswordResetEmail(auth, email);
+            setOpenModal(true);
+        } catch (error) {
+            alert(getErrorMessage(error.code));
+        }
     };
 
     const handleOpenModal = () => setOpenModal(true);
@@ -46,20 +44,6 @@ const Signup = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         navigate("/login");
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        try {
-            const response = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            await sendEmailVerification(response.user);
-            await signOut(auth);
-
-            setOpenModal(true);
-        } catch (error) {
-            alert(getErrorMessage(error.code));
-        }
     };
 
     return (
@@ -78,40 +62,36 @@ const Signup = () => {
                             <LockOutlinedIcon />
                         </Avatar>
                         <Typography component="h1" variant="h4">
-                            Регистрация
+                            Восстановление пароля
                         </Typography>
                         <Box component="form" noValidate sx={{ mt: 3 }}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        id="email"
-                                        label="Эл.почта"
-                                        name="email"
-                                        autoComplete="email"
-                                        onChange={handleInputChange}
-                                        value={formData.email}
-                                        sx={{ mb: 3 }}
-                                    />
-                                    <PasswordTextField onChange={handleInputChange} value={formData.password} />
-                                </Grid>
-                            </Grid>
+                            <TextField
+                                required
+                                fullWidth
+                                id="email"
+                                label="Эл.почта"
+                                name="email"
+                                autoComplete="email"
+                                onChange={(event) => setEmail(event.target.value)}
+                                value={email}
+                            />
+
                             <Button
-                                disabled={!formData.email || !formData.password}
+                                disabled={!email}
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
+                                sx={{ mt: 3 }}
                                 onClick={handleSubmit}
                             >
-                                Создать аккаунт
+                                Сбросить пароль
                             </Button>
-                            <Grid item textAlign="right">
+
+                            <Box textAlign="right" sx={{ mt: 2, mr: 2 }}>
                                 <Link variant="body2" onClick={() => navigate("/login")} sx={{ cursor: "pointer" }}>
-                                    Уже имеется аккаунт? Войти
+                                    Назад
                                 </Link>
-                            </Grid>
+                            </Box>
                         </Box>
                     </Box>
                 </Container>
@@ -122,13 +102,11 @@ const Signup = () => {
                     aria-labelledby="modal-title"
                     aria-describedby="modal-description"
                 >
-                    <DialogTitle id="modal-title">Подтвердите регистрацию</DialogTitle>
+                    <DialogTitle id="modal-title">Сброс пароля</DialogTitle>
 
                     <DialogContent>
                         <DialogContentText id="modal-description" sx={{ mb: 2 }}>
-                            На указанный email адрес ({formData.email}) выслано письмо с подтверждением.
-                            <br />
-                            Пожалуйста, зайдите в почту и подтвердите регистрацию.
+                            На указанный email адрес ({email}) выслано письмо для сброса пароля.
                         </DialogContentText>
                     </DialogContent>
 
@@ -141,4 +119,4 @@ const Signup = () => {
     );
 };
 
-export default Signup;
+export default ForgotPassword;

@@ -4,23 +4,52 @@ import Login from "./pages/Auth/Login";
 import Main from "./pages/Main";
 import { useAuth } from "./hooks/useAuth";
 import Settings from "./pages/Settings";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import Confirm from "./pages/Auth/Confirm";
 
 function App() {
-  const PrivateRoute = ({ element }) => {
-    const { currentUser } = useAuth();
-    return currentUser ? element : <Navigate to="/login" />;
-  };
+    const PrivateRoute = ({ element }) => {
+        const { currentUser } = useAuth();
+        console.log("currentUser, ", currentUser);
 
-  return (
-    <>
-      <Routes>
-        <Route path="/register" element={<Signup />}></Route>
-        <Route path="/login" element={<Login />}></Route>
-        <Route path="/" element={<PrivateRoute element={<Main />} />}></Route>
-        <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
-      </Routes>
-    </>
-  );
+        if (!currentUser) {
+            return <Navigate to="/login" />;
+        }
+
+        if (!currentUser.emailVerified) {
+            return <Navigate to="/confirm" />;
+        }
+
+        return element;
+    };
+
+    const NoAccessRoute = ({ element }) => {
+        const { currentUser } = useAuth();
+        console.log("currentUser, ", currentUser);
+
+        if (!currentUser) {
+            return <Navigate to="/login" />;
+        }
+
+        if (currentUser && currentUser.emailVerified) {
+            return <Navigate to="/" />;
+        }
+
+        return element;
+    };
+
+    return (
+        <>
+            <Routes>
+                <Route path="/register" element={<Signup />}></Route>
+                <Route path="/login" element={<Login />}></Route>
+                <Route path="/forgot-password" element={<ForgotPassword />}></Route>
+                <Route path="/confirm" element={<NoAccessRoute element={<Confirm />} />}></Route>
+                <Route path="/" element={<PrivateRoute element={<Main />} />}></Route>
+                <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
+            </Routes>
+        </>
+    );
 }
 
 export default App;

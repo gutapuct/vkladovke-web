@@ -4,29 +4,25 @@ import { auth } from "../utils/firebase_firestore";
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+    return useContext(AuthContext);
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, serCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [currentUser, serCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      serCurrentUser(user);
-      setLoading(false);
-    });
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            serCurrentUser(user);
+            setLoading(false);
+        });
 
-    return unsubscribe;
-  }, []);
+        return unsubscribe;
+    }, []);
 
-  const value = {
-    currentUser
-  }
+    const value = {
+        currentUser,
+    };
 
-  return (
-    <AuthContext.Provider value={value}>
-        {!loading && children}
-    </AuthContext.Provider>
-  )
+    return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };

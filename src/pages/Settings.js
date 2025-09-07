@@ -1,7 +1,14 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
-  return <div>Settings</div>;
+    const navigate = useNavigate();
+
+    return (
+        <div>
+            <button onClick={() => navigate("/")}>go to Main</button>
+            <div>this is Settings</div>
+        </div>
+    );
 };
 
 export default Settings;
