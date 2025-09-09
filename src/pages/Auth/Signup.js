@@ -19,8 +19,8 @@ import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 import { auth, getErrorMessage } from "../../utils/firebase_firestore";
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import PasswordTextField from "../../components/PasswordTextField";
+import { useAuth } from "../../hooks/useAuth";
 
 const defaultTheme = createTheme();
 
@@ -32,6 +32,8 @@ const Signup = () => {
         email: "",
         password: "",
     });
+
+    const { signup, logout, emailVerification } = useAuth();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -52,9 +54,9 @@ const Signup = () => {
         e.preventDefault();
 
         try {
-            const response = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            await sendEmailVerification(response.user);
-            await signOut(auth);
+            const response = await signup(formData.email, formData.password);
+            await emailVerification(response.user);
+            await logout(auth);
 
             setOpenModal(true);
         } catch (error) {

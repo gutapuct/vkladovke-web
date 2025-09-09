@@ -17,8 +17,8 @@ import {
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth, getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage } from "../../utils/firebase_firestore";
+import { useAuth } from "../../hooks/useAuth";
 
 const defaultTheme = createTheme();
 
@@ -28,11 +28,13 @@ const ForgotPassword = () => {
     const [email, setEmail] = useState("");
     const [openModal, setOpenModal] = useState(false);
 
+    const { resetPassword } = useAuth();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            await sendPasswordResetEmail(auth, email);
+            await resetPassword(email);
             setOpenModal(true);
         } catch (error) {
             alert(getErrorMessage(error.code));

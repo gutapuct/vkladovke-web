@@ -16,14 +16,13 @@ import {
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { sendEmailVerification, signOut } from "firebase/auth";
 import { auth, getErrorMessage } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
 
 const defaultTheme = createTheme();
 
 const Confirm = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, logout, emailVerification } = useAuth();
 
     const navigate = useNavigate();
 
@@ -33,7 +32,7 @@ const Confirm = () => {
         e.preventDefault();
 
         try {
-            await sendEmailVerification(currentUser);
+            await emailVerification(currentUser);
             setOpenModal(true);
         } catch (error) {
             alert(getErrorMessage(error.code));
@@ -43,13 +42,12 @@ const Confirm = () => {
     const handleOpenModal = () => setOpenModal(true);
 
     const handleCloseModal = async () => {
-        await signOut(auth);
         setOpenModal(false);
         navigate("/login");
     };
 
     const handleBack = async () => {
-        await signOut(auth);
+        await logout(auth);
         navigate("/login");
     };
 

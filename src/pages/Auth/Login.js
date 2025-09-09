@@ -13,9 +13,9 @@ import {
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
+import { useAuth } from "../../hooks/useAuth";
 
 const defaultTheme = createTheme();
 
@@ -25,6 +25,8 @@ const Login = () => {
         email: "",
         password: "",
     });
+
+    const { login } = useAuth();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -38,9 +40,10 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            await login(formData.email, formData.password);
             navigate("/");
         } catch (error) {
+            console.log(error)
             alert(getErrorMessage(error.code));
         }
     };
@@ -65,7 +68,7 @@ const Login = () => {
                         </Typography>
                         <Box component="form" noValidate sx={{ mt: 3 }}>
                             <Grid container spacing={2}>
-                                <Grid item xs={12}>
+                                <Grid>
                                     <TextField
                                         required
                                         fullWidth
@@ -77,10 +80,7 @@ const Login = () => {
                                         value={formData.email}
                                         sx={{ mb: 3 }}
                                     />
-                                    <PasswordTextField
-                                        onChange={handleInputChange}
-                                        value={formData.password}
-                                    />
+                                    <PasswordTextField onChange={handleInputChange} value={formData.password} />
                                 </Grid>
                             </Grid>
                             <Button
@@ -94,7 +94,11 @@ const Login = () => {
                                 Войти
                             </Button>
                             <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" mt={2}>
-                                <Link variant="body2" onClick={() => navigate("/forgot-password")} sx={{ cursor: "pointer" }}>
+                                <Link
+                                    variant="body2"
+                                    onClick={() => navigate("/forgot-password")}
+                                    sx={{ cursor: "pointer" }}
+                                >
                                     Забыли пароль?
                                 </Link>
                                 <Link variant="body2" onClick={() => navigate("/register")} sx={{ cursor: "pointer" }}>
