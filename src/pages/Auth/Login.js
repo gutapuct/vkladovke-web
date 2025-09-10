@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
+import GoogleLogin from "./GoogleLogin";
 
 const defaultTheme = createTheme();
 
@@ -43,7 +44,6 @@ const Login = () => {
             await login(formData.email, formData.password);
             navigate("/");
         } catch (error) {
-            console.log(error)
             alert(getErrorMessage(error.code));
         }
     };
@@ -93,6 +93,9 @@ const Login = () => {
                             >
                                 Войти
                             </Button>
+
+                            <GoogleLogin />
+
                             <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" mt={2}>
                                 <Link
                                     variant="body2"

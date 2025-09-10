@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, getErrorMessage } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
+import GoogleLogin from "./GoogleLogin";
 
 const defaultTheme = createTheme();
 
@@ -109,6 +110,9 @@ const Signup = () => {
                             >
                                 Создать аккаунт
                             </Button>
+
+                            <GoogleLogin />
+
                             <Grid item textAlign="right">
                                 <Link variant="body2" onClick={() => navigate("/login")} sx={{ cursor: "pointer" }}>
                                     Уже имеется аккаунт? Войти
