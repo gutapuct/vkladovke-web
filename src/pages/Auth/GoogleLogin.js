@@ -13,7 +13,7 @@ const GoogleLogin = () => {
             await loginWithGoogle();
             navigate("/");
         } catch (error) {
-            alert(getErrorMessage(error.code));
+            alert(getErrorMessage(error));
         }
     };
 

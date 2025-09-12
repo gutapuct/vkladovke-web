@@ -15,15 +15,22 @@ const auth = getAuth(app);
 
 export { auth };
 
-export const getErrorMessage = (errorCode) => {
+export const getErrorMessage = (error) => {
     const errorMessages = {
-      'auth/user-not-found': 'Пользователь с таким email не найден',
-      'auth/invalid-email': 'Неверный формат email',
-      'auth/missing-email': 'Введите email',
-      'auth/too-many-requests': 'Слишком много попыток. Попробуйте позже',
-      'auth/invalid-credential': 'Неверный логин или пароль',
-      'auth/email-already-in-use': 'Пользователь с указанным email адресом уже существует',
-      'auth/weak-password': 'Слишком короткий пароль. Введите 6 символов или больше'
+        "auth/user-not-found": "Пользователь с таким email не найден",
+        "auth/invalid-email": "Неверный формат email",
+        "auth/missing-email": "Введите email",
+        "auth/too-many-requests": "Слишком много попыток. Попробуйте позже",
+        "auth/invalid-credential": "Неверный логин или пароль",
+        "auth/email-already-in-use": "Пользователь с указанным email адресом уже существует",
+        "auth/weak-password": "Слишком короткий пароль. Введите 6 символов или больше",
     };
-    return errorMessages[errorCode] || 'Произошла ошибка. Попробуйте еще раз';
-  };
+
+    if (!errorMessages[error.code]) {
+        console.log("error: ", error);
+        console.log("error code: ", error.code);
+        return "Произошла ошибка. Попробуйте еще раз";
+    }
+
+    return errorMessages[error.code];
+};

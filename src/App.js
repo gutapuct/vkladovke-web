@@ -2,10 +2,12 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Signup from "./pages/Auth/Signup";
 import Login from "./pages/Auth/Login";
 import Main from "./pages/Main";
+import History from "./pages/History";
 import { useAuth } from "./hooks/useAuth";
 import Settings from "./pages/Settings";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Confirm from "./pages/Auth/Confirm";
+import Layout from "./components/Layout";
 
 function App() {
     const PrivateRoute = ({ element }) => {
@@ -20,7 +22,7 @@ function App() {
             return <Navigate to="/confirm" />;
         }
 
-        return element;
+        return <Layout>{element}</Layout>;
     };
 
     const NoAccessRoute = ({ element }) => {
@@ -47,6 +49,7 @@ function App() {
                 <Route path="/confirm" element={<NoAccessRoute element={<Confirm />} />}></Route>
                 <Route path="/" element={<PrivateRoute element={<Main />} />}></Route>
                 <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
+                <Route path="/history" element={<PrivateRoute element={<History />} />}></Route>
             </Routes>
         </>
     );

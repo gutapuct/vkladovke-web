@@ -44,7 +44,7 @@ const Login = () => {
             await login(formData.email, formData.password);
             navigate("/");
         } catch (error) {
-            alert(getErrorMessage(error.code));
+            alert(getErrorMessage(error));
         }
     };
 

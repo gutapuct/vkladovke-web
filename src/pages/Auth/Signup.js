@@ -61,7 +61,7 @@ const Signup = () => {
 
             setOpenModal(true);
         } catch (error) {
-            alert(getErrorMessage(error.code));
+            alert(getErrorMessage(error));
         }
     };
 

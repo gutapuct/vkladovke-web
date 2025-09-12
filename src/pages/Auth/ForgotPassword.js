@@ -37,7 +37,7 @@ const ForgotPassword = () => {
             await resetPassword(email);
             setOpenModal(true);
         } catch (error) {
-            alert(getErrorMessage(error.code));
+            alert(getErrorMessage(error));
         }
     };
 

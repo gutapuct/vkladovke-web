@@ -35,7 +35,7 @@ const Confirm = () => {
             await emailVerification(currentUser);
             setOpenModal(true);
         } catch (error) {
-            alert(getErrorMessage(error.code));
+            alert(getErrorMessage(error));
         }
     };
 
