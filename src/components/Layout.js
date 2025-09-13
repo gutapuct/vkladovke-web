@@ -1,4 +1,3 @@
-// components/Layout.jsx
 import { useState } from "react";
 import {
     Box,
@@ -27,9 +26,11 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { getErrorMessage } from "../utils/firebase_firestore";
+import ConfirmDialog from "./ConfirmDialog";
 
 const Layout = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
@@ -52,13 +53,23 @@ const Layout = ({ children }) => {
     };
 
     const GetCurrentYear = () => new Date().getFullYear();
-    const handleSignOut = async () => {
+
+    const handleConfirmLogout = async () => {
         try {
             await logout();
             setMobileOpen(false);
         } catch (error) {
             alert(getErrorMessage(error));
         }
+    };
+
+    const handleOpenLogoutDialog = () => {
+        setLogoutDialogOpen(true);
+        setMobileOpen(false);
+    };
+
+    const handleCloseLogoutDialog = () => {
+        setLogoutDialogOpen(false);
     };
 
     const drawer = (
@@ -97,7 +108,7 @@ const Layout = ({ children }) => {
                 <List>
                     <ListItem
                         button="true"
-                        onClick={handleSignOut}
+                        onClick={handleOpenLogoutDialog}
                         sx={{
                             color: "error.main",
                             cursor: "pointer",
@@ -220,6 +231,16 @@ const Layout = ({ children }) => {
                     © {GetCurrentYear()} В Кладовке. Все права защищены.
                 </Typography>
             </Box>
+
+            <ConfirmDialog
+                open={logoutDialogOpen}
+                onClose={handleCloseLogoutDialog}
+                onConfirm={handleConfirmLogout}
+                title="Выход из аккаунта"
+                message="Вы уверены, что хотите выйти из своего аккаунта?"
+                confirmText="Выйти"
+                cancelText="Отмена"
+            />
         </Box>
     );
 };
