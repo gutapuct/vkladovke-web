@@ -56,16 +56,16 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            await withLoading(async () => {
+        await withLoading(async () => {
+            try {
                 const response = await signup(formData.email, formData.password);
                 await emailVerification(response.user);
 
                 setOpenModal(true);
-            });
-        } catch (error) {
-            alert(getErrorMessage(error));
-        }
+            } catch (error) {
+                alert(getErrorMessage(error));
+            }
+        });
     };
 
     return (
