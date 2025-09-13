@@ -18,10 +18,11 @@ import {
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { auth, getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleLogin from "./GoogleLogin";
+import { useLoading } from "../../hooks/LoadingContext";
 
 const defaultTheme = createTheme();
 
@@ -34,7 +35,8 @@ const Signup = () => {
         password: "",
     });
 
-    const { signup, logout, emailVerification } = useAuth();
+    const { signup, emailVerification } = useAuth();
+    const { withLoading } = useLoading();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -55,11 +57,12 @@ const Signup = () => {
         e.preventDefault();
 
         try {
-            const response = await signup(formData.email, formData.password);
-            await emailVerification(response.user);
-            await logout(auth);
+            await withLoading(async () => {
+                const response = await signup(formData.email, formData.password);
+                await emailVerification(response.user);
 
-            setOpenModal(true);
+                setOpenModal(true);
+            });
         } catch (error) {
             alert(getErrorMessage(error));
         }
@@ -85,7 +88,7 @@ const Signup = () => {
                         </Typography>
                         <Box component="form" noValidate sx={{ mt: 3 }}>
                             <Grid container spacing={2}>
-                                <Grid item xs={12}>
+                                <Grid>
                                     <TextField
                                         required
                                         fullWidth

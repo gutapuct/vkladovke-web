@@ -27,6 +27,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { getErrorMessage } from "../utils/firebase_firestore";
 import ConfirmDialog from "./ConfirmDialog";
+import { useLoading } from "../hooks/LoadingContext";
 
 const Layout = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -36,6 +37,7 @@ const Layout = ({ children }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const { logout } = useAuth();
+    const { withLoading } = useLoading();
 
     const menuItems = [
         { text: "Главная", icon: <HomeIcon />, path: "/" },
@@ -55,12 +57,14 @@ const Layout = ({ children }) => {
     const GetCurrentYear = () => new Date().getFullYear();
 
     const handleConfirmLogout = async () => {
-        try {
-            await logout();
-            setMobileOpen(false);
-        } catch (error) {
-            alert(getErrorMessage(error));
-        }
+        await withLoading(async () => {
+            try {
+                await logout();
+                setMobileOpen(false);
+            } catch (error) {
+                alert(getErrorMessage(error));
+            }
+        });
     };
 
     const handleOpenLogoutDialog = () => {

@@ -3,18 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import GoogleIcon from "@mui/icons-material/Google";
+import { useLoading } from "../../hooks/LoadingContext";
 
 const GoogleLogin = () => {
     const navigate = useNavigate();
     const { loginWithGoogle } = useAuth();
+    const { withLoading } = useLoading();
 
     const handleGoogleSignIn = async () => {
-        try {
-            await loginWithGoogle();
-            navigate("/");
-        } catch (error) {
-            alert(getErrorMessage(error));
-        }
+        await withLoading(async () => {
+            try {
+                await loginWithGoogle();
+                navigate("/");
+            } catch (error) {
+                alert(getErrorMessage(error));
+            }
+        });
     };
 
     return (

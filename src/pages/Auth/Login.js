@@ -17,6 +17,7 @@ import { getErrorMessage } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleLogin from "./GoogleLogin";
+import { useLoading } from "../../hooks/LoadingContext";
 
 const defaultTheme = createTheme();
 
@@ -27,6 +28,7 @@ const Login = () => {
         password: "",
     });
 
+    const { withLoading } = useLoading();
     const { login } = useAuth();
 
     const handleInputChange = (event) => {
@@ -40,12 +42,14 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            await login(formData.email, formData.password);
-            navigate("/");
-        } catch (error) {
-            alert(getErrorMessage(error));
-        }
+        await withLoading(async () => {
+            try {
+                await login(formData.email, formData.password);
+                navigate("/");
+            } catch (error) {
+                alert(getErrorMessage(error));
+            }
+        });
     };
 
     return (

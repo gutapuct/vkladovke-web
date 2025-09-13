@@ -19,6 +19,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
+import { useLoading } from "../../hooks/LoadingContext";
 
 const defaultTheme = createTheme();
 
@@ -29,16 +30,19 @@ const ForgotPassword = () => {
     const [openModal, setOpenModal] = useState(false);
 
     const { resetPassword } = useAuth();
+    const { withLoading } = useLoading();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            await resetPassword(email);
-            setOpenModal(true);
-        } catch (error) {
-            alert(getErrorMessage(error));
-        }
+        await withLoading(async () => {
+            try {
+                await resetPassword(email);
+                setOpenModal(true);
+            } catch (error) {
+                alert(getErrorMessage(error));
+            }
+        });
     };
 
     const handleOpenModal = () => setOpenModal(true);
