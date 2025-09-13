@@ -15,15 +15,18 @@ import {
     BottomNavigationAction,
     useTheme,
     useMediaQuery,
+    Divider,
 } from "@mui/material";
 import {
     Menu as MenuIcon,
     Home as HomeIcon,
     Settings as SettingsIcon,
     History as HistoryIcon,
-    AccountCircle,
+    ExitToApp as LogoutIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { getErrorMessage } from "../utils/firebase_firestore";
 
 const Layout = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -31,6 +34,7 @@ const Layout = ({ children }) => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const { logout } = useAuth();
 
     const menuItems = [
         { text: "Главная", icon: <HomeIcon />, path: "/" },
@@ -48,14 +52,19 @@ const Layout = ({ children }) => {
     };
 
     const GetCurrentYear = () => new Date().getFullYear();
+    const handleSignOut = async () => {
+        try {
+            await logout();
+            setMobileOpen(false);
+        } catch (error) {
+            alert(getErrorMessage(error));
+        }
+    };
 
     const drawer = (
-        <Box sx={{ width: 250 }} role="presentation">
-            <Box sx={{ p: 2, display: "flex", alignItems: "center", borderBottom: 1, borderColor: "divider" }}>
-                <AccountCircle sx={{ mr: 2, fontSize: 40 }} />
-                <Typography variant="h6">Меню</Typography>
-            </Box>
-            <List>
+        <Box sx={{ width: 250, height: "100%", display: "flex", flexDirection: "column" }} role="presentation">
+            {/* Main Menu Items */}
+            <List sx={{ flex: 1 }}>
                 {menuItems.map((item) => (
                     <ListItem
                         button="true"
@@ -69,14 +78,42 @@ const Layout = ({ children }) => {
                                 "&:hover": {
                                     backgroundColor: "primary.dark",
                                 },
+                                "& .MuiListItemIcon-root": {
+                                    color: "inherit",
+                                },
                             },
+                            cursor: "pointer",
                         }}
                     >
-                        <ListItemIcon sx={{ color: "inherit" }}>{item.icon}</ListItemIcon>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
                         <ListItemText primary={item.text} />
                     </ListItem>
                 ))}
             </List>
+
+            {/* Logout Section */}
+            <Box sx={{ mt: "auto" }}>
+                <Divider />
+                <List>
+                    <ListItem
+                        button="true"
+                        onClick={handleSignOut}
+                        sx={{
+                            color: "error.main",
+                            cursor: "pointer",
+                            "&:hover": {
+                                backgroundColor: "error.light",
+                                color: "white",
+                            },
+                        }}
+                    >
+                        <ListItemIcon sx={{ color: "inherit" }}>
+                            <LogoutIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Выйти" />
+                    </ListItem>
+                </List>
+            </Box>
         </Box>
     );
 
@@ -106,7 +143,14 @@ const Layout = ({ children }) => {
                 open={mobileOpen}
                 onClose={handleDrawerToggle}
                 ModalProps={{ keepMounted: true }}
-                sx={{ "& .MuiDrawer-paper": { boxSizing: "border-box", width: 250 } }}
+                sx={{
+                    "& .MuiDrawer-paper": {
+                        boxSizing: "border-box",
+                        width: 250,
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                }}
             >
                 {drawer}
             </Drawer>
@@ -120,7 +164,7 @@ const Layout = ({ children }) => {
                     width: "100%",
                     maxWidth: "100%",
                     boxSizing: "border-box",
-                    ...(isMobile && { pb: 8 })
+                    ...(isMobile && { pb: 8 }),
                 }}
             >
                 {children}
