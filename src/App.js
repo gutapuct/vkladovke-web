@@ -8,8 +8,10 @@ import Settings from "./pages/Settings";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Confirm from "./pages/Auth/Confirm";
 import Layout from "./components/Layout";
+import { LoadingProvider } from "./hooks/LoadingContext";
+import LoadingSpinner from "./components/LoadingSpinner";
 
-function App() {
+const AppContent = () => {
     const PrivateRoute = ({ element }) => {
         const { currentUser } = useAuth();
         console.log("currentUser, ", currentUser);
@@ -42,6 +44,7 @@ function App() {
 
     return (
         <>
+            <LoadingSpinner />
             <Routes>
                 <Route path="/register" element={<Signup />}></Route>
                 <Route path="/login" element={<Login />}></Route>
@@ -52,6 +55,14 @@ function App() {
                 <Route path="/history" element={<PrivateRoute element={<History />} />}></Route>
             </Routes>
         </>
+    );
+}
+
+const App = () => {
+    return (
+        <LoadingProvider>
+            <AppContent />
+        </LoadingProvider>
     );
 }
 
