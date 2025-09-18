@@ -18,11 +18,15 @@ import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleLogin from "./GoogleLogin";
 import { useLoading } from "../../hooks/LoadingContext";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const defaultTheme = createTheme();
 
 const Login = () => {
     const navigate = useNavigate();
+    const { alertState, showError, hideAlert } = useAlert();
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -47,7 +51,7 @@ const Login = () => {
                 await login(formData.email, formData.password);
                 navigate("/");
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -115,6 +119,14 @@ const Login = () => {
                         </Box>
                     </Box>
                 </Container>
+
+                <AlertDialog
+                    open={alertState.open}
+                    onClose={hideAlert}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                />
             </ThemeProvider>
         </>
     );

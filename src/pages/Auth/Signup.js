@@ -9,11 +9,6 @@ import {
     Typography,
     Link,
     ThemeProvider,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
 } from "@mui/material";
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -23,13 +18,15 @@ import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleLogin from "./GoogleLogin";
 import { useLoading } from "../../hooks/LoadingContext";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const defaultTheme = createTheme();
 
 const Signup = () => {
-    const [openModal, setOpenModal] = useState(false);
-
     const navigate = useNavigate();
+    const { alertState, showError, showInfo, hideAlert } = useAlert();
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -46,11 +43,11 @@ const Signup = () => {
         });
     };
 
-    const handleOpenModal = () => setOpenModal(true);
-
     const handleCloseModal = () => {
-        setOpenModal(false);
-        navigate("/login");
+        hideAlert();
+        if (alertState.type === "info") {
+            navigate("/login");
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -58,12 +55,15 @@ const Signup = () => {
 
         await withLoading(async () => {
             try {
-                const response = await signup(formData.email, formData.password);
-                await emailVerification(response.user);
+                await signup(formData.email, formData.password);
+                await emailVerification();
 
-                setOpenModal(true);
+                showInfo(
+                    `На указанный email адрес (${formData.email}) выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.`,
+                    "Подтвердите регистрацию"
+                );
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -124,28 +124,15 @@ const Signup = () => {
                         </Box>
                     </Box>
                 </Container>
-
-                <Dialog
-                    open={openModal}
-                    onClose={handleOpenModal}
-                    aria-labelledby="modal-title"
-                    aria-describedby="modal-description"
-                >
-                    <DialogTitle id="modal-title">Подтвердите регистрацию</DialogTitle>
-
-                    <DialogContent>
-                        <DialogContentText id="modal-description" sx={{ mb: 2 }}>
-                            На указанный email адрес ({formData.email}) выслано письмо с подтверждением.
-                            <br />
-                            Пожалуйста, зайдите в почту и подтвердите регистрацию.
-                        </DialogContentText>
-                    </DialogContent>
-
-                    <DialogActions>
-                        <Button onClick={handleCloseModal}>Закрыть</Button>
-                    </DialogActions>
-                </Dialog>
             </ThemeProvider>
+
+            <AlertDialog
+                open={alertState.open}
+                onClose={handleCloseModal}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </>
     );
 };

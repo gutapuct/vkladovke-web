@@ -25,7 +25,11 @@ export const AuthProvider = ({ children }) => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user !== null) {
                 const dbUser = await userService.getUser(user.email);
-                user = { ...user, displayName: dbUser.displayName };
+                user = {
+                    ...user,
+                    displayName: dbUser.displayName,
+                    groupId: dbUser.groupId,
+                };
             }
 
             setCurrentUser(user);
@@ -56,8 +60,9 @@ export const AuthProvider = ({ children }) => {
         return response;
     };
 
-    const emailVerification = async (user) => {
-        await sendEmailVerification(user);
+    const emailVerification = async () => {
+        // TODO: fix that. Now it doesn't work 
+        await sendEmailVerification(currentUser);
         await logout();
     };
 

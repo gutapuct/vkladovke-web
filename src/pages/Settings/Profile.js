@@ -5,12 +5,15 @@ import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/userService";
 import { useLoading } from "../../hooks/LoadingContext";
 import { getErrorMessage } from "../../utils/firebase_firestore";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const Profile = () => {
     const [canChangeName, setCanChangeName] = useState(false);
     const { currentUser, changeDisplayName } = useAuth();
     const [tempName, setTempName] = useState("");
     const { withLoading } = useLoading();
+    const { alertState, showError, hideAlert } = useAlert();
 
     const openEditName = () => {
         setTempName(currentUser.displayName || currentUser.email);
@@ -29,7 +32,7 @@ const Profile = () => {
                 changeDisplayName(tempName);
                 closeEditName();
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -63,6 +66,14 @@ const Profile = () => {
                     </IconButton>
                 </Box>
             )}
+
+            <AlertDialog
+                open={alertState.open}
+                onClose={hideAlert}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </Box>
     );
 };

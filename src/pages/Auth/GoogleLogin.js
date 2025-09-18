@@ -4,11 +4,14 @@ import { useAuth } from "../../hooks/useAuth";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useLoading } from "../../hooks/LoadingContext";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const GoogleLogin = () => {
     const navigate = useNavigate();
     const { loginWithGoogle } = useAuth();
     const { withLoading } = useLoading();
+    const { alertState, showError, hideAlert } = useAlert();
 
     const handleGoogleSignIn = async () => {
         await withLoading(async () => {
@@ -16,7 +19,7 @@ const GoogleLogin = () => {
                 await loginWithGoogle();
                 navigate("/");
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -62,6 +65,14 @@ const GoogleLogin = () => {
                     Войти через Google
                 </Button>
             </Box>
+
+            <AlertDialog
+                open={alertState.open}
+                onClose={hideAlert}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </>
     );
 };

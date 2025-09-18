@@ -1,5 +1,6 @@
 import Profile from "./Profile";
 import Products from "./Products";
+import Users from "./Users"
 
 const Settings = () => {
     
@@ -7,6 +8,7 @@ const Settings = () => {
     return (
         <>
             <Profile />
+            <Users />
             <Products />
         </>
     );

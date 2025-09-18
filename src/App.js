@@ -21,6 +21,7 @@ const AppContent = () => {
         // console.log('categories: ', categories);
         // console.log('products: ', products);
         if (!currentUser) {
+            // TODO: fix that. Now it doesn't work
             return <Navigate to="/login" />;
         }
 
@@ -33,7 +34,7 @@ const AppContent = () => {
 
     const NoAccessRoute = ({ element }) => {
         const { currentUser } = useAuth();
-        console.log("currentUser, ", currentUser);
+        // console.log("currentUser, ", currentUser);
 
         if (!currentUser) {
             return <Navigate to="/login" />;
@@ -60,7 +61,7 @@ const AppContent = () => {
             </Routes>
         </>
     );
-}
+};
 
 const App = () => {
     return (
@@ -68,6 +69,6 @@ const App = () => {
             <AppContent />
         </LoadingProvider>
     );
-}
+};
 
 export default App;

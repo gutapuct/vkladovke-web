@@ -28,6 +28,8 @@ import { useAuth } from "../hooks/useAuth";
 import { getErrorMessage } from "../utils/firebase_firestore";
 import ConfirmDialog from "./ConfirmDialog";
 import { useLoading } from "../hooks/LoadingContext";
+import AlertDialog from "./AlertDialog";
+import { useAlert } from "../hooks/useAlert";
 
 const Layout = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,6 +40,7 @@ const Layout = ({ children }) => {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const { logout } = useAuth();
     const { withLoading } = useLoading();
+    const { alertState, showError, hideAlert } = useAlert();
 
     const menuItems = [
         { text: "Главная", icon: <HomeIcon />, path: "/" },
@@ -62,7 +65,7 @@ const Layout = ({ children }) => {
                 await logout();
                 setMobileOpen(false);
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -244,6 +247,14 @@ const Layout = ({ children }) => {
                 message="Вы уверены, что хотите выйти из своего аккаунта?"
                 confirmText="Выйти"
                 cancelText="Отмена"
+            />
+
+            <AlertDialog
+                open={alertState.open}
+                onClose={hideAlert}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
             />
         </Box>
     );

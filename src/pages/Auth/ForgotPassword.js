@@ -1,33 +1,20 @@
-import {
-    Avatar,
-    Box,
-    Button,
-    Container,
-    createTheme,
-    TextField,
-    Typography,
-    Link,
-    ThemeProvider,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-} from "@mui/material";
+import { Avatar, Box, Button, Container, createTheme, TextField, Typography, Link, ThemeProvider } from "@mui/material";
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const defaultTheme = createTheme();
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
+    const { alertState, showInfo, showError, hideAlert } = useAlert();
 
     const [email, setEmail] = useState("");
-    const [openModal, setOpenModal] = useState(false);
 
     const { resetPassword } = useAuth();
     const { withLoading } = useLoading();
@@ -38,17 +25,15 @@ const ForgotPassword = () => {
         await withLoading(async () => {
             try {
                 await resetPassword(email);
-                setOpenModal(true);
+                showInfo(`На указанный email адрес (${email}) выслано письмо для сброса пароля`);
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
 
-    const handleOpenModal = () => setOpenModal(true);
-
-    const handleCloseModal = () => {
-        setOpenModal(false);
+    const closeModal = () => {
+        hideAlert();
         navigate("/login");
     };
 
@@ -102,24 +87,13 @@ const ForgotPassword = () => {
                     </Box>
                 </Container>
 
-                <Dialog
-                    open={openModal}
-                    onClose={handleOpenModal}
-                    aria-labelledby="modal-title"
-                    aria-describedby="modal-description"
-                >
-                    <DialogTitle id="modal-title">Сброс пароля</DialogTitle>
-
-                    <DialogContent>
-                        <DialogContentText id="modal-description" sx={{ mb: 2 }}>
-                            На указанный email адрес ({email}) выслано письмо для сброса пароля.
-                        </DialogContentText>
-                    </DialogContent>
-
-                    <DialogActions>
-                        <Button onClick={handleCloseModal}>Закрыть</Button>
-                    </DialogActions>
-                </Dialog>
+                <AlertDialog
+                    open={alertState.open}
+                    onClose={closeModal}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                />
             </ThemeProvider>
         </>
     );

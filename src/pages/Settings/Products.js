@@ -26,6 +26,8 @@ import { useLoading } from "../../hooks/LoadingContext";
 import { useSettings } from "../../hooks/useSettings";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const Products = () => {
     const { withLoading } = useLoading();
@@ -40,6 +42,8 @@ const Products = () => {
         getUnitNameById,
     } = useSettings();
 
+    const { alertState, showError, hideAlert } = useAlert();
+
     const [isModalAddProductOpen, setIsModalAddProductOpen] = useState(false);
 
     const [removeProductDialogOpen, setRemoveProductDialogOpen] = useState(false);
@@ -48,7 +52,7 @@ const Products = () => {
     const [productToEdit, setProductToEdit] = useState({});
 
     const defaultNewProduct = { name: "", categoryId: "", unitId: "" };
-    const [newProduct, setNewProduct] = useState({...defaultNewProduct});
+    const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
     const toggleAddProduct = () => setIsModalAddProductOpen(!isModalAddProductOpen);
 
@@ -58,10 +62,10 @@ const Products = () => {
                 const response = await settingsService.addProduct(newProduct);
 
                 addProductToContext(response);
-                setNewProduct({...defaultNewProduct});
+                setNewProduct({ ...defaultNewProduct });
                 toggleAddProduct(false);
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -80,7 +84,7 @@ const Products = () => {
                 removeProductFromContext(productToRemove.id);
                 handleCloseRemoveProductDialog();
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -97,7 +101,7 @@ const Products = () => {
                 updateProductInContext(productToEdit);
                 setProductToEdit({});
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
@@ -276,6 +280,14 @@ const Products = () => {
                 message={`Вы уверены, что хотите удалить товар "${productToRemove.name}" ?`}
                 confirmText="Удалить"
                 cancelText="Отмена"
+            />
+
+            <AlertDialog
+                open={alertState.open}
+                onClose={hideAlert}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
             />
         </>
     );

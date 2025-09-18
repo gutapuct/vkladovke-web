@@ -7,52 +7,52 @@ import {
     Typography,
     Link,
     ThemeProvider,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
 } from "@mui/material";
-import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 import { auth, getErrorMessage } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
+import AlertDialog from "../../components/AlertDialog";
+import { useAlert } from "../../hooks/useAlert";
 
 const defaultTheme = createTheme();
 
 const Confirm = () => {
     const { currentUser, logout, emailVerification } = useAuth();
     const { withLoading } = useLoading();
+    const { alertState, showError, showInfo, hideAlert } = useAlert();
 
     const navigate = useNavigate();
-
-    const [openModal, setOpenModal] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         await withLoading(async () => {
             try {
-                await emailVerification(currentUser);
-                setOpenModal(true);
+                await emailVerification();
+                showInfo(
+                    "На ваш email адрес выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.",
+                    "Подтвердите регистрацию"
+                );
             } catch (error) {
-                alert(getErrorMessage(error));
+                showError(getErrorMessage(error));
             }
         });
     };
 
-    const handleOpenModal = () => setOpenModal(true);
-
     const handleCloseModal = async () => {
-        setOpenModal(false);
-        navigate("/login");
+        hideAlert();
+
+        if (alertState.type === "info") {
+            navigate("/login");
+        }
     };
 
     const handleBack = async () => {
         await withLoading(async () => {
             await logout(auth);
+            hideAlert();
             navigate("/login");
         });
     };
@@ -98,26 +98,13 @@ const Confirm = () => {
                     </Box>
                 </Container>
 
-                <Dialog
-                    open={openModal}
-                    onClose={handleOpenModal}
-                    aria-labelledby="modal-title"
-                    aria-describedby="modal-description"
-                >
-                    <DialogTitle id="modal-title">Подтвердите регистрацию</DialogTitle>
-
-                    <DialogContent>
-                        <DialogContentText id="modal-description" sx={{ mb: 2 }}>
-                            На ваш email адрес выслано письмо с подтверждением.
-                            <br />
-                            Пожалуйста, зайдите в почту и подтвердите регистрацию.
-                        </DialogContentText>
-                    </DialogContent>
-
-                    <DialogActions>
-                        <Button onClick={handleCloseModal}>Закрыть</Button>
-                    </DialogActions>
-                </Dialog>
+                <AlertDialog
+                    open={alertState.open}
+                    onClose={handleCloseModal}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                />
             </ThemeProvider>
         </>
     );
