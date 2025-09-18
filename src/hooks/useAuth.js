@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { auth } from "../utils/firebase_firestore";
 import {
     createUserWithEmailAndPassword,
@@ -9,6 +9,7 @@ import {
     signInWithPopup,
     signOut,
 } from "firebase/auth";
+import { userService } from "../services/userService";
 
 const AuthContext = createContext();
 
@@ -17,16 +18,27 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [currentUser, serCurrentUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            serCurrentUser(user);
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user !== null) {
+                const dbUser = await userService.getUser(user.email);
+                user = { ...user, displayName: dbUser.displayName };
+            }
+
+            setCurrentUser(user);
             setLoading(false);
         });
 
         return unsubscribe;
+    }, []);
+
+    const changeDisplayName = useCallback((newName) => {
+        setCurrentUser((prev) => {
+            return { ...prev, displayName: newName };
+        });
     }, []);
 
     const login = async (email, password) => {
@@ -38,7 +50,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signup = async (email, password) => {
-        return await createUserWithEmailAndPassword(auth, email, password);
+        const response = await createUserWithEmailAndPassword(auth, email, password);
+        await userService.createUser(response.user.email);
+
+        return response;
     };
 
     const emailVerification = async (user) => {
@@ -48,7 +63,13 @@ export const AuthProvider = ({ children }) => {
 
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+        const response = await signInWithPopup(auth, provider);
+
+        const isUserExists = await userService.isUserExists(response.user.email);
+
+        if (!isUserExists) {
+            await userService.createUser(response.user.email);
+        }
     };
 
     const resetPassword = async (email) => {
@@ -57,6 +78,7 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         currentUser,
+        changeDisplayName,
         login,
         logout,
         signup,

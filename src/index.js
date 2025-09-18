@@ -5,13 +5,16 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { HashRouter } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
+import { SettingsProvider } from "./hooks/useSettings";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
     <React.StrictMode>
         <HashRouter>
             <AuthProvider>
-                <App />
+                <SettingsProvider>
+                    <App />
+                </SettingsProvider>
             </AuthProvider>
         </HashRouter>
     </React.StrictMode>

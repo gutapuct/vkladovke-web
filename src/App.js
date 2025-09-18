@@ -4,18 +4,23 @@ import Login from "./pages/Auth/Login";
 import Main from "./pages/Main";
 import History from "./pages/History";
 import { useAuth } from "./hooks/useAuth";
-import Settings from "./pages/Settings";
+import Settings from "./pages/Settings/Settings";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Confirm from "./pages/Auth/Confirm";
 import Layout from "./components/Layout";
 import { LoadingProvider } from "./hooks/LoadingContext";
 import LoadingSpinner from "./components/LoadingSpinner";
+import { useSettings } from "./hooks/useSettings";
 
 const AppContent = () => {
     const PrivateRoute = ({ element }) => {
         const { currentUser } = useAuth();
-        console.log("currentUser, ", currentUser);
+        // console.log("currentUser, ", currentUser);
 
+        // const {units, categories, products} = useSettings();
+        // console.log('units: ', units);
+        // console.log('categories: ', categories);
+        // console.log('products: ', products);
         if (!currentUser) {
             return <Navigate to="/login" />;
         }

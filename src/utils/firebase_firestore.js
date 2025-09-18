@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDjRqjqWbtx_QIPsobH4J72jg98xNTt-BM",
@@ -30,8 +31,10 @@ export const getErrorMessage = (error) => {
         console.log("error: ", error);
         console.log("error code: ", error.code);
         console.log("error message: ", error.message);
-        return "Произошла ошибка. Попробуйте еще раз";
+        return error.message;
     }
 
     return errorMessages[error.code];
 };
+
+export const db = getFirestore(app);
