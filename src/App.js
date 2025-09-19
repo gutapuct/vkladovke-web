@@ -8,7 +8,6 @@ import Settings from "./pages/Settings/Settings";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Confirm from "./pages/Auth/Confirm";
 import Layout from "./components/Layout";
-import { LoadingProvider } from "./hooks/LoadingContext";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 const AppContent = () => {
@@ -21,7 +20,6 @@ const AppContent = () => {
         // console.log('categories: ', categories);
         // console.log('products: ', products);
         if (!currentUser) {
-            // TODO: fix that. Now it doesn't work
             return <Navigate to="/login" />;
         }
 
@@ -65,9 +63,7 @@ const AppContent = () => {
 
 const App = () => {
     return (
-        <LoadingProvider>
-            <AppContent />
-        </LoadingProvider>
+        <AppContent />
     );
 };
 

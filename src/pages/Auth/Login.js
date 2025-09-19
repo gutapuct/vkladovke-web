@@ -10,7 +10,7 @@ import {
     Link,
     ThemeProvider,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../utils/firebase_firestore";
@@ -25,6 +25,8 @@ const defaultTheme = createTheme();
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login, currentUser } = useAuth();
+
     const { alertState, showError, hideAlert } = useAlert();
 
     const [formData, setFormData] = useState({
@@ -33,7 +35,6 @@ const Login = () => {
     });
 
     const { withLoading } = useLoading();
-    const { login } = useAuth();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -55,6 +56,12 @@ const Login = () => {
             }
         });
     };
+
+    useEffect(() => {
+        if (currentUser) {
+            navigate("/");
+        }
+    }, [currentUser, navigate]);
 
     return (
         <>
