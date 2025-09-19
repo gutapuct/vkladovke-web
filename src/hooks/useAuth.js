@@ -60,10 +60,8 @@ export const AuthProvider = ({ children }) => {
         return response;
     };
 
-    const emailVerification = async () => {
-        // TODO: fix that. Now it doesn't work 
-        await sendEmailVerification(currentUser);
-        await logout();
+    const emailVerification = async (user) => {
+        await sendEmailVerification(user);
     };
 
     const loginWithGoogle = async () => {

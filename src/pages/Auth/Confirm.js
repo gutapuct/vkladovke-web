@@ -30,7 +30,7 @@ const Confirm = () => {
 
         await withLoading(async () => {
             try {
-                await emailVerification();
+                await emailVerification(currentUser.auth.currentUser);
                 showInfo(
                     "На ваш email адрес выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.",
                     "Подтвердите регистрацию"
@@ -43,6 +43,7 @@ const Confirm = () => {
 
     const handleCloseModal = async () => {
         hideAlert();
+        await logout();
 
         if (alertState.type === "info") {
             navigate("/login");
