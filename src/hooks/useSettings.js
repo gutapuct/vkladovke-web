@@ -26,9 +26,16 @@ export const SettingsProvider = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        catchSettings();
-        catchProducts();
-        setLoading(false);
+        const loadData = async () => {
+            try {
+                await Promise.all([catchSettings(), catchProducts()]);
+            } catch (error) {
+                console.error("Ошибка загрузки настроек:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
     }, [catchSettings, catchProducts]);
 
     const addProduct = useCallback((newProduct) => {
@@ -63,15 +70,25 @@ export const SettingsProvider = ({ children }) => {
         [units]
     );
 
+    const getProductNameById = useCallback(
+        (id) => {
+            const product = products.find((p) => p.id === id);
+            return product ? product.name : NO_NAME;
+        },
+        [products]
+    );
+
     const value = {
         units,
         categories,
         products,
+        activeProducts: products.filter((x) => !x.isDeleted),
         getCategoryNameById,
         getUnitNameById,
+        getProductNameById,
         addProductToContext: addProduct,
         removeProductFromContext: removeProduct,
-        updateProductInContext: updateProduct
+        updateProductInContext: updateProduct,
     };
 
     return <SettingsContext.Provider value={value}>{!loading && children}</SettingsContext.Provider>;

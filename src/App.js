@@ -9,16 +9,13 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Confirm from "./pages/Auth/Confirm";
 import Layout from "./components/Layout";
 import LoadingSpinner from "./components/LoadingSpinner";
+import OrderDetails from "./pages/Orders/OrderDetails";
+import CreateOrder from "./pages/Orders/CreateOrder";
 
 const AppContent = () => {
     const PrivateRoute = ({ element }) => {
         const { currentUser } = useAuth();
-        // console.log("currentUser, ", currentUser);
 
-        // const {units, categories, products} = useSettings();
-        // console.log('units: ', units);
-        // console.log('categories: ', categories);
-        // console.log('products: ', products);
         if (!currentUser) {
             return <Navigate to="/login" />;
         }
@@ -56,6 +53,8 @@ const AppContent = () => {
                 <Route path="/" element={<PrivateRoute element={<Main />} />}></Route>
                 <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
                 <Route path="/history" element={<PrivateRoute element={<History />} />}></Route>
+                <Route path="/create-order" element={<CreateOrder />} />
+                <Route path="/order-details/:orderId" element={<PrivateRoute element={<OrderDetails />} />}></Route>
             </Routes>
         </>
     );

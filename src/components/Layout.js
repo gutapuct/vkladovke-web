@@ -43,7 +43,7 @@ const Layout = ({ children }) => {
     const { alertState, showError, hideAlert } = useAlert();
 
     const menuItems = [
-        { text: "Главная", icon: <HomeIcon />, path: "/" },
+        { text: "Списки", icon: <HomeIcon />, path: "/" },
         { text: "История", icon: <HistoryIcon />, path: "/history" },
         { text: "Настройки", icon: <SettingsIcon />, path: "/settings" },
     ];

@@ -34,7 +34,7 @@ const Products = () => {
     const {
         units,
         categories,
-        products,
+        activeProducts,
         addProductToContext,
         removeProductFromContext,
         updateProductInContext,
@@ -126,7 +126,7 @@ const Products = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {products.map((product) => (
+                            {activeProducts.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>
                                         {productToEdit?.id === product.id ? (

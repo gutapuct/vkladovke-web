@@ -23,7 +23,7 @@ export const settingsService = {
         const productsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_PRODUCTS);
         const productsSnap = await getDoc(productsRef);
 
-        return productsSnap.data().items.filter((x) => !x.isDeleted);
+        return productsSnap.data().items;
     },
 
     addProduct: async (product) => {
