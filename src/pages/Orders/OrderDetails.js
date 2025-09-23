@@ -80,9 +80,9 @@ const OrderDetails = () => {
                 setOrder({ ...order, isCompleted: complete });
 
                 setCompleteOrderOpen(false);
-                
+
                 if (complete) {
-                    handleBack();
+                    navigate('/');
                 }
             } catch (error) {
                 showError(error);
@@ -91,7 +91,7 @@ const OrderDetails = () => {
     };
 
     const handleBack = () => {
-        navigate("/");
+        navigate(-1);
     };
 
     if (!order) {

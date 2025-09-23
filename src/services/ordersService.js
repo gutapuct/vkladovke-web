@@ -129,6 +129,7 @@ export const ordersService = {
                 title: orderData.title || `Заказ от ${getNowString()}`,
                 createdAt: serverTimestamp(),
                 isCompleted: false,
+                completedAt: null,
                 items: orderData?.items?.map((item) => ({ ...item, isCompleted: false })) || [],
             };
 
@@ -155,7 +156,10 @@ export const ordersService = {
     completeOrder: async (orderId, complete) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
-            await updateDoc(orderRef, { isCompleted: complete });
+            await updateDoc(orderRef, {
+                isCompleted: complete,
+                completedAt: complete ? serverTimestamp() : null,
+            });
         } catch (error) {
             console.error("Ошибка завершения заказа:", error);
             throw error;

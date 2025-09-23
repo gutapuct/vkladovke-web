@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Signup from "./pages/Auth/Signup";
 import Login from "./pages/Auth/Login";
 import Main from "./pages/Main";
-import History from "./pages/History";
+import History from "./pages/Orders/History";
 import { useAuth } from "./hooks/useAuth";
 import Settings from "./pages/Settings/Settings";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -53,7 +53,7 @@ const AppContent = () => {
                 <Route path="/" element={<PrivateRoute element={<Main />} />}></Route>
                 <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
                 <Route path="/history" element={<PrivateRoute element={<History />} />}></Route>
-                <Route path="/create-order" element={<CreateOrder />} />
+                <Route path="/create-order" element={<PrivateRoute element={<CreateOrder />} />}></Route>
                 <Route path="/order-details/:orderId" element={<PrivateRoute element={<OrderDetails />} />}></Route>
             </Routes>
         </>
