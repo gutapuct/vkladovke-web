@@ -26,12 +26,13 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
+import { DEFAULT_UNIT, NO_NAME } from "../../utils/constants";
 
 const CreateOrder = () => {
     const navigate = useNavigate();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
-    const { activeProducts, categories, getProductNameById, getCategoryNameById } = useSettings();
+    const { activeProducts, getProductNameById, getCategoryNameById, getUnitNameById } = useSettings();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
     const [orderData, setOrderData] = useState({
@@ -43,8 +44,6 @@ const CreateOrder = () => {
         productId: "",
         quantity: 1,
     });
-
-    // Фильтруем только активные продукты
 
     const handleAddItem = () => {
         if (!newItem.productId) return;
@@ -61,7 +60,7 @@ const CreateOrder = () => {
 
         const item = {
             productId: newItem.productId,
-            quantity: newItem.quantity
+            quantity: newItem.quantity,
         };
 
         setOrderData((prev) => ({
@@ -108,9 +107,17 @@ const CreateOrder = () => {
         });
     };
 
-    const getProductCategory = (productId) => {
+    const getProductFullInfo = (productId) => {
         const product = activeProducts.find((p) => p.id === productId);
-        return getCategoryNameById(product.categoryId);
+
+        if (!product) {
+            return { category: NO_NAME, unit: DEFAULT_UNIT };
+        }
+
+        return {
+            category: getCategoryNameById(product.categoryId),
+            unit: getUnitNameById(product.unitId),
+        };
     };
 
     return (
@@ -150,11 +157,15 @@ const CreateOrder = () => {
                                 label="Продукт"
                             >
                                 <MenuItem value="">Выберите продукт</MenuItem>
-                                {activeProducts.map((product) => (
-                                    <MenuItem key={product.id} value={product.id}>
-                                        {product.name} ({categories[product.categoryId]})
-                                    </MenuItem>
-                                ))}
+                                {activeProducts.map((product) => {
+                                    const { category, unit } = getProductFullInfo(product.id);
+
+                                    return (
+                                        <MenuItem key={product.id} value={product.id}>
+                                            {product.name} ({category}) - {unit}
+                                        </MenuItem>
+                                    );
+                                })}
                             </Select>
                         </FormControl>
 
@@ -189,30 +200,30 @@ const CreateOrder = () => {
 
                         <List>
                             {orderData.items.map((item, index) => {
+                                const { category, unit } = getProductFullInfo(item.productId);
                                 return (
                                     <ListItem
                                         key={item.productId}
                                         divider={index < orderData.items.length - 1}
-                                        sx={{ pr: 8 }} // Добавляем отступ для кнопки удаления
+                                        sx={{ pr: 8 }}
                                     >
                                         <ListItemText
-                                            primary={getProductNameById(item.productId)}
+                                            primary={
+                                                <>
+                                                    {getProductNameById(item.productId)} - {item.quantity} {unit}
+                                                </>
+                                            }
                                             secondary={
                                                 <Box sx={{ mt: 1 }}>
                                                     <Chip
-                                                        label={getProductCategory(item.productId)}
+                                                        label={category}
                                                         size="small"
                                                         variant="outlined"
                                                         sx={{ mr: 1 }}
                                                     />
-                                                    <Chip
-                                                        label={`Количество: ${item.quantity}`}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
                                                 </Box>
                                             }
-                                            secondaryTypographyProps={{ component: 'div' }}
+                                            secondaryTypographyProps={{ component: "div" }}
                                         />
 
                                         {/* Кнопка удаления с позиционированием */}

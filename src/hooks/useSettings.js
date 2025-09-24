@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { settingsService } from "../services/settingsService";
-import { NO_NAME } from "../utils/constants";
+import { DEFAULT_UNIT, NO_NAME } from "../utils/constants";
 
 const SettingsContext = createContext();
 
@@ -65,7 +65,7 @@ export const SettingsProvider = ({ children }) => {
 
     const getUnitNameById = useCallback(
         (unitId) => {
-            return units[unitId] || NO_NAME;
+            return units[unitId] || DEFAULT_UNIT;
         },
         [units]
     );
