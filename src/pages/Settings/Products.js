@@ -38,8 +38,7 @@ const Products = () => {
         addProductToContext,
         removeProductFromContext,
         updateProductInContext,
-        getCategoryNameById,
-        getUnitNameById,
+        getProductInfo,
     } = useSettings();
 
     const { alertState, showError, hideAlert } = useAlert();
@@ -126,90 +125,97 @@ const Products = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {activeProducts.map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell>
-                                        {productToEdit?.id === product.id ? (
-                                            <TextField
-                                                value={productToEdit.name}
-                                                onChange={(e) =>
-                                                    setProductToEdit({
-                                                        ...productToEdit,
-                                                        name: e.target.value,
-                                                    })
-                                                }
-                                                size="small"
-                                                fullWidth
-                                            />
-                                        ) : (
-                                            product.name
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {productToEdit?.id === product.id ? (
-                                            <FormControl fullWidth size="small">
-                                                <Select
-                                                    value={productToEdit.categoryId}
+                            {activeProducts.map((product) => {
+                                const { category, unit } = getProductInfo(product.id);
+
+                                return (
+                                    <TableRow key={product.id}>
+                                        <TableCell>
+                                            {productToEdit?.id === product.id ? (
+                                                <TextField
+                                                    value={productToEdit.name}
                                                     onChange={(e) =>
                                                         setProductToEdit({
                                                             ...productToEdit,
-                                                            categoryId: parseInt(e.target.value),
+                                                            name: e.target.value,
                                                         })
                                                     }
-                                                >
-                                                    {Object.entries(categories).map(([id, name]) => (
-                                                        <MenuItem key={id} value={parseInt(id)}>
-                                                            {name}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        ) : (
-                                            <Chip label={getCategoryNameById(product.categoryId)} variant="outlined" />
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {productToEdit?.id === product.id ? (
-                                            <FormControl fullWidth size="small">
-                                                <Select
-                                                    value={productToEdit.unitId}
-                                                    onChange={(e) =>
-                                                        setProductToEdit({
-                                                            ...productToEdit,
-                                                            unitId: parseInt(e.target.value),
-                                                        })
-                                                    }
-                                                >
-                                                    {Object.entries(units).map(([id, name]) => (
-                                                        <MenuItem key={id} value={parseInt(id)}>
-                                                            {name}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        ) : (
-                                            getUnitNameById(product.unitId)
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {productToEdit?.id === product.id ? (
-                                            <IconButton color="primary" onClick={handleSaveProductToEdit}>
-                                                <SaveIcon />
+                                                    size="small"
+                                                    fullWidth
+                                                />
+                                            ) : (
+                                                product.name
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {productToEdit?.id === product.id ? (
+                                                <FormControl fullWidth size="small">
+                                                    <Select
+                                                        value={productToEdit.categoryId}
+                                                        onChange={(e) =>
+                                                            setProductToEdit({
+                                                                ...productToEdit,
+                                                                categoryId: parseInt(e.target.value),
+                                                            })
+                                                        }
+                                                    >
+                                                        {Object.entries(categories).map(([id, name]) => (
+                                                            <MenuItem key={id} value={parseInt(id)}>
+                                                                {name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            ) : (
+                                                <Chip
+                                                    label={category}
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {productToEdit?.id === product.id ? (
+                                                <FormControl fullWidth size="small">
+                                                    <Select
+                                                        value={productToEdit.unitId}
+                                                        onChange={(e) =>
+                                                            setProductToEdit({
+                                                                ...productToEdit,
+                                                                unitId: parseInt(e.target.value),
+                                                            })
+                                                        }
+                                                    >
+                                                        {Object.entries(units).map(([id, name]) => (
+                                                            <MenuItem key={id} value={parseInt(id)}>
+                                                                {name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            ) : (
+                                                unit
+                                            )}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {productToEdit?.id === product.id ? (
+                                                <IconButton color="primary" onClick={handleSaveProductToEdit}>
+                                                    <SaveIcon />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton color="primary" onClick={() => handleEditProduct(product)}>
+                                                    <EditIcon />
+                                                </IconButton>
+                                            )}
+                                            <IconButton
+                                                color="error"
+                                                onClick={() => handleOpenRemoveProductDialog(product)}
+                                            >
+                                                <DeleteIcon />
                                             </IconButton>
-                                        ) : (
-                                            <IconButton color="primary" onClick={() => handleEditProduct(product)}>
-                                                <EditIcon />
-                                            </IconButton>
-                                        )}
-                                        <IconButton
-                                            color="error"
-                                            onClick={() => handleOpenRemoveProductDialog(product)}
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </TableContainer>

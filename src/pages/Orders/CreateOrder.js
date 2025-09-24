@@ -26,13 +26,12 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
-import { DEFAULT_UNIT, NO_NAME } from "../../utils/constants";
 
 const CreateOrder = () => {
     const navigate = useNavigate();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
-    const { activeProducts, getProductNameById, getCategoryNameById, getUnitNameById } = useSettings();
+    const { activeProducts, getProductNameById, getProductInfo } = useSettings();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
     const [orderData, setOrderData] = useState({
@@ -107,19 +106,6 @@ const CreateOrder = () => {
         });
     };
 
-    const getProductFullInfo = (productId) => {
-        const product = activeProducts.find((p) => p.id === productId);
-
-        if (!product) {
-            return { category: NO_NAME, unit: DEFAULT_UNIT };
-        }
-
-        return {
-            category: getCategoryNameById(product.categoryId),
-            unit: getUnitNameById(product.unitId),
-        };
-    };
-
     return (
         <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto" }}>
             {/* Заголовок */}
@@ -158,7 +144,7 @@ const CreateOrder = () => {
                             >
                                 <MenuItem value="">Выберите продукт</MenuItem>
                                 {activeProducts.map((product) => {
-                                    const { category, unit } = getProductFullInfo(product.id);
+                                    const { category, unit } = getProductInfo(product.id);
 
                                     return (
                                         <MenuItem key={product.id} value={product.id}>
@@ -200,7 +186,7 @@ const CreateOrder = () => {
 
                         <List>
                             {orderData.items.map((item, index) => {
-                                const { category, unit } = getProductFullInfo(item.productId);
+                                const { category, unit } = getProductInfo(item.productId);
                                 return (
                                     <ListItem
                                         key={item.productId}

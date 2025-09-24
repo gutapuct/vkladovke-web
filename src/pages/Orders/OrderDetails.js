@@ -26,7 +26,7 @@ const OrderDetails = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
-    const { getProductNameById } = useSettings();
+    const { getProductInfo, getProductNameById } = useSettings();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
     const [completeOrderOpen, setCompleteOrderOpen] = useState(false);
@@ -82,7 +82,7 @@ const OrderDetails = () => {
                 setCompleteOrderOpen(false);
 
                 if (complete) {
-                    navigate('/');
+                    navigate("/");
                 }
             } catch (error) {
                 showError(error);
@@ -149,21 +149,29 @@ const OrderDetails = () => {
                         Осталось купить
                     </Typography>
                     <List>
-                        {pendingItems.map((item) => (
-                            <ListItem
-                                key={item.productId}
-                                secondaryAction={
-                                    <IconButton edge="end" onClick={() => handleCompleteItem(item.productId)}>
-                                        <RadioButtonUnchecked />
-                                    </IconButton>
-                                }
-                            >
-                                <ListItemText
-                                    primary={getProductNameById(item.productId)}
-                                    secondary={`Количество: ${item.quantity}`}
-                                />
-                            </ListItem>
-                        ))}
+                        {pendingItems.map((item) => {
+                            const { category, unit } = getProductInfo(item.productId);
+
+                            return (
+                                <ListItem
+                                    key={item.productId}
+                                    secondaryAction={
+                                        <IconButton edge="end" onClick={() => handleCompleteItem(item.productId)}>
+                                            <RadioButtonUnchecked />
+                                        </IconButton>
+                                    }
+                                >
+                                    <ListItemText
+                                        primary={
+                                            <>
+                                                {getProductNameById(item.productId)} ({category})
+                                            </>
+                                        }
+                                        secondary={`Количество: ${item.quantity} ${unit}`}
+                                    />
+                                </ListItem>
+                            );
+                        })}
                     </List>
                     <Divider sx={{ my: 2 }} />
                 </>
@@ -176,21 +184,32 @@ const OrderDetails = () => {
                         Куплено
                     </Typography>
                     <List>
-                        {completedItems.map((item) => (
-                            <ListItem
-                                key={item.productId}
-                                secondaryAction={
-                                    <IconButton edge="end" onClick={() => handleCompleteItem(item.productId, false)}>
-                                        <RadioButtonChecked />
-                                    </IconButton>
-                                }
-                            >
-                                <ListItemText
-                                    primary={getProductNameById(item.productId)}
-                                    secondary={`Количество: ${item.quantity}`}
-                                />
-                            </ListItem>
-                        ))}
+                        {completedItems.map((item) => {
+                            const { category, unit } = getProductInfo(item.productId);
+
+                            return (
+                                <ListItem
+                                    key={item.productId}
+                                    secondaryAction={
+                                        <IconButton
+                                            edge="end"
+                                            onClick={() => handleCompleteItem(item.productId, false)}
+                                        >
+                                            <RadioButtonChecked />
+                                        </IconButton>
+                                    }
+                                >
+                                    <ListItemText
+                                        primary={
+                                            <>
+                                                {getProductNameById(item.productId)} ({category})
+                                            </>
+                                        }
+                                        secondary={`Количество: ${item.quantity} ${unit}`}
+                                    />
+                                </ListItem>
+                            );
+                        })}
                     </List>
                 </>
             )}

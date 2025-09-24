@@ -29,7 +29,7 @@ const History = () => {
     const { currentUser } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
-    const { getProductNameById } = useSettings();
+    const { getProductInfo, getProductNameById } = useSettings();
 
     const [completedOrders, setCompletedOrders] = useState([]);
 
@@ -165,27 +165,31 @@ const History = () => {
 
                                     {/* Последние 3 товара для preview */}
                                     {order.items &&
-                                        order.items.slice(0, 3).map((item) => (
-                                            <ListItem
-                                                key={item.productId}
-                                                sx={{
-                                                    py: 0.5,
-                                                    opacity: item.isCompleted ? 1 : 0.6,
-                                                }}
-                                            >
-                                                <ListItemText
-                                                    primary={`• ${getProductNameById(item.productId) || "Товар"}`}
-                                                    secondary={`Количество: ${item.quantity}`}
-                                                    primaryTypographyProps={{ variant: "body2" }}
-                                                />
-                                                <Chip
-                                                    label={item.isCompleted ? "✓ Куплено" : "Не куплено"}
-                                                    size="small"
-                                                    color={item.isCompleted ? "success" : "default"}
-                                                    variant="outlined"
-                                                />
-                                            </ListItem>
-                                        ))}
+                                        order.items.slice(0, 3).map((item) => {
+                                            const { category, unit } = getProductInfo(item.productId);
+
+                                            return (
+                                                <ListItem
+                                                    key={item.productId}
+                                                    sx={{
+                                                        py: 0.5,
+                                                        opacity: item.isCompleted ? 1 : 0.6,
+                                                    }}
+                                                >
+                                                    <ListItemText
+                                                        primary={`• ${getProductNameById(item.productId)} (${category})`}
+                                                        secondary={`Количество: ${item.quantity} ${unit}`}
+                                                        primaryTypographyProps={{ variant: "body2" }}
+                                                    />
+                                                    <Chip
+                                                        label={item.isCompleted ? "✓ Куплено" : "Не куплено"}
+                                                        size="small"
+                                                        color={item.isCompleted ? "success" : "default"}
+                                                        variant="outlined"
+                                                    />
+                                                </ListItem>
+                                            );
+                                        })}
 
                                     {order.items && order.items.length > 3 && (
                                         <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>

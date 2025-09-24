@@ -56,20 +56,6 @@ export const SettingsProvider = ({ children }) => {
         );
     }, []);
 
-    const getCategoryNameById = useCallback(
-        (categoryId) => {
-            return categories[categoryId] || NO_NAME;
-        },
-        [categories]
-    );
-
-    const getUnitNameById = useCallback(
-        (unitId) => {
-            return units[unitId] || DEFAULT_UNIT;
-        },
-        [units]
-    );
-
     const getProductNameById = useCallback(
         (id) => {
             const product = products.find((p) => p.id === id);
@@ -78,13 +64,25 @@ export const SettingsProvider = ({ children }) => {
         [products]
     );
 
+    const getProductInfo = (productId) => {
+        const product = products.find((p) => p.id === productId);
+
+        if (!product) {
+            return { category: NO_NAME, unit: DEFAULT_UNIT };
+        }
+
+        return {
+            category: categories[product.categoryId] || NO_NAME,
+            unit: units[product.unitId] || DEFAULT_UNIT,
+        };
+    };
+
     const value = {
         units,
         categories,
         products,
         activeProducts: products.filter((x) => !x.isDeleted),
-        getCategoryNameById,
-        getUnitNameById,
+        getProductInfo,
         getProductNameById,
         addProductToContext: addProduct,
         removeProductFromContext: removeProduct,
