@@ -48,6 +48,7 @@ const OrderDetails = () => {
     const [completeOrderOpen, setCompleteOrderOpen] = useState(false);
     const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
     const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+    const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({ productId: "", quantity: 1 });
 
@@ -179,6 +180,19 @@ const OrderDetails = () => {
         });
     };
 
+    const handleDeleteOrder = async () => {
+        await withLoading(async () => {
+            try {
+                await ordersService.deleteOrder(orderId);
+                setDeleteOrderOpen(false);
+                showSuccess("Список успешно удален");
+                navigate("/");
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    };
+
     const handleBack = () => {
         navigate(-1);
     };
@@ -206,11 +220,21 @@ const OrderDetails = () => {
                     <Typography variant="h4">{order.title}</Typography>
                 </Box>
 
-                {!order.isCompleted && (
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddItemDialogOpen(true)}>
-                        Добавить товар
+                <Box sx={{ display: "flex", gap: 2 }}>
+                    {!order.isCompleted && (
+                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddItemDialogOpen(true)}>
+                            Добавить товар
+                        </Button>
+                    )}
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => setDeleteOrderOpen(true)}
+                    >
+                        Удалить список
                     </Button>
-                )}
+                </Box>
             </Box>
 
             {/* Информация о заказе */}
@@ -326,26 +350,29 @@ const OrderDetails = () => {
                 </>
             )}
 
-            {/* Кнопка завершения заказа */}
-            {!order.isCompleted ? (
-                <Box sx={{ mt: 3 }}>
+            {/* Кнопки управления заказом */}
+            <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+                {!order.isCompleted ? (
                     <Button
                         variant="contained"
                         color="success"
                         onClick={() => handleTryCompleteOrder(true)}
-                        fullWidth
                         disabled={order.items.length === 0}
+                        sx={{ flex: 1 }}
                     >
                         Завершить список
                     </Button>
-                </Box>
-            ) : (
-                <Box sx={{ mt: 3 }}>
-                    <Button variant="outlined" color="primary" onClick={() => handleTryCompleteOrder(false)} fullWidth>
+                ) : (
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => handleTryCompleteOrder(false)}
+                        sx={{ flex: 1 }}
+                    >
                         Возобновить список
                     </Button>
-                </Box>
-            )}
+                )}
+            </Box>
 
             {/* Диалог редактирования товара */}
             <Dialog open={editItemDialogOpen} onClose={() => setEditItemDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -442,6 +469,17 @@ const OrderDetails = () => {
                 message={`В списке имеются не завершенные товары. Вы уверены, что хотите завершить список?`}
                 confirmText="Завершить"
                 cancelText="Отмена"
+            />
+
+            <ConfirmDialog
+                open={deleteOrderOpen}
+                onClose={() => setDeleteOrderOpen(false)}
+                onConfirm={handleDeleteOrder}
+                title="Удалить список"
+                message={`Вы уверены, что хотите удалить список "${order.title}"? Это действие нельзя отменить.`}
+                confirmText="Удалить"
+                cancelText="Отмена"
+                confirmColor="error"
             />
         </Box>
     );

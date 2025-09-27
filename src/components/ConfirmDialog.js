@@ -1,30 +1,25 @@
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
 
+// components/ConfirmDialog.jsx - добавьте поддержку цвета
 const ConfirmDialog = ({
     open,
     onClose,
     onConfirm,
-    title = "Подтверждение",
-    message = "Вы уверены, что хотите выполнить это действие?",
+    title,
+    message,
     confirmText = "Подтвердить",
     cancelText = "Отмена",
+    confirmColor = "primary",
 }) => {
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            aria-labelledby="confirm-dialog-title"
-            aria-describedby="confirm-dialog-description"
-        >
-            <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>{title}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="confirm-dialog-description">{message}</DialogContentText>
+                <Typography>{message}</Typography>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} color="primary">
-                    {cancelText}
-                </Button>
-                <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
+                <Button onClick={onClose}>{cancelText}</Button>
+                <Button onClick={onConfirm} variant="contained" color={confirmColor}>
                     {confirmText}
                 </Button>
             </DialogActions>
