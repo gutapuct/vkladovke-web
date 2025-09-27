@@ -6,46 +6,52 @@ export const useAlert = () => {
         title: "",
         message: "",
         type: "info",
+        onClose: null,
     });
 
-    const showAlert = useCallback(({ title, message, type = "info", autoClose = false }) => {
+    const showAlert = useCallback(({ title, message, type = "info", autoClose = false, onClose = null }) => {
         setAlertState({
             open: true,
             title,
             message,
             type,
             autoClose,
+            onClose,
         });
     }, []);
 
     const hideAlert = useCallback(() => {
-        setAlertState((prev) => ({ ...prev, open: false }));
-    }, []);
+        if (alertState.onClose) {
+            alertState.onClose();
+        }
+
+        setAlertState((prev) => ({ ...prev, open: false, onClose: null }));
+    }, [alertState]);
 
     const showError = useCallback(
-        (message, title = "Ошибка") => {
-            showAlert({ title, message, type: "error" });
+        (message, title = "Ошибка", onClose = null) => {
+            showAlert({ title, message, type: "error", onClose });
         },
         [showAlert]
     );
 
     const showSuccess = useCallback(
-        (message, title = "Успешно") => {
-            showAlert({ title, message, type: "success", autoClose: true });
+        (message, title = "Успешно", onClose = null) => {
+            showAlert({ title, message, type: "success", autoClose: true, onClose });
         },
         [showAlert]
     );
 
     const showInfo = useCallback(
-        (message, title = "Информация") => {
-            showAlert({ title, message, type: "info", autoClose: true });
+        (message, title = "Информация", onClose = null) => {
+            showAlert({ title, message, type: "info", autoClose: true, onClose });
         },
         [showAlert]
     );
 
     const showWarning = useCallback(
-        (message, title = "Внимание") => {
-            showAlert({ title, message, type: "warning" });
+        (message, title = "Внимание", onClose = null) => {
+            showAlert({ title, message, type: "warning", onClose });
         },
         [showAlert]
     );

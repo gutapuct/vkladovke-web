@@ -169,11 +169,7 @@ const OrderDetails = () => {
                 await ordersService.completeOrder(orderId, complete);
                 setCompleteOrderOpen(false);
                 await loadOrder();
-                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`);
-
-                if (complete) {
-                    navigate("/");
-                }
+                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`, "Успешно", () => complete ? navigate("/") : null);
             } catch (error) {
                 showError(error.message);
             }
@@ -185,8 +181,7 @@ const OrderDetails = () => {
             try {
                 await ordersService.deleteOrder(orderId);
                 setDeleteOrderOpen(false);
-                showSuccess("Список успешно удален");
-                navigate("/");
+                showSuccess("Список успешно удален", "Успешно", () => navigate("/"));
             } catch (error) {
                 showError(error.message);
             }
