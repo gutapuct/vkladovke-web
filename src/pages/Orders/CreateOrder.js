@@ -98,7 +98,7 @@ const CreateOrder = () => {
                     items: orderData.items,
                 });
 
-                showSuccess("Заказ успешно создан!");
+                showSuccess("Список успешно создан!");
                 navigate(`/order-details/${order.id}`);
             } catch (error) {
                 showError(error.message);
@@ -110,14 +110,14 @@ const CreateOrder = () => {
         <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto" }}>
             {/* Заголовок */}
             <Typography variant="h4" gutterBottom>
-                Создание нового заказа
+                Создание нового списка
             </Typography>
 
-            {/* Информация о заказе */}
+            {/* Информация о списке */}
             <Card sx={{ mb: 3 }}>
                 <CardContent>
                     <TextField
-                        label="Название заказа"
+                        label="Название списка"
                         value={orderData.title}
                         onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
                         fullWidth
@@ -181,7 +181,7 @@ const CreateOrder = () => {
                 <Card>
                     <CardContent>
                         <Typography variant="h6" gutterBottom>
-                            Товары в заказе ({orderData.items.length})
+                            Товары в списке ({orderData.items.length})
                         </Typography>
 
                         <List>
@@ -246,7 +246,7 @@ const CreateOrder = () => {
                                 variant="contained"
                                 disabled={!orderData.title || orderData.items.length === 0}
                             >
-                                Создать заказ
+                                Создать список
                             </Button>
                         </Box>
                     </CardContent>
@@ -256,7 +256,7 @@ const CreateOrder = () => {
             {orderData.items.length === 0 && (
                 <Paper sx={{ p: 3, textAlign: "center" }}>
                     <Typography variant="body1" color="textSecondary">
-                        Добавьте товары к заказу
+                        Добавьте товары в список
                     </Typography>
                 </Paper>
             )}

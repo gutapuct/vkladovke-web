@@ -17,7 +17,7 @@ import { newGuid } from "../utils/guidHelper";
 import { FIREBASE_COLLECTION_ORDERS } from "../utils/constants";
 
 export const ordersService = {
-    // Получение всех заказов группы
+    // Получение всех списков группы
     getOrders: async (groupId) => {
         try {
             const q = query(
@@ -38,12 +38,12 @@ export const ordersService = {
 
             return orders;
         } catch (error) {
-            console.error("Ошибка получения заказов:", error);
+            console.error("Ошибка получения списков:", error);
             throw error;
         }
     },
 
-    // Получение незавершенных заказов группы
+    // Получение незавершенных списков группы
     getActiveOrders: async (groupId) => {
         try {
             const q = query(
@@ -65,12 +65,12 @@ export const ordersService = {
 
             return orders;
         } catch (error) {
-            console.error("Ошибка получения активных заказов:", error);
+            console.error("Ошибка получения активных списков:", error);
             throw error;
         }
     },
 
-    // Получение завершенных заказов группы
+    // Получение завершенных списков группы
     getCompletedOrders: async (groupId) => {
         try {
             const q = query(
@@ -92,12 +92,12 @@ export const ordersService = {
 
             return orders;
         } catch (error) {
-            console.error("Ошибка получения завершенных заказов:", error);
+            console.error("Ошибка получения завершенных списков:", error);
             throw error;
         }
     },
 
-    // Получение конкретного заказа
+    // Получение конкретного списка
     getOrder: async (orderId) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
@@ -110,14 +110,14 @@ export const ordersService = {
                 };
             }
 
-            throw new Error("Заказ не найден");
+            throw new Error("Список не найден");
         } catch (error) {
-            console.error("Ошибка получения заказа:", error);
+            console.error("Ошибка получения списка:", error);
             throw error;
         }
     },
 
-    // Создание нового заказа
+    // Создание нового списка
     createOrder: async (orderData) => {
         try {
             const orderId = newGuid();
@@ -126,7 +126,7 @@ export const ordersService = {
             const order = {
                 id: orderId,
                 groupId: orderData.groupId,
-                title: orderData.title || `Заказ от ${getNowString()}`,
+                title: orderData.title || `Список от ${getNowString()}`,
                 createdAt: serverTimestamp(),
                 isCompleted: false,
                 completedAt: null,
@@ -136,12 +136,12 @@ export const ordersService = {
             await setDoc(orderRef, order);
             return order;
         } catch (error) {
-            console.error("Ошибка создания заказа:", error);
+            console.error("Ошибка создания списка:", error);
             throw error;
         }
     },
 
-    // Завершение заказа
+    // Завершение списка
     completeOrder: async (orderId, complete) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
@@ -150,7 +150,7 @@ export const ordersService = {
                 completedAt: complete ? serverTimestamp() : null,
             });
         } catch (error) {
-            console.error("Ошибка завершения заказа:", error);
+            console.error("Ошибка завершения списка:", error);
             throw error;
         }
     },
@@ -162,7 +162,7 @@ export const ordersService = {
             const orderSnap = await getDoc(orderRef);
 
             if (!orderSnap.exists()) {
-                throw new Error("Заказ не найден");
+                throw new Error("Список не найден");
             }
 
             const orderData = orderSnap.data();
@@ -182,25 +182,25 @@ export const ordersService = {
         }
     },
 
-    // Удаление заказа
+    // Удаление списка
     deleteOrder: async (orderId) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await deleteDoc(orderRef);
         } catch (error) {
-            console.error("Ошибка удаления заказа:", error);
+            console.error("Ошибка удаления списка:", error);
             throw error;
         }
     },
 
-    // Добавление товара в существующий заказ
+    // Добавление товара в существующий список
     addItemToOrder: async (orderId, itemData) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
 
             if (!orderSnap.exists()) {
-                throw new Error("Заказ не найден");
+                throw new Error("Список не найден");
             }
 
             const orderData = orderSnap.data();
@@ -224,7 +224,7 @@ export const ordersService = {
             const orderSnap = await getDoc(orderRef);
 
             if (!orderSnap.exists()) {
-                throw new Error("Заказ не найден");
+                throw new Error("Список не найден");
             }
 
             const orderData = orderSnap.data();
@@ -239,14 +239,14 @@ export const ordersService = {
         }
     },
 
-    // Удаление товара из заказа
+    // Удаление товара из списка
     removeItemFromOrder: async (orderId, productId) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
 
             if (!orderSnap.exists()) {
-                throw new Error("Заказ не найден");
+                throw new Error("Список не найден");
             }
 
             const orderData = orderSnap.data();

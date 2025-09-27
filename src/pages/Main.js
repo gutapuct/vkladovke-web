@@ -45,7 +45,7 @@ const Main = () => {
                 </Box>
             ))}
 
-            <Button onClick={handleCreateOrder}>Создать новый заказ!</Button>
+            <Button onClick={handleCreateOrder}>Создать новый список!</Button>
 
             <AlertDialog
                 open={alertState.open}

@@ -70,13 +70,13 @@ const History = () => {
         <Box sx={{ p: 3, maxWidth: 1000, margin: "0 auto" }}>
             {/* Заголовок */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h4">История заказов</Typography>
+                <Typography variant="h4">История списков</Typography>
                 <Box sx={{ display: "flex", gap: 2 }}>
                     <Button variant="outlined" onClick={handleBackToActive}>
-                        Активные заказы
+                        Активные списки
                     </Button>
                     <Button variant="contained" onClick={handleCreateNewOrder}>
-                        Новый заказ
+                        Новый список
                     </Button>
                 </Box>
             </Box>
@@ -102,7 +102,7 @@ const History = () => {
                 </Box>
             </Paper>
 
-            {/* Список завершенных заказов */}
+            {/* Завершенных списки */}
             {completedOrders.length === 0 ? (
                 <Paper sx={{ p: 4, textAlign: "center" }}>
                     <BagIcon sx={{ fontSize: 64, color: "grey.400", mb: 2 }} />

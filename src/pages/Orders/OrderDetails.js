@@ -195,7 +195,7 @@ const OrderDetails = () => {
     if (!order) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography variant="h6">Заказ не найден</Typography>
+                <Typography variant="h6">Список не найден</Typography>
                 <Button onClick={handleBack}>Назад</Button>
             </Box>
         );
@@ -232,7 +232,7 @@ const OrderDetails = () => {
                 </Box>
             </Box>
 
-            {/* Информация о заказе */}
+            {/* Информация о списке */}
             <Card sx={{ mb: 3 }}>
                 <CardContent>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start", mb: 2 }}>
@@ -345,7 +345,7 @@ const OrderDetails = () => {
                 </>
             )}
 
-            {/* Кнопки управления заказом */}
+            {/* Кнопки управления списком */}
             <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
                 {!order.isCompleted ? (
                     <Button
