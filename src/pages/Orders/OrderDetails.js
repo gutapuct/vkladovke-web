@@ -12,8 +12,24 @@ import {
     ListItemText,
     IconButton,
     Divider,
+    TextField,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from "@mui/material";
-import { ArrowBack, RadioButtonChecked, RadioButtonUnchecked } from "@mui/icons-material";
+import {
+    ArrowBack,
+    RadioButtonChecked,
+    RadioButtonUnchecked,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Add as AddIcon,
+} from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
 import { useSettings } from "../../hooks/useSettings";
@@ -26,10 +42,14 @@ const OrderDetails = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
-    const { getProductInfo, getProductNameById } = useSettings();
+    const { activeProducts, getProductNameById, getProductInfo } = useSettings();
     const { withLoading } = useLoading();
-    const { alertState, showError, hideAlert } = useAlert();
+    const { alertState, showError, showSuccess, hideAlert } = useAlert();
     const [completeOrderOpen, setCompleteOrderOpen] = useState(false);
+    const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
+    const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [newItem, setNewItem] = useState({ productId: "", quantity: 1 });
 
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
@@ -37,7 +57,7 @@ const OrderDetails = () => {
                 const orderData = await ordersService.getOrder(orderId);
                 setOrder(orderData);
             } catch (error) {
-                showError(error);
+                showError(error.message);
             }
         });
     }, [orderId, withLoading, showError]);
@@ -49,6 +69,8 @@ const OrderDetails = () => {
     }, [orderId, loadOrder]);
 
     const handleCompleteItem = async (productId, complete = true) => {
+        if (order.isCompleted) return;
+
         await withLoading(async () => {
             try {
                 await ordersService.completeOrderItem(orderId, productId, complete);
@@ -60,7 +82,74 @@ const OrderDetails = () => {
                     })),
                 });
             } catch (error) {
-                showError(error);
+                showError(error.message);
+            }
+        });
+    };
+
+    const handleEditItem = (item) => {
+        setEditingItem({ ...item });
+        setEditItemDialogOpen(true);
+    };
+
+    const handleUpdateItem = async () => {
+        if (!editingItem || editingItem.quantity < 1) {
+            showError("Введите корректное количество");
+            return;
+        }
+
+        await withLoading(async () => {
+            try {
+                await ordersService.updateOrderItem(orderId, editingItem.productId, editingItem.quantity);
+                setEditItemDialogOpen(false);
+                setEditingItem(null);
+                await loadOrder();
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    };
+
+    const handleRemoveItem = async (productId) => {
+        await withLoading(async () => {
+            try {
+                await ordersService.removeItemFromOrder(orderId, productId);
+                await loadOrder();
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    };
+
+    const handleAddItem = async () => {
+        if (!newItem.productId) {
+            showError("Выберите товар");
+            return;
+        }
+
+        if (newItem.quantity < 1) {
+            showError("Введите корректное количество");
+            return;
+        }
+
+        // Проверяем, не добавлен ли уже этот продукт
+        const isAlreadyAdded = order.items.some((item) => item.productId === newItem.productId);
+        if (isAlreadyAdded) {
+            showError("Этот товар уже есть в списке");
+            return;
+        }
+
+        await withLoading(async () => {
+            try {
+                await ordersService.addItemToOrder(orderId, {
+                    productId: newItem.productId,
+                    quantity: newItem.quantity,
+                });
+                setAddItemDialogOpen(false);
+                setNewItem({ productId: "", quantity: 1 });
+                await loadOrder();
+            } catch (error) {
+                showError(error.message);
             }
         });
     };
@@ -77,15 +166,15 @@ const OrderDetails = () => {
         await withLoading(async () => {
             try {
                 await ordersService.completeOrder(orderId, complete);
-                setOrder({ ...order, isCompleted: complete });
-
                 setCompleteOrderOpen(false);
+                await loadOrder();
+                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`);
 
                 if (complete) {
                     navigate("/");
                 }
             } catch (error) {
-                showError(error);
+                showError(error.message);
             }
         });
     };
@@ -109,11 +198,19 @@ const OrderDetails = () => {
     return (
         <Box sx={{ p: 3 }}>
             {/* Шапка */}
-            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-                    <ArrowBack />
-                </IconButton>
-                <Typography variant="h4">{order.title}</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography variant="h4">{order.title}</Typography>
+                </Box>
+
+                {!order.isCompleted && (
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddItemDialogOpen(true)}>
+                        Добавить товар
+                    </Button>
+                )}
             </Box>
 
             {/* Информация о заказе */}
@@ -124,6 +221,11 @@ const OrderDetails = () => {
                             <Typography variant="body2" color="textSecondary">
                                 Создан: {formatFirebaseTimestamp(order.createdAt)}
                             </Typography>
+                            {order.completedAt && (
+                                <Typography variant="body2" color="textSecondary">
+                                    Завершен: {formatFirebaseTimestamp(order.completedAt)}
+                                </Typography>
+                            )}
                         </Box>
                         <Chip
                             label={order.isCompleted ? "Завершен" : "В процессе"}
@@ -146,7 +248,7 @@ const OrderDetails = () => {
             {pendingItems.length > 0 && (
                 <>
                     <Typography variant="h6" gutterBottom>
-                        Осталось купить
+                        Осталось купить ({pendingItems.length})
                     </Typography>
                     <List>
                         {pendingItems.map((item) => {
@@ -156,17 +258,25 @@ const OrderDetails = () => {
                                 <ListItem
                                     key={item.productId}
                                     secondaryAction={
-                                        <IconButton edge="end" onClick={() => handleCompleteItem(item.productId)}>
-                                            <RadioButtonUnchecked />
-                                        </IconButton>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <IconButton edge="end" onClick={() => handleEditItem(item)} color="primary">
+                                                <EditIcon />
+                                            </IconButton>
+                                            <IconButton
+                                                edge="end"
+                                                onClick={() => handleRemoveItem(item.productId)}
+                                                color="error"
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                            <IconButton edge="end" onClick={() => handleCompleteItem(item.productId)}>
+                                                <RadioButtonUnchecked />
+                                            </IconButton>
+                                        </Box>
                                     }
                                 >
                                     <ListItemText
-                                        primary={
-                                            <>
-                                                {getProductNameById(item.productId)} ({category})
-                                            </>
-                                        }
+                                        primary={`${getProductNameById(item.productId)} (${category})`}
                                         secondary={`Количество: ${item.quantity} ${unit}`}
                                     />
                                 </ListItem>
@@ -181,7 +291,7 @@ const OrderDetails = () => {
             {completedItems.length > 0 && (
                 <>
                     <Typography variant="h6" gutterBottom>
-                        Куплено
+                        Куплено ({completedItems.length})
                     </Typography>
                     <List>
                         {completedItems.map((item) => {
@@ -191,21 +301,23 @@ const OrderDetails = () => {
                                 <ListItem
                                     key={item.productId}
                                     secondaryAction={
-                                        <IconButton
-                                            edge="end"
-                                            onClick={() => handleCompleteItem(item.productId, false)}
-                                        >
-                                            <RadioButtonChecked />
-                                        </IconButton>
+                                        !order.isCompleted && (
+                                            <IconButton
+                                                edge="end"
+                                                onClick={() => handleCompleteItem(item.productId, false)}
+                                            >
+                                                <RadioButtonChecked />
+                                            </IconButton>
+                                        )
                                     }
                                 >
                                     <ListItemText
-                                        primary={
-                                            <>
-                                                {getProductNameById(item.productId)} ({category})
-                                            </>
-                                        }
+                                        primary={`${getProductNameById(item.productId)} (${category})`}
                                         secondary={`Количество: ${item.quantity} ${unit}`}
+                                        sx={{
+                                            opacity: 0.7,
+                                            textDecoration: order.isCompleted ? "line-through" : "none",
+                                        }}
                                     />
                                 </ListItem>
                             );
@@ -217,17 +329,102 @@ const OrderDetails = () => {
             {/* Кнопка завершения заказа */}
             {!order.isCompleted ? (
                 <Box sx={{ mt: 3 }}>
-                    <Button variant="contained" color="success" onClick={() => handleTryCompleteOrder(true)} fullWidth>
-                        Завершить
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={() => handleTryCompleteOrder(true)}
+                        fullWidth
+                        disabled={order.items.length === 0}
+                    >
+                        Завершить список
                     </Button>
                 </Box>
             ) : (
                 <Box sx={{ mt: 3 }}>
-                    <Button variant="contained" color="success" onClick={() => handleTryCompleteOrder(false)} fullWidth>
-                        Возобносить
+                    <Button variant="outlined" color="primary" onClick={() => handleTryCompleteOrder(false)} fullWidth>
+                        Возобновить список
                     </Button>
                 </Box>
             )}
+
+            {/* Диалог редактирования товара */}
+            <Dialog open={editItemDialogOpen} onClose={() => setEditItemDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Редактировать товар</DialogTitle>
+                <DialogContent>
+                    {editingItem && (
+                        <Box sx={{ pt: 2 }}>
+                            <Typography variant="body1" gutterBottom>
+                                {getProductNameById(editingItem.productId)}
+                            </Typography>
+                            <TextField
+                                label="Количество"
+                                type="number"
+                                value={editingItem.quantity}
+                                onChange={(e) =>
+                                    setEditingItem({
+                                        ...editingItem,
+                                        quantity: parseInt(e.target.value) || 1,
+                                    })
+                                }
+                                fullWidth
+                                margin="normal"
+                                inputProps={{ min: 1 }}
+                            />
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditItemDialogOpen(false)}>Отмена</Button>
+                    <Button onClick={handleUpdateItem} variant="contained">
+                        Сохранить
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Диалог добавления товара */}
+            <Dialog open={addItemDialogOpen} onClose={() => setAddItemDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Добавить товар</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 2 }}>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Товар</InputLabel>
+                            <Select
+                                value={newItem.productId}
+                                onChange={(e) => setNewItem({ ...newItem, productId: e.target.value })}
+                                label="Товар"
+                            >
+                                <MenuItem value="">Выберите товар</MenuItem>
+                                {activeProducts
+                                    .filter((product) => !order.items.some((item) => item.productId === product.id))
+                                    .map((product) => {
+                                        const { category } = getProductInfo(product.id);
+
+                                        return (
+                                            <MenuItem key={product.id} value={product.id}>
+                                                {product.name} ({category})
+                                            </MenuItem>
+                                        );
+                                    })}
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Количество"
+                            type="number"
+                            value={newItem.quantity}
+                            onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                            fullWidth
+                            margin="normal"
+                            inputProps={{ min: 1 }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setAddItemDialogOpen(false)}>Отмена</Button>
+                    <Button onClick={handleAddItem} variant="contained">
+                        Добавить
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <AlertDialog
                 open={alertState.open}
@@ -242,7 +439,7 @@ const OrderDetails = () => {
                 onClose={() => setCompleteOrderOpen(false)}
                 onConfirm={() => handleCompleteOrder(true)}
                 title="Завершить список"
-                message={`В списке имеются не завершенные товары. Вы уверены, что хотите завершить?`}
+                message={`В списке имеются не завершенные товары. Вы уверены, что хотите завершить список?`}
                 confirmText="Завершить"
                 cancelText="Отмена"
             />

@@ -141,17 +141,6 @@ export const ordersService = {
         }
     },
 
-    // Обновление заказа
-    updateOrder: async (orderId, updates) => {
-        try {
-            const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
-            await updateDoc(orderRef, { ...updates });
-        } catch (error) {
-            console.error("Ошибка обновления заказа:", error);
-            throw error;
-        }
-    },
-
     // Завершение заказа
     completeOrder: async (orderId, complete) => {
         try {
@@ -193,7 +182,18 @@ export const ordersService = {
         }
     },
 
-    // Добавление товара в заказ
+    // Удаление заказа
+    deleteOrder: async (orderId) => {
+        try {
+            const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
+            await deleteDoc(orderRef);
+        } catch (error) {
+            console.error("Ошибка удаления заказа:", error);
+            throw error;
+        }
+    },
+
+    // Добавление товара в существующий заказ
     addItemToOrder: async (orderId, itemData) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
@@ -205,30 +205,56 @@ export const ordersService = {
 
             const orderData = orderSnap.data();
             const newItem = {
-                id: newGuid(),
                 productId: itemData.productId,
                 quantity: itemData.quantity,
-                idCompleted: false,
+                isCompleted: false,
             };
 
-            await updateDoc(orderRef, {
-                items: [...orderData.items, newItem],
-            });
-
-            return newItem;
+            await updateDoc(orderRef, { items: [...orderData.items, newItem] });
         } catch (error) {
             console.error("Ошибка добавления товара:", error);
             throw error;
         }
     },
 
-    // Удаление заказа
-    deleteOrder: async (orderId) => {
+    // Обновление количества товара
+    updateOrderItem: async (orderId, productId, quantity) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
-            await deleteDoc(orderRef);
+            const orderSnap = await getDoc(orderRef);
+
+            if (!orderSnap.exists()) {
+                throw new Error("Заказ не найден");
+            }
+
+            const orderData = orderSnap.data();
+            const updatedItems = orderData.items.map((item) =>
+                item.productId === productId ? { ...item, quantity } : item
+            );
+
+            await updateDoc(orderRef, { items: updatedItems });
         } catch (error) {
-            console.error("Ошибка удаления заказа:", error);
+            console.error("Ошибка обновления товара:", error);
+            throw error;
+        }
+    },
+
+    // Удаление товара из заказа
+    removeItemFromOrder: async (orderId, productId) => {
+        try {
+            const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
+            const orderSnap = await getDoc(orderRef);
+
+            if (!orderSnap.exists()) {
+                throw new Error("Заказ не найден");
+            }
+
+            const orderData = orderSnap.data();
+            const updatedItems = orderData.items.filter((item) => item.productId !== productId);
+
+            await updateDoc(orderRef, { items: updatedItems });
+        } catch (error) {
+            console.error("Ошибка удаления товара:", error);
             throw error;
         }
     },
