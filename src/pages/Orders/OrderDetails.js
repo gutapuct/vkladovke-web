@@ -49,6 +49,8 @@ const OrderDetails = () => {
     const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
     const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
     const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
+    const [deleteItemOpen, setDeleteItemOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({ productId: "", quantity: 1 });
 
@@ -104,18 +106,36 @@ const OrderDetails = () => {
                 await ordersService.updateOrderItem(orderId, editingItem.productId, editingItem.quantity);
                 setEditItemDialogOpen(false);
                 setEditingItem(null);
-                await loadOrder();
+                setOrder({
+                    ...order,
+                    items: order.items.map((item) => ({
+                        ...item,
+                        quantity: item.productId === editingItem.productId ? editingItem.quantity : item.quantity,
+                    })),
+                });
             } catch (error) {
                 showError(error.message);
             }
         });
     };
 
-    const handleRemoveItem = async (productId) => {
+    const handleOpenDeleteItem = (item) => {
+        setItemToDelete(item);
+        setDeleteItemOpen(true);
+    };
+
+    const handleRemoveItem = async () => {
+        if (!itemToDelete) return;
+
         await withLoading(async () => {
             try {
-                await ordersService.removeItemFromOrder(orderId, productId);
-                await loadOrder();
+                await ordersService.removeItemFromOrder(orderId, itemToDelete.productId);
+                setDeleteItemOpen(false);
+                setItemToDelete(null);
+                setOrder({
+                    ...order,
+                    items: order.items.filter((item) => item.productId !== itemToDelete.productId),
+                });
             } catch (error) {
                 showError(error.message);
             }
@@ -133,7 +153,6 @@ const OrderDetails = () => {
             return;
         }
 
-        // Проверяем, не добавлен ли уже этот продукт
         const isAlreadyAdded = order.items.some((item) => item.productId === newItem.productId);
         if (isAlreadyAdded) {
             showError("Этот товар уже есть в списке");
@@ -148,7 +167,13 @@ const OrderDetails = () => {
                 });
                 setAddItemDialogOpen(false);
                 setNewItem({ productId: "", quantity: 1 });
-                await loadOrder();
+                setOrder({
+                    ...order,
+                    items: [
+                        ...order.items,
+                        { productId: newItem.productId, quantity: newItem.quantity, isCompleted: false },
+                    ],
+                });
             } catch (error) {
                 showError(error.message);
             }
@@ -168,8 +193,10 @@ const OrderDetails = () => {
             try {
                 await ordersService.completeOrder(orderId, complete);
                 setCompleteOrderOpen(false);
-                await loadOrder();
-                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`, "Успешно", () => complete ? navigate("/") : null);
+
+                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`, "Успешно", () =>
+                    complete ? navigate("/") : null
+                );
             } catch (error) {
                 showError(error.message);
             }
@@ -203,6 +230,19 @@ const OrderDetails = () => {
 
     const completedItems = order.items?.filter((item) => item.isCompleted) || [];
     const pendingItems = order.items?.filter((item) => !item.isCompleted) || [];
+
+    const getItemToDeleteInfo = () => {
+        if (!itemToDelete) return { name: "", category: "", quantity: 1 };
+        const { category, unit } = getProductInfo(itemToDelete.productId);
+        return {
+            name: getProductNameById(itemToDelete.productId),
+            category,
+            quantity: itemToDelete.quantity,
+            unit,
+        };
+    };
+
+    const itemToDeleteInfo = getItemToDeleteInfo();
 
     return (
         <Box sx={{ p: 3 }}>
@@ -283,7 +323,7 @@ const OrderDetails = () => {
                                             </IconButton>
                                             <IconButton
                                                 edge="end"
-                                                onClick={() => handleRemoveItem(item.productId)}
+                                                onClick={() => handleOpenDeleteItem(item)}
                                                 color="error"
                                             >
                                                 <DeleteIcon />
@@ -456,6 +496,7 @@ const OrderDetails = () => {
                 type={alertState.type}
             />
 
+            {/* Подтверждение завершения списка */}
             <ConfirmDialog
                 open={completeOrderOpen}
                 onClose={() => setCompleteOrderOpen(false)}
@@ -466,12 +507,32 @@ const OrderDetails = () => {
                 cancelText="Отмена"
             />
 
+            {/* Подтверждение удаления списка */}
             <ConfirmDialog
                 open={deleteOrderOpen}
                 onClose={() => setDeleteOrderOpen(false)}
                 onConfirm={handleDeleteOrder}
                 title="Удалить список"
                 message={`Вы уверены, что хотите удалить список "${order.title}"? Это действие нельзя отменить.`}
+                confirmText="Удалить"
+                cancelText="Отмена"
+                confirmColor="error"
+            />
+
+            {/* Подтверждение удаления товара */}
+            <ConfirmDialog
+                open={deleteItemOpen}
+                onClose={() => {
+                    setDeleteItemOpen(false);
+                    setItemToDelete(null);
+                }}
+                onConfirm={handleRemoveItem}
+                title="Удалить товар"
+                message={
+                    itemToDelete
+                        ? `Вы уверены, что хотите удалить "${itemToDeleteInfo.name}" (${itemToDeleteInfo.quantity} ${itemToDeleteInfo.unit}) из списка?`
+                        : "Удалить товар?"
+                }
                 confirmText="Удалить"
                 cancelText="Отмена"
                 confirmColor="error"
