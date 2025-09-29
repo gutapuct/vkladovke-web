@@ -143,15 +143,17 @@ const CreateOrder = () => {
                                 label="Продукт"
                             >
                                 <MenuItem value="">Выберите продукт</MenuItem>
-                                {activeProducts.map((product) => {
-                                    const { category, unit } = getProductInfo(product.id);
+                                {activeProducts
+                                    .filter((product) => !orderData.items.some((item) => item.productId === product.id))
+                                    .map((product) => {
+                                        const { category, unit } = getProductInfo(product.id);
 
-                                    return (
-                                        <MenuItem key={product.id} value={product.id}>
-                                            {product.name} ({category}) - {unit}
-                                        </MenuItem>
-                                    );
-                                })}
+                                        return (
+                                            <MenuItem key={product.id} value={product.id}>
+                                                {product.name} ({category}) - {unit}
+                                            </MenuItem>
+                                        );
+                                    })}
                             </Select>
                         </FormControl>
 
