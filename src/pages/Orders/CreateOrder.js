@@ -13,9 +13,7 @@ import {
     IconButton,
     Chip,
     FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
+    Autocomplete,
     Divider,
     Paper,
 } from "@mui/material";
@@ -44,6 +42,21 @@ const CreateOrder = () => {
         quantity: 1,
     });
 
+    const [searchInput, setSearchInput] = useState("");
+
+    // Фильтруем продукты для автокомплита
+    const filteredProducts = activeProducts
+        .filter((product) => {
+            if (!searchInput) return true;
+
+            const searchLower = searchInput.toLowerCase();
+            const productName = product.name.toLowerCase();
+            const category = getProductInfo(product.id).category.toLowerCase();
+
+            return productName.includes(searchLower) || category.includes(searchLower);
+        })
+        .filter((product) => !orderData.items.some((item) => item.productId === product.id));
+
     const handleAddItem = () => {
         if (!newItem.productId) return;
 
@@ -69,6 +82,20 @@ const CreateOrder = () => {
 
         // Сбрасываем форму
         setNewItem({ productId: "", quantity: 1 });
+        setSearchInput("");
+    };
+
+    const handleProductSelect = (event, value) => {
+        if (value) {
+            setNewItem({ ...newItem, productId: value.id });
+        } else {
+            setNewItem({ ...newItem, productId: "" });
+            setSearchInput("");
+        }
+    };
+
+    const handleSearchInputChange = (event, value) => {
+        setSearchInput(value);
     };
 
     const handleRemoveItem = (productId) => {
@@ -136,25 +163,37 @@ const CreateOrder = () => {
 
                     <Box sx={{ display: "flex", gap: 2, alignItems: "end", mb: 2 }}>
                         <FormControl fullWidth>
-                            <InputLabel>Продукт</InputLabel>
-                            <Select
-                                value={newItem.productId}
-                                onChange={(e) => setNewItem({ ...newItem, productId: e.target.value })}
-                                label="Продукт"
-                            >
-                                <MenuItem value="">Выберите продукт</MenuItem>
-                                {activeProducts
-                                    .filter((product) => !orderData.items.some((item) => item.productId === product.id))
-                                    .map((product) => {
-                                        const { category, unit } = getProductInfo(product.id);
-
-                                        return (
-                                            <MenuItem key={product.id} value={product.id}>
-                                                {product.name} ({category}) - {unit}
-                                            </MenuItem>
-                                        );
-                                    })}
-                            </Select>
+                            <Autocomplete
+                                value={activeProducts.find((p) => p.id === newItem.productId) || null}
+                                onChange={handleProductSelect}
+                                onInputChange={handleSearchInputChange}
+                                inputValue={searchInput}
+                                options={filteredProducts}
+                                getOptionLabel={(option) => option.name}
+                                renderOption={(props, option) => {
+                                    const { key, ...otherProps } = props;
+                                    const { category, unit } = getProductInfo(option.id);
+                                    return (
+                                        <li key={option.id} {...otherProps}>
+                                            <Box>
+                                                <Typography variant="body1">{option.name}</Typography>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {category} • {unit}
+                                                </Typography>
+                                            </Box>
+                                        </li>
+                                    );
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Поиск товара"
+                                        placeholder="Начните вводить название товара..."
+                                    />
+                                )}
+                                noOptionsText="Товары не найдены"
+                                filterOptions={(options, state) => options}
+                            />
                         </FormControl>
 
                         <TextField
