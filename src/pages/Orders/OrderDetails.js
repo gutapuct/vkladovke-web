@@ -18,9 +18,7 @@ import {
     DialogContent,
     DialogActions,
     FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
+    Autocomplete,
 } from "@mui/material";
 import {
     ArrowBack,
@@ -53,6 +51,7 @@ const OrderDetails = () => {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({ productId: "", quantity: 1 });
+    const [searchInput, setSearchInput] = useState("");
 
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
@@ -70,6 +69,32 @@ const OrderDetails = () => {
             loadOrder();
         }
     }, [orderId, loadOrder]);
+
+    // Фильтруем продукты для автокомплита (исключаем уже добавленные)
+    const filteredProducts = activeProducts
+        .filter((product) => {
+            if (!searchInput) return true;
+
+            const searchLower = searchInput.toLowerCase();
+            const productName = product.name.toLowerCase();
+            const category = getProductInfo(product.id).category.toLowerCase();
+
+            return productName.includes(searchLower) || category.includes(searchLower);
+        })
+        .filter((product) => !order?.items?.some((item) => item.productId === product.id));
+
+    const handleProductSelect = (event, value) => {
+        if (value) {
+            setNewItem({ ...newItem, productId: value.id });
+        } else {
+            setNewItem({ ...newItem, productId: "" });
+            setSearchInput("");
+        }
+    };
+
+    const handleSearchInputChange = (event, value) => {
+        setSearchInput(value);
+    };
 
     const handleCompleteItem = async (productId, complete = true) => {
         if (order.isCompleted) return;
@@ -167,6 +192,7 @@ const OrderDetails = () => {
                 });
                 setAddItemDialogOpen(false);
                 setNewItem({ productId: "", quantity: 1 });
+                setSearchInput("");
                 setOrder({
                     ...order,
                     items: [
@@ -443,31 +469,43 @@ const OrderDetails = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* Диалог добавления товара */}
+            {/* Диалог добавления товара с автокомплитом */}
             <Dialog open={addItemDialogOpen} onClose={() => setAddItemDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Добавить товар</DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 2 }}>
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Товар</InputLabel>
-                            <Select
-                                value={newItem.productId}
-                                onChange={(e) => setNewItem({ ...newItem, productId: e.target.value })}
-                                label="Товар"
-                            >
-                                <MenuItem value="">Выберите товар</MenuItem>
-                                {activeProducts
-                                    .filter((product) => !order.items.some((item) => item.productId === product.id))
-                                    .map((product) => {
-                                        const { category } = getProductInfo(product.id);
-
-                                        return (
-                                            <MenuItem key={product.id} value={product.id}>
-                                                {product.name} ({category})
-                                            </MenuItem>
-                                        );
-                                    })}
-                            </Select>
+                            <Autocomplete
+                                value={activeProducts.find((p) => p.id === newItem.productId) || null}
+                                onChange={handleProductSelect}
+                                onInputChange={handleSearchInputChange}
+                                inputValue={searchInput}
+                                options={filteredProducts}
+                                getOptionLabel={(option) => option.name}
+                                renderOption={(props, option) => {
+                                    const { key, ...otherProps } = props;
+                                    const { category, unit } = getProductInfo(option.id);
+                                    return (
+                                        <li key={option.id} {...otherProps}>
+                                            <Box>
+                                                <Typography variant="body1">{option.name}</Typography>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {category} • {unit}
+                                                </Typography>
+                                            </Box>
+                                        </li>
+                                    );
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Поиск товара"
+                                        placeholder="Начните вводить название товара..."
+                                    />
+                                )}
+                                noOptionsText="Товары не найдены"
+                                filterOptions={(options, state) => options}
+                            />
                         </FormControl>
                         <TextField
                             label="Количество"
@@ -482,7 +520,7 @@ const OrderDetails = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setAddItemDialogOpen(false)}>Отмена</Button>
-                    <Button onClick={handleAddItem} variant="contained">
+                    <Button onClick={handleAddItem} variant="contained" disabled={!newItem.productId}>
                         Добавить
                     </Button>
                 </DialogActions>
