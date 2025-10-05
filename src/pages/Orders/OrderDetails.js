@@ -19,6 +19,7 @@ import {
     DialogActions,
     FormControl,
     Autocomplete,
+    LinearProgress,
 } from "@mui/material";
 import {
     ArrowBack,
@@ -256,6 +257,7 @@ const OrderDetails = () => {
 
     const completedItems = order.items?.filter((item) => item.isCompleted) || [];
     const pendingItems = order.items?.filter((item) => !item.isCompleted) || [];
+    const progressPercentage = order.items?.length > 0 ? (completedItems.length / order.items.length) * 100 : 0;
 
     const getItemToDeleteInfo = () => {
         if (!itemToDelete) return { name: "", category: "", quantity: 1 };
@@ -318,9 +320,40 @@ const OrderDetails = () => {
                         />
                     </Box>
 
-                    <Typography variant="body2">
-                        Прогресс: {completedItems.length} / {order.items?.length} товаров
-                    </Typography>
+                    {/* Прогресс бар и статистика */}
+                    <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                            <Typography variant="body2" color="textSecondary">
+                                Прогресс:
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {completedItems.length} / {order.items?.length} товаров
+                            </Typography>
+                        </Box>
+                        <LinearProgress
+                            variant="determinate"
+                            value={progressPercentage}
+                            sx={{
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: "#f0f0f0",
+                                "& .MuiLinearProgress-bar": {
+                                    borderRadius: 4,
+                                    backgroundColor: order.isCompleted ? "#4caf50" : "#1976d2",
+                                },
+                            }}
+                        />
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
+                            <Typography variant="body2" color="textSecondary">
+                                {Math.round(progressPercentage)}% выполнено
+                            </Typography>
+                            {!order.isCompleted && pendingItems.length > 0 && (
+                                <Typography variant="body2" color="textSecondary">
+                                    Осталось: {pendingItems.length}
+                                </Typography>
+                            )}
+                        </Box>
+                    </Box>
                 </CardContent>
             </Card>
 
