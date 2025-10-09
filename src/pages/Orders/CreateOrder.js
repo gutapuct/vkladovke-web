@@ -16,6 +16,8 @@ import {
     Autocomplete,
     Divider,
     Paper,
+    Checkbox,
+    FormControlLabel,
 } from "@mui/material";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
@@ -40,6 +42,7 @@ const CreateOrder = () => {
     const [newItem, setNewItem] = useState({
         productId: "",
         quantity: 1,
+        buyOnlyByAction: false,
     });
 
     const [searchInput, setSearchInput] = useState("");
@@ -73,6 +76,7 @@ const CreateOrder = () => {
         const item = {
             productId: newItem.productId,
             quantity: newItem.quantity,
+            buyOnlyByAction: newItem.buyOnlyByAction,
         };
 
         setOrderData((prev) => ({
@@ -81,11 +85,11 @@ const CreateOrder = () => {
         }));
 
         // Сбрасываем форму
-        setNewItem({ productId: "", quantity: 1 });
+        setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
         setSearchInput("");
     };
 
-    const handleProductSelect = (event, value) => {
+    const handleProductSelect = (_, value) => {
         if (value) {
             setNewItem({ ...newItem, productId: value.id });
         } else {
@@ -94,7 +98,7 @@ const CreateOrder = () => {
         }
     };
 
-    const handleSearchInputChange = (event, value) => {
+    const handleSearchInputChange = (_, value) => {
         setSearchInput(value);
     };
 
@@ -125,8 +129,7 @@ const CreateOrder = () => {
                     items: orderData.items,
                 });
 
-                showSuccess("Список успешно создан!");
-                navigate(`/order-details/${order.id}`);
+                showSuccess("Список успешно создан!", navigate(`/order-details/${order.id}`));
             } catch (error) {
                 showError(error.message);
             }
@@ -205,6 +208,19 @@ const CreateOrder = () => {
                             inputProps={{ min: 1 }}
                         />
 
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={newItem.buyOnlyByAction}
+                                    onChange={() =>
+                                        setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })
+                                    }
+                                />
+                            }
+                            label="только по акции"
+                            sx={{ whiteSpace: "nowrap" }}
+                        />
+
                         <Button
                             variant="contained"
                             onClick={handleAddItem}
@@ -248,6 +264,14 @@ const CreateOrder = () => {
                                                         variant="outlined"
                                                         sx={{ mr: 1 }}
                                                     />
+                                                    {item.buyOnlyByAction && (
+                                                        <Chip
+                                                            label="Только по акции"
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ mr: 1, color: "red" }}
+                                                        />
+                                                    )}
                                                 </Box>
                                             }
                                             secondaryTypographyProps={{ component: "div" }}

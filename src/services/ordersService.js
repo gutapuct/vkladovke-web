@@ -207,6 +207,7 @@ export const ordersService = {
             const newItem = {
                 productId: itemData.productId,
                 quantity: itemData.quantity,
+                buyOnlyByAction: itemData.buyOnlyByAction,
                 isCompleted: false,
             };
 
@@ -218,7 +219,7 @@ export const ordersService = {
     },
 
     // Обновление количества товара
-    updateOrderItem: async (orderId, productId, quantity) => {
+    updateOrderItem: async (orderId, productId, quantity, buyOnlyByAction) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
@@ -229,7 +230,7 @@ export const ordersService = {
 
             const orderData = orderSnap.data();
             const updatedItems = orderData.items.map((item) =>
-                item.productId === productId ? { ...item, quantity } : item
+                item.productId === productId ? { ...item, quantity, buyOnlyByAction } : item
             );
 
             await updateDoc(orderRef, { items: updatedItems });

@@ -20,6 +20,8 @@ import {
     FormControl,
     Autocomplete,
     LinearProgress,
+    FormControlLabel,
+    Checkbox,
 } from "@mui/material";
 import {
     ArrowBack,
@@ -51,7 +53,7 @@ const OrderDetails = () => {
     const [deleteItemOpen, setDeleteItemOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
-    const [newItem, setNewItem] = useState({ productId: "", quantity: 1 });
+    const [newItem, setNewItem] = useState({ productId: "", quantity: 1, buyOnlyByAction: false });
     const [searchInput, setSearchInput] = useState("");
 
     const loadOrder = useCallback(async () => {
@@ -84,16 +86,16 @@ const OrderDetails = () => {
         })
         .filter((product) => !order?.items?.some((item) => item.productId === product.id));
 
-    const handleProductSelect = (event, value) => {
+    const handleProductSelect = (_, value) => {
         if (value) {
             setNewItem({ ...newItem, productId: value.id });
         } else {
-            setNewItem({ ...newItem, productId: "" });
+            setNewItem({ ...newItem, productId: "", buyOnlyByAction: false });
             setSearchInput("");
         }
     };
 
-    const handleSearchInputChange = (event, value) => {
+    const handleSearchInputChange = (_, value) => {
         setSearchInput(value);
     };
 
@@ -129,7 +131,7 @@ const OrderDetails = () => {
 
         await withLoading(async () => {
             try {
-                await ordersService.updateOrderItem(orderId, editingItem.productId, editingItem.quantity);
+                await ordersService.updateOrderItem(orderId, editingItem.productId, editingItem.quantity, editingItem.buyOnlyByAction);
                 setEditItemDialogOpen(false);
                 setEditingItem(null);
                 setOrder({
@@ -137,6 +139,10 @@ const OrderDetails = () => {
                     items: order.items.map((item) => ({
                         ...item,
                         quantity: item.productId === editingItem.productId ? editingItem.quantity : item.quantity,
+                        buyOnlyByAction:
+                            item.productId === editingItem.productId
+                                ? editingItem.buyOnlyByAction
+                                : item.buyOnlyByAction,
                     })),
                 });
             } catch (error) {
@@ -190,17 +196,25 @@ const OrderDetails = () => {
                 await ordersService.addItemToOrder(orderId, {
                     productId: newItem.productId,
                     quantity: newItem.quantity,
+                    buyOnlyByAction: newItem.buyOnlyByAction,
                 });
                 setAddItemDialogOpen(false);
-                setNewItem({ productId: "", quantity: 1 });
-                setSearchInput("");
+
                 setOrder({
                     ...order,
                     items: [
                         ...order.items,
-                        { productId: newItem.productId, quantity: newItem.quantity, isCompleted: false },
+                        {
+                            productId: newItem.productId,
+                            quantity: newItem.quantity,
+                            isCompleted: false,
+                            buyOnlyByAction: newItem.buyOnlyByAction,
+                        },
                     ],
                 });
+
+                setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
+                setSearchInput("");
             } catch (error) {
                 showError(error.message);
             }
@@ -394,7 +408,19 @@ const OrderDetails = () => {
                                     }
                                 >
                                     <ListItemText
-                                        primary={`${getProductNameById(item.productId)} (${category})`}
+                                        primary={
+                                            <>
+                                                {getProductNameById(item.productId)} ({category})&nbsp;
+                                                {item.buyOnlyByAction && (
+                                                    <Chip
+                                                        label="Только по акции"
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{ mr: 1, color: "red" }}
+                                                    />
+                                                )}
+                                            </>
+                                        }
                                         secondary={`Количество: ${item.quantity} ${unit}`}
                                     />
                                 </ListItem>
@@ -430,7 +456,19 @@ const OrderDetails = () => {
                                     }
                                 >
                                     <ListItemText
-                                        primary={`${getProductNameById(item.productId)} (${category})`}
+                                        primary={
+                                            <>
+                                                {getProductNameById(item.productId)} ({category})&nbsp;
+                                                {item.buyOnlyByAction && (
+                                                    <Chip
+                                                        label="Только по акции"
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{ mr: 1, color: "red" }}
+                                                    />
+                                                )}
+                                            </>
+                                        }
                                         secondary={`Количество: ${item.quantity} ${unit}`}
                                         sx={{
                                             opacity: 0.7,
@@ -491,6 +529,21 @@ const OrderDetails = () => {
                                 margin="normal"
                                 inputProps={{ min: 1 }}
                             />
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={editingItem.buyOnlyByAction}
+                                        onChange={() =>
+                                            setEditingItem({
+                                                ...editingItem,
+                                                buyOnlyByAction: !editingItem.buyOnlyByAction,
+                                            })
+                                        }
+                                    />
+                                }
+                                label="только по акции"
+                                sx={{ whiteSpace: "nowrap" }}
+                            />
                         </Box>
                     )}
                 </DialogContent>
@@ -548,6 +601,18 @@ const OrderDetails = () => {
                             fullWidth
                             margin="normal"
                             inputProps={{ min: 1 }}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={newItem.buyOnlyByAction}
+                                    onChange={() =>
+                                        setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })
+                                    }
+                                />
+                            }
+                            label="только по акции"
+                            sx={{ whiteSpace: "nowrap" }}
                         />
                     </Box>
                 </DialogContent>
