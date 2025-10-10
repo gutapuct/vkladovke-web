@@ -225,7 +225,7 @@ const CreateOrder = () => {
                                     );
                                 }}
                                 renderGroup={(params) => (
-                                    <li key={params.key}>
+                                    <div key={params.key}>
                                         <Box
                                             sx={{
                                                 backgroundColor: "grey.100",
@@ -242,7 +242,7 @@ const CreateOrder = () => {
                                             </Typography>
                                         </Box>
                                         <Box sx={{ pl: 0 }}>{params.children}</Box>
-                                    </li>
+                                    </div>
                                 )}
                                 renderInput={(params) => (
                                     <TextField
