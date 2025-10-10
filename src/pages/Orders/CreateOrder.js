@@ -18,8 +18,9 @@ import {
     Paper,
     Checkbox,
     FormControlLabel,
+    Collapse,
 } from "@mui/material";
-import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon, ExpandLess, ExpandMore } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../hooks/useAuth";
@@ -46,6 +47,7 @@ const CreateOrder = () => {
     });
 
     const [searchInput, setSearchInput] = useState("");
+    const [expandedCategories, setExpandedCategories] = useState({});
 
     // Фильтруем продукты для автокомплита
     const filteredProducts = activeProducts
@@ -59,6 +61,26 @@ const CreateOrder = () => {
             return productName.includes(searchLower) || category.includes(searchLower);
         })
         .filter((product) => !orderData.items.some((item) => item.productId === product.id));
+
+    // Группируем товары по категориям
+    const groupedItems = orderData.items.reduce((acc, item) => {
+        const { category } = getProductInfo(item.productId);
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {});
+
+    // Автоматически раскрываем все категории при добавлении товаров
+    useState(() => {
+        const categories = Object.keys(groupedItems);
+        const initialExpandedState = {};
+        categories.forEach((category) => {
+            initialExpandedState[category] = true;
+        });
+        setExpandedCategories(initialExpandedState);
+    }, [groupedItems]);
 
     const handleAddItem = () => {
         if (!newItem.productId) return;
@@ -84,6 +106,13 @@ const CreateOrder = () => {
             items: [...prev.items, item],
         }));
 
+        // Автоматически раскрываем категорию нового товара
+        const { category } = getProductInfo(newItem.productId);
+        setExpandedCategories((prev) => ({
+            ...prev,
+            [category]: true,
+        }));
+
         // Сбрасываем форму
         setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
         setSearchInput("");
@@ -106,6 +135,13 @@ const CreateOrder = () => {
         setOrderData((prev) => ({
             ...prev,
             items: prev.items.filter((item) => item.productId !== productId),
+        }));
+    };
+
+    const handleToggleCategory = (category) => {
+        setExpandedCategories((prev) => ({
+            ...prev,
+            [category]: !prev[category],
         }));
     };
 
@@ -173,20 +209,41 @@ const CreateOrder = () => {
                                 inputValue={searchInput}
                                 options={filteredProducts}
                                 getOptionLabel={(option) => option.name}
+                                groupBy={(option) => getProductInfo(option.id).category}
                                 renderOption={(props, option) => {
                                     const { key, ...otherProps } = props;
-                                    const { category, unit } = getProductInfo(option.id);
+                                    const { unit } = getProductInfo(option.id);
                                     return (
                                         <li key={option.id} {...otherProps}>
-                                            <Box>
+                                            <Box sx={{ pl: 2 }}>
                                                 <Typography variant="body1">{option.name}</Typography>
                                                 <Typography variant="body2" color="textSecondary">
-                                                    {category} • {unit}
+                                                    {unit}
                                                 </Typography>
                                             </Box>
                                         </li>
                                     );
                                 }}
+                                renderGroup={(params) => (
+                                    <li key={params.key}>
+                                        <Box
+                                            sx={{
+                                                backgroundColor: "grey.100",
+                                                fontWeight: "bold",
+                                                px: 2,
+                                                py: 1,
+                                                position: "sticky",
+                                                top: 0,
+                                                zIndex: 1,
+                                            }}
+                                        >
+                                            <Typography variant="subtitle1" fontWeight="bold">
+                                                {params.group}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ pl: 0 }}>{params.children}</Box>
+                                    </li>
+                                )}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -233,7 +290,7 @@ const CreateOrder = () => {
                 </CardContent>
             </Card>
 
-            {/* Список добавленных товаров */}
+            {/* Список добавленных товаров с группировкой по категориям */}
             {orderData.items.length > 0 && (
                 <Card>
                     <CardContent>
@@ -242,61 +299,94 @@ const CreateOrder = () => {
                         </Typography>
 
                         <List>
-                            {orderData.items.map((item, index) => {
-                                const { category, unit } = getProductInfo(item.productId);
-                                return (
+                            {Object.entries(groupedItems).map(([category, items]) => (
+                                <Box key={category}>
                                     <ListItem
-                                        key={item.productId}
-                                        divider={index < orderData.items.length - 1}
-                                        sx={{ pr: 8 }}
+                                        button
+                                        onClick={() => handleToggleCategory(category)}
+                                        sx={{
+                                            backgroundColor: "grey.50",
+                                            borderBottom: "1px solid",
+                                            borderColor: "grey.200",
+                                        }}
                                     >
                                         <ListItemText
                                             primary={
-                                                <>
-                                                    {getProductNameById(item.productId)} - {item.quantity} {unit}
-                                                </>
-                                            }
-                                            secondary={
-                                                <Box sx={{ mt: 1 }}>
+                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                    <Typography variant="subtitle1" fontWeight="bold">
+                                                        {category}
+                                                    </Typography>
                                                     <Chip
-                                                        label={category}
+                                                        label={items.length}
                                                         size="small"
+                                                        color="primary"
                                                         variant="outlined"
-                                                        sx={{ mr: 1 }}
                                                     />
-                                                    {item.buyOnlyByAction && (
-                                                        <Chip
-                                                            label="Только по акции"
-                                                            size="small"
-                                                            variant="outlined"
-                                                            sx={{ mr: 1, color: "red" }}
-                                                        />
-                                                    )}
                                                 </Box>
                                             }
-                                            secondaryTypographyProps={{ component: "div" }}
                                         />
-
-                                        {/* Кнопка удаления с позиционированием */}
-                                        <Box
-                                            sx={{
-                                                position: "absolute",
-                                                right: 16,
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                            }}
-                                        >
-                                            <IconButton
-                                                onClick={() => handleRemoveItem(item.productId)}
-                                                color="error"
-                                                size="small"
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Box>
+                                        {expandedCategories[category] ? <ExpandLess /> : <ExpandMore />}
                                     </ListItem>
-                                );
-                            })}
+                                    <Collapse in={expandedCategories[category] !== false} timeout="auto" unmountOnExit>
+                                        <List component="div" disablePadding>
+                                            {items.map((item, index) => {
+                                                const { unit } = getProductInfo(item.productId);
+                                                return (
+                                                    <ListItem
+                                                        key={item.productId}
+                                                        divider={index < items.length - 1}
+                                                        sx={{
+                                                            pr: 8,
+                                                            pl: 4,
+                                                            backgroundColor: "background.paper",
+                                                        }}
+                                                    >
+                                                        <ListItemText
+                                                            primary={
+                                                                <>
+                                                                    {getProductNameById(item.productId)} -{" "}
+                                                                    {item.quantity} {unit}
+                                                                </>
+                                                            }
+                                                            secondary={
+                                                                item.buyOnlyByAction && (
+                                                                    <Box sx={{ mt: 1 }}>
+                                                                        <Chip
+                                                                            label="Только по акции"
+                                                                            size="small"
+                                                                            variant="outlined"
+                                                                            sx={{ color: "red", borderColor: "red" }}
+                                                                        />
+                                                                    </Box>
+                                                                )
+                                                            }
+                                                            secondaryTypographyProps={{ component: "div" }}
+                                                        />
+
+                                                        {/* Кнопка удаления с позиционированием */}
+                                                        <Box
+                                                            sx={{
+                                                                position: "absolute",
+                                                                right: 16,
+                                                                top: "50%",
+                                                                transform: "translateY(-50%)",
+                                                            }}
+                                                        >
+                                                            <IconButton
+                                                                onClick={() => handleRemoveItem(item.productId)}
+                                                                color="error"
+                                                                size="small"
+                                                            >
+                                                                <DeleteIcon />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </ListItem>
+                                                );
+                                            })}
+                                        </List>
+                                    </Collapse>
+                                </Box>
+                            ))}
                         </List>
 
                         <Divider sx={{ my: 2 }} />
