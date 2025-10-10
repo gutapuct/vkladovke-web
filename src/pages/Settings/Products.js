@@ -19,6 +19,7 @@ import {
     Select,
     MenuItem,
     Chip,
+    TableSortLabel,
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Save as SaveIcon } from "@mui/icons-material";
 import { settingsService } from "../../services/settingsService";
@@ -44,16 +45,57 @@ const Products = () => {
     const { alertState, showError, hideAlert } = useAlert();
 
     const [isModalAddProductOpen, setIsModalAddProductOpen] = useState(false);
-
     const [removeProductDialogOpen, setRemoveProductDialogOpen] = useState(false);
     const [productToRemove, setProductToRemove] = useState({});
-
     const [productToEdit, setProductToEdit] = useState({});
+
+    // Состояние для сортировки
+    const [orderBy, setOrderBy] = useState("category"); // поле для сортировки
+    const [order, setOrder] = useState("asc"); // направление сортировки: 'asc' или 'desc'
 
     const defaultNewProduct = { name: "", categoryId: "", unitId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
     const toggleAddProduct = () => setIsModalAddProductOpen(!isModalAddProductOpen);
+
+    // Функция для обработки сортировки
+    const handleRequestSort = (property) => {
+        const isAsc = orderBy === property && order === "asc";
+        setOrder(isAsc ? "desc" : "asc");
+        setOrderBy(property);
+    };
+
+    // Функция сортировки продуктов
+    const getSortedProducts = () => {
+        return [...activeProducts].sort((a, b) => {
+            let aValue, bValue;
+
+            if (orderBy === "name") {
+                aValue = a.name.toLowerCase();
+                bValue = b.name.toLowerCase();
+            } else if (orderBy === "category") {
+                const aCategory = getProductInfo(a.id).category;
+                const bCategory = getProductInfo(b.id).category;
+                aValue = aCategory.toLowerCase();
+                bValue = bCategory.toLowerCase();
+            } else if (orderBy === "unit") {
+                const aUnit = getProductInfo(a.id).unit;
+                const bUnit = getProductInfo(b.id).unit;
+                aValue = aUnit.toLowerCase();
+                bValue = bUnit.toLowerCase();
+            }
+
+            if (aValue < bValue) {
+                return order === "asc" ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return order === "asc" ? 1 : -1;
+            }
+            return 0;
+        });
+    };
+
+    const sortedProducts = getSortedProducts();
 
     const handleAddProduct = async () => {
         await withLoading(async () => {
@@ -118,14 +160,38 @@ const Products = () => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Наименование</TableCell>
-                                <TableCell>Категория</TableCell>
-                                <TableCell>Единица измерения</TableCell>
+                                <TableCell>
+                                    <TableSortLabel
+                                        active={orderBy === "name"}
+                                        direction={orderBy === "name" ? order : "asc"}
+                                        onClick={() => handleRequestSort("name")}
+                                    >
+                                        Наименование
+                                    </TableSortLabel>
+                                </TableCell>
+                                <TableCell>
+                                    <TableSortLabel
+                                        active={orderBy === "category"}
+                                        direction={orderBy === "category" ? order : "asc"}
+                                        onClick={() => handleRequestSort("category")}
+                                    >
+                                        Категория
+                                    </TableSortLabel>
+                                </TableCell>
+                                <TableCell>
+                                    <TableSortLabel
+                                        active={orderBy === "unit"}
+                                        direction={orderBy === "unit" ? order : "asc"}
+                                        onClick={() => handleRequestSort("unit")}
+                                    >
+                                        Единица измерения
+                                    </TableSortLabel>
+                                </TableCell>
                                 <TableCell align="center">Действия</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {activeProducts.map((product) => {
+                            {sortedProducts.map((product) => {
                                 const { category, unit } = getProductInfo(product.id);
 
                                 return (
@@ -167,10 +233,7 @@ const Products = () => {
                                                     </Select>
                                                 </FormControl>
                                             ) : (
-                                                <Chip
-                                                    label={category}
-                                                    variant="outlined"
-                                                />
+                                                <Chip label={category} variant="outlined" />
                                             )}
                                         </TableCell>
                                         <TableCell>
