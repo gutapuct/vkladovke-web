@@ -142,11 +142,16 @@ const Layout = ({ children }) => {
                             {item.icon}
                         </ListItemIcon>
                         <ListItemText
-                            primary={item.text}
-                            primaryTypographyProps={{
-                                fontSize: "1.1rem",
-                                fontWeight: 500,
-                            }}
+                            primary={
+                                <Typography
+                                    sx={{
+                                        fontSize: "1.1rem",
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {item.text}
+                                </Typography>
+                            }
                         />
                     </ListItem>
                 ))}
@@ -173,11 +178,16 @@ const Layout = ({ children }) => {
                             <LogoutIcon />
                         </ListItemIcon>
                         <ListItemText
-                            primary="Выйти"
-                            primaryTypographyProps={{
-                                fontSize: "1.1rem",
-                                fontWeight: 500,
-                            }}
+                            primary={
+                                <Typography
+                                    sx={{
+                                        fontSize: "1.1rem",
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    Выйти
+                                </Typography>
+                            }
                         />
                     </ListItem>
                 </List>

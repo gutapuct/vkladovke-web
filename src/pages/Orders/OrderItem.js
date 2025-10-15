@@ -137,7 +137,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                             <ListItemIcon>
                                 <EditIcon color="primary" />
                             </ListItemIcon>
-                            <ListItemText primary="Редактировать" primaryTypographyProps={{ fontWeight: 500 }} />
+                            <ListItemText primary={<Typography sx={{ fontWeight: 500 }}>Редактировать</Typography>} />
                         </ListItem>
 
                         <ListItem button onClick={() => handleAction("complete")} sx={{ borderRadius: 2, mb: 1 }}>
@@ -149,8 +149,11 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                                 )}
                             </ListItemIcon>
                             <ListItemText
-                                primary={isCompleted ? "Вернуть в список" : "Отметить купленным"}
-                                primaryTypographyProps={{ fontWeight: 500 }}
+                                primary={
+                                    <Typography sx={{ fontWeight: 500 }}>
+                                        {isCompleted ? "Вернуть в список" : "Отметить купленным"}
+                                    </Typography>
+                                }
                             />
                         </ListItem>
 
@@ -159,8 +162,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                                 <DeleteIcon color="error" />
                             </ListItemIcon>
                             <ListItemText
-                                primary="Удалить"
-                                primaryTypographyProps={{ color: "error", fontWeight: 500 }}
+                                primary={<Typography sx={{ color: "error.main", fontWeight: 500 }}>Удалить</Typography>}
                             />
                         </ListItem>
                     </List>
