@@ -84,7 +84,25 @@ const Layout = ({ children }) => {
             }}
             role="presentation"
         >
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+            <Box
+                sx={{
+                    p: 2,
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                }}
+            >
+                <img
+                    src={`${process.env.PUBLIC_URL}/logo192.png`}
+                    alt="Логотип"
+                    style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 8,
+                    }}
+                />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Меню
                 </Typography>
@@ -188,17 +206,36 @@ const Layout = ({ children }) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography
-                        variant="h6"
-                        component="div"
+
+                    <Box
                         sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
                             flexGrow: 1,
-                            fontSize: "1.25rem",
-                            fontWeight: 600,
                         }}
                     >
-                        В Кладовке
-                    </Typography>
+                        <img
+                            src={`${process.env.PUBLIC_URL}/logo192.png`}
+                            alt="В Кладовке"
+                            style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 6,
+                                objectFit: "contain",
+                            }}
+                        />
+                        <Typography
+                            variant="h6"
+                            component="div"
+                            sx={{
+                                fontSize: "1.25rem",
+                                fontWeight: 600,
+                            }}
+                        >
+                            В Кладовке
+                        </Typography>
+                    </Box>
                 </Toolbar>
             </AppBar>
 
