@@ -58,8 +58,6 @@ export const LoadingProvider = ({ children }) => {
             startLoading();
             try {
                 const result = await asyncFunction();
-                // console.log("asyncFunction: ", asyncFunction);
-                // console.log("result: ", result);
                 return result;
             } finally {
                 stopLoading();

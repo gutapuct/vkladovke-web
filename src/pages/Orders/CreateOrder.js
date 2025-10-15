@@ -7,20 +7,21 @@ import {
     Button,
     Card,
     CardContent,
-    List,
-    ListItem,
-    ListItemText,
-    IconButton,
-    Chip,
+    Fab,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
     FormControl,
     Autocomplete,
-    Divider,
-    Paper,
     Checkbox,
     FormControlLabel,
-    Collapse,
+    AppBar,
+    Toolbar,
+    IconButton,
+    Chip,
 } from "@mui/material";
-import { Add as AddIcon, Delete as DeleteIcon, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon, ArrowBack, Save as SaveIcon } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../hooks/useAuth";
@@ -47,40 +48,39 @@ const CreateOrder = () => {
     });
 
     const [searchInput, setSearchInput] = useState("");
-    const [expandedCategories, setExpandedCategories] = useState({});
+    const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
 
-    // Фильтруем продукты для автокомплита
-    const filteredProducts = activeProducts
-        .filter((product) => {
-            if (!searchInput) return true;
+    const isAnyDialogOpen = addItemDialogOpen || alertState.open;
 
-            const searchLower = searchInput.toLowerCase();
-            const productName = product.name.toLowerCase();
-            const category = getProductInfo(product.id).category.toLowerCase();
+    // Функция для сортировки продуктов по категориям
+    const getSortedProducts = (products) => {
+        return [...products].sort((a, b) => {
+            const categoryA = getProductInfo(a.id).category;
+            const categoryB = getProductInfo(b.id).category;
 
-            return productName.includes(searchLower) || category.includes(searchLower);
-        })
-        .filter((product) => !orderData.items.some((item) => item.productId === product.id));
+            if (categoryA < categoryB) return -1;
+            if (categoryA > categoryB) return 1;
 
-    // Группируем товары по категориям
-    const groupedItems = orderData.items.reduce((acc, item) => {
-        const { category } = getProductInfo(item.productId);
-        if (!acc[category]) {
-            acc[category] = [];
-        }
-        acc[category].push(item);
-        return acc;
-    }, {});
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
 
-    // Автоматически раскрываем все категории при добавлении товаров
-    useState(() => {
-        const categories = Object.keys(groupedItems);
-        const initialExpandedState = {};
-        categories.forEach((category) => {
-            initialExpandedState[category] = true;
+            return 0;
         });
-        setExpandedCategories(initialExpandedState);
-    }, [groupedItems]);
+    };
+
+    const filteredProducts = getSortedProducts(
+        activeProducts
+            .filter((product) => {
+                if (!searchInput) return true;
+
+                const searchLower = searchInput.toLowerCase();
+                const productName = product.name.toLowerCase();
+                const category = getProductInfo(product.id).category.toLowerCase();
+
+                return productName.includes(searchLower) || category.includes(searchLower);
+            })
+            .filter((product) => !orderData.items.some((item) => item.productId === product.id))
+    );
 
     const handleAddItem = () => {
         if (!newItem.productId) return;
@@ -88,7 +88,6 @@ const CreateOrder = () => {
         const product = activeProducts.find((p) => p.id === newItem.productId);
         if (!product) return;
 
-        // Проверяем, не добавлен ли уже этот продукт
         const isAlreadyAdded = orderData.items.some((item) => item.productId === newItem.productId);
         if (isAlreadyAdded) {
             showError("Этот продукт уже добавлен в список");
@@ -106,16 +105,9 @@ const CreateOrder = () => {
             items: [...prev.items, item],
         }));
 
-        // Автоматически раскрываем категорию нового товара
-        const { category } = getProductInfo(newItem.productId);
-        setExpandedCategories((prev) => ({
-            ...prev,
-            [category]: true,
-        }));
-
-        // Сбрасываем форму
         setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
         setSearchInput("");
+        setAddItemDialogOpen(false);
     };
 
     const handleProductSelect = (_, value) => {
@@ -138,19 +130,7 @@ const CreateOrder = () => {
         }));
     };
 
-    const handleToggleCategory = (category) => {
-        setExpandedCategories((prev) => ({
-            ...prev,
-            [category]: !prev[category],
-        }));
-    };
-
     const handleCreateOrder = async () => {
-        if (!orderData.title.trim()) {
-            showError("Введите название списка");
-            return;
-        }
-
         if (orderData.items.length === 0) {
             showError("Добавьте хотя бы один товар");
             return;
@@ -173,247 +153,313 @@ const CreateOrder = () => {
     };
 
     return (
-        <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto" }}>
-            {/* Заголовок */}
-            <Typography variant="h4" gutterBottom>
-                Создание нового списка
-            </Typography>
-
-            {/* Информация о списке */}
-            <Card sx={{ mb: 3 }}>
-                <CardContent>
-                    <TextField
-                        label="Название списка"
-                        value={orderData.title}
-                        onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-                </CardContent>
-            </Card>
-
-            {/* Добавление товаров */}
-            <Card sx={{ mb: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Добавить товары
+        <Box sx={{ pb: 8 }}>
+            <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
+                <Toolbar>
+                    <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                        Новый список
                     </Typography>
+                </Toolbar>
+            </AppBar>
 
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "end", mb: 2 }}>
-                        <FormControl fullWidth>
-                            <Autocomplete
-                                value={activeProducts.find((p) => p.id === newItem.productId) || null}
-                                onChange={handleProductSelect}
-                                onInputChange={handleSearchInputChange}
-                                inputValue={searchInput}
-                                options={filteredProducts}
-                                getOptionLabel={(option) => option.name}
-                                groupBy={(option) => getProductInfo(option.id).category}
-                                renderOption={(props, option) => {
-                                    const { key, ...otherProps } = props;
-                                    const { unit } = getProductInfo(option.id);
-                                    return (
-                                        <li key={option.id} {...otherProps}>
-                                            <Box sx={{ pl: 2 }}>
-                                                <Typography variant="body1">{option.name}</Typography>
-                                                <Typography variant="body2" color="textSecondary">
-                                                    {unit}
-                                                </Typography>
-                                            </Box>
-                                        </li>
-                                    );
-                                }}
-                                renderGroup={(params) => (
-                                    <div key={params.key}>
-                                        <Box
-                                            sx={{
-                                                backgroundColor: "grey.100",
-                                                fontWeight: "bold",
-                                                px: 2,
-                                                py: 1,
-                                                position: "sticky",
-                                                top: 0,
-                                                zIndex: 1,
-                                            }}
-                                        >
-                                            <Typography variant="subtitle1" fontWeight="bold">
-                                                {params.group}
-                                            </Typography>
-                                        </Box>
-                                        <Box sx={{ pl: 0 }}>{params.children}</Box>
-                                    </div>
-                                )}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Поиск товара"
-                                        placeholder="Начните вводить название товара..."
-                                    />
-                                )}
-                                noOptionsText="Товары не найдены"
-                                filterOptions={(options, state) => options}
-                            />
-                        </FormControl>
-
+            <Box>
+                <Card sx={{ borderRadius: 0, boxShadow: 2 }}>
+                    <CardContent sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                            Название списка
+                        </Typography>
                         <TextField
-                            label="Количество"
-                            type="number"
-                            value={newItem.quantity}
-                            onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                            sx={{ width: 120 }}
-                            inputProps={{ min: 1 }}
+                            label="Введите название"
+                            value={orderData.title}
+                            onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
+                            fullWidth
+                            size="medium"
+                            slotProps={{
+                                input: {
+                                    sx: { fontSize: "16px" },
+                                },
+                            }}
                         />
+                    </CardContent>
+                </Card>
 
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={newItem.buyOnlyByAction}
-                                    onChange={() =>
-                                        setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })
-                                    }
-                                />
-                            }
-                            label="только по акции"
-                            sx={{ whiteSpace: "nowrap" }}
-                        />
-
-                        <Button
-                            variant="contained"
-                            onClick={handleAddItem}
-                            disabled={!newItem.productId}
-                            startIcon={<AddIcon />}
-                        >
-                            Добавить
-                        </Button>
-                    </Box>
-                </CardContent>
-            </Card>
-
-            {/* Список добавленных товаров с группировкой по категориям */}
-            {orderData.items.length > 0 && (
-                <Card>
-                    <CardContent>
-                        <Typography variant="h6" gutterBottom>
+                {/* Список товаров */}
+                {orderData.items.length > 0 && (
+                    <Box sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
                             Товары в списке ({orderData.items.length})
                         </Typography>
 
-                        <List>
-                            {Object.entries(groupedItems).map(([category, items]) => (
-                                <Box key={category}>
-                                    <ListItem
-                                        button
-                                        onClick={() => handleToggleCategory(category)}
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            {orderData.items.map((item) => {
+                                const { unit, category } = getProductInfo(item.productId);
+                                return (
+                                    <Card
+                                        key={item.productId}
+                                        variant="outlined"
                                         sx={{
-                                            backgroundColor: "grey.50",
-                                            borderBottom: "1px solid",
-                                            borderColor: "grey.200",
+                                            borderRadius: 2,
                                         }}
                                     >
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                    <Typography variant="subtitle1" fontWeight="bold">
-                                                        {category}
-                                                    </Typography>
-                                                    <Chip
-                                                        label={items.length}
-                                                        size="small"
-                                                        color="primary"
-                                                        variant="outlined"
-                                                    />
-                                                </Box>
-                                            }
-                                        />
-                                        {expandedCategories[category] ? <ExpandLess /> : <ExpandMore />}
-                                    </ListItem>
-                                    <Collapse in={expandedCategories[category] !== false} timeout="auto" unmountOnExit>
-                                        <List component="div" disablePadding>
-                                            {items.map((item, index) => {
-                                                const { unit } = getProductInfo(item.productId);
-                                                return (
-                                                    <ListItem
-                                                        key={item.productId}
-                                                        divider={index < items.length - 1}
+                                        <CardContent sx={{ p: 3 }}>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "flex-start",
+                                                    mb: 2,
+                                                }}
+                                            >
+                                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                    <Typography
+                                                        variant="h6"
                                                         sx={{
-                                                            pr: 8,
-                                                            pl: 4,
-                                                            backgroundColor: "background.paper",
+                                                            fontSize: "1.1rem",
+                                                            fontWeight: 600,
+                                                            wordBreak: "break-word",
+                                                            lineHeight: 1.3,
+                                                            mb: 1,
                                                         }}
                                                     >
-                                                        <ListItemText
-                                                            primary={
-                                                                <>
-                                                                    {getProductNameById(item.productId)} -{" "}
-                                                                    {item.quantity} {unit}
-                                                                </>
-                                                            }
-                                                            secondary={
-                                                                item.buyOnlyByAction && (
-                                                                    <Box sx={{ mt: 1 }}>
-                                                                        <Chip
-                                                                            label="Только по акции"
-                                                                            size="small"
-                                                                            variant="outlined"
-                                                                            sx={{ color: "red", borderColor: "red" }}
-                                                                        />
-                                                                    </Box>
-                                                                )
-                                                            }
-                                                            secondaryTypographyProps={{ component: "div" }}
+                                                        {getProductNameById(item.productId)}
+                                                    </Typography>
+
+                                                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+                                                        <Chip
+                                                            label={category}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            color="primary"
                                                         />
-
-                                                        {/* Кнопка удаления с позиционированием */}
-                                                        <Box
-                                                            sx={{
-                                                                position: "absolute",
-                                                                right: 16,
-                                                                top: "50%",
-                                                                transform: "translateY(-50%)",
-                                                            }}
-                                                        >
-                                                            <IconButton
-                                                                onClick={() => handleRemoveItem(item.productId)}
-                                                                color="error"
+                                                        <Chip
+                                                            label={`${item.quantity} ${unit}`}
+                                                            size="small"
+                                                            variant="outlined"
+                                                        />
+                                                        {item.buyOnlyByAction && (
+                                                            <Chip
+                                                                label="по акции"
                                                                 size="small"
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </Box>
-                                                    </ListItem>
-                                                );
-                                            })}
-                                        </List>
-                                    </Collapse>
-                                </Box>
-                            ))}
-                        </List>
+                                                                variant="outlined"
+                                                                sx={{ color: "red", borderColor: "red" }}
+                                                            />
+                                                        )}
+                                                    </Box>
+                                                </Box>
+                                            </Box>
 
-                        <Divider sx={{ my: 2 }} />
-
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-                            <Button onClick={() => navigate("/")} variant="outlined">
-                                Отмена
-                            </Button>
-
-                            <Button
-                                onClick={handleCreateOrder}
-                                variant="contained"
-                                disabled={!orderData.title || orderData.items.length === 0}
-                            >
-                                Создать список
-                            </Button>
+                                            <Button
+                                                onClick={() => handleRemoveItem(item.productId)}
+                                                variant="outlined"
+                                                color="error"
+                                                size="medium"
+                                                startIcon={<DeleteIcon />}
+                                                fullWidth
+                                                sx={{ borderRadius: 2 }}
+                                            >
+                                                Удалить из списка
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </Box>
-                    </CardContent>
-                </Card>
-            )}
+                    </Box>
+                )}
 
-            {orderData.items.length === 0 && (
-                <Paper sx={{ p: 3, textAlign: "center" }}>
-                    <Typography variant="body1" color="textSecondary">
-                        Добавьте товары в список
-                    </Typography>
-                </Paper>
+                {orderData.items.length === 0 && (
+                    <Box sx={{ p: 3, textAlign: "center" }}>
+                        <Typography variant="body1" color="textSecondary">
+                            Добавьте товары в список
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* Кнопки действий */}
+                <Box sx={{ p: 2, pt: 3 }}>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                        <Button
+                            onClick={() => navigate(-1)}
+                            variant="outlined"
+                            fullWidth
+                            size="large"
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            onClick={handleCreateOrder}
+                            variant="contained"
+                            disabled={orderData.items.length === 0}
+                            fullWidth
+                            size="large"
+                            startIcon={<SaveIcon />}
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Создать
+                        </Button>
+                    </Box>
+                </Box>
+            </Box>
+
+            {/* Диалог добавления товара */}
+            <Dialog
+                open={addItemDialogOpen}
+                onClose={() => setAddItemDialogOpen(false)}
+                sx={{
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(2px)",
+                    },
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            maxHeight: "calc(100% - 40px)",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
+                    },
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        pb: 2,
+                        pt: 3,
+                        px: 3,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                    }}
+                >
+                    Добавить товар
+                </DialogTitle>
+
+                <DialogContent sx={{ p: 3 }}>
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                        <Autocomplete
+                            value={activeProducts.find((p) => p.id === newItem.productId) || null}
+                            onChange={handleProductSelect}
+                            onInputChange={handleSearchInputChange}
+                            inputValue={searchInput}
+                            options={filteredProducts}
+                            getOptionLabel={(option) => option.name}
+                            groupBy={(option) => getProductInfo(option.id).category}
+                            renderOption={(props, option) => {
+                                const { key, ...otherProps } = props;
+                                const { unit } = getProductInfo(option.id);
+                                return (
+                                    <li key={option.id} {...otherProps}>
+                                        <Box sx={{ pl: 2 }}>
+                                            <Typography variant="body1">{option.name}</Typography>
+                                            <Typography variant="body2" color="textSecondary">
+                                                {unit}
+                                            </Typography>
+                                        </Box>
+                                    </li>
+                                );
+                            }}
+                            renderGroup={(params) => (
+                                <div key={params.key}>
+                                    <Box
+                                        sx={{
+                                            backgroundColor: "grey.100",
+                                            fontWeight: "bold",
+                                            px: 2,
+                                            py: 1,
+                                            position: "sticky",
+                                            top: 0,
+                                            zIndex: 1,
+                                        }}
+                                    >
+                                        <Typography variant="subtitle1" fontWeight="bold">
+                                            {params.group}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ pl: 0 }}>{params.children}</Box>
+                                </div>
+                            )}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Поиск товара" placeholder="Начните вводить название..." />
+                            )}
+                            noOptionsText="Товары не найдены"
+                        />
+                    </FormControl>
+
+                    <TextField
+                        label="Количество"
+                        type="number"
+                        value={newItem.quantity}
+                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                        fullWidth
+                        sx={{ mb: 3 }}
+                        slotProps={{
+                            input: {
+                                min: 1,
+                            },
+                        }}
+                    />
+
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={newItem.buyOnlyByAction}
+                                onChange={() => setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })}
+                            />
+                        }
+                        label="Только по акции"
+                    />
+                </DialogContent>
+
+                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
+                    <Button
+                        onClick={() => setAddItemDialogOpen(false)}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Отмена
+                    </Button>
+                    <Button
+                        onClick={handleAddItem}
+                        variant="contained"
+                        disabled={!newItem.productId}
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Добавить
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {!isAnyDialogOpen && (
+                <Fab
+                    color="primary"
+                    aria-label="add item"
+                    onClick={() => setAddItemDialogOpen(true)}
+                    sx={{
+                        position: "fixed",
+                        bottom: 72,
+                        right: 16,
+                        width: 56,
+                        height: 56,
+                    }}
+                >
+                    <AddIcon />
+                </Fab>
             )}
 
             <AlertDialog

@@ -29,7 +29,6 @@ const AppContent = () => {
 
     const NoAccessRoute = ({ element }) => {
         const { currentUser } = useAuth();
-        // console.log("currentUser, ", currentUser);
 
         if (!currentUser) {
             return <Navigate to="/login" />;
@@ -61,9 +60,7 @@ const AppContent = () => {
 };
 
 const App = () => {
-    return (
-        <AppContent />
-    );
+    return <AppContent />;
 };
 
 export default App;

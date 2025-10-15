@@ -13,33 +13,20 @@ const LoadingSpinner = () => {
                 sx={{
                     color: "#fff",
                     zIndex: 9999,
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    backgroundColor: "rgba(0, 0, 0, 0.7)",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 2,
-                    backdropFilter: "blur(2px)",
-                    transition: "opacity 0.3s ease-in-out",
+                    gap: 3,
+                    backdropFilter: "blur(4px)",
                 }}
             >
-                <CircularProgress
-                    color="inherit"
-                    size={60}
-                    thickness={4}
-                    sx={{
-                        animation: "pulse 1.5s ease-in-out infinite",
-                        "@keyframes pulse": {
-                            "0%": { opacity: 1 },
-                            "50%": { opacity: 0.7 },
-                            "100%": { opacity: 1 },
-                        },
-                    }}
-                />
+                <CircularProgress color="inherit" size={64} thickness={4} />
                 <Typography
                     variant="h6"
                     color="inherit"
                     sx={{
                         fontWeight: 500,
-                        letterSpacing: "0.5px",
+                        fontSize: "1.1rem",
                     }}
                 >
                     Загрузка...

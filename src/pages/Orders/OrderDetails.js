@@ -10,8 +10,6 @@ import {
     List,
     ListItem,
     ListItemText,
-    IconButton,
-    Divider,
     TextField,
     Dialog,
     DialogTitle,
@@ -23,19 +21,18 @@ import {
     FormControlLabel,
     Checkbox,
     Collapse,
-    Tooltip,
+    AppBar,
+    Toolbar,
+    IconButton,
+    Fab,
 } from "@mui/material";
 import {
     ArrowBack,
-    RadioButtonChecked,
-    RadioButtonUnchecked,
-    Edit as EditIcon,
     Delete as DeleteIcon,
     Add as AddIcon,
     ExpandLess,
     ExpandMore,
-    UnfoldLess,
-    UnfoldMore,
+    Check as CheckIcon,
 } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
@@ -44,6 +41,7 @@ import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import OrderItem from "./OrderItem";
 
 const OrderDetails = () => {
     const { orderId } = useParams();
@@ -65,6 +63,31 @@ const OrderDetails = () => {
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
 
+    const isAnyDialogOpen =
+        editItemDialogOpen ||
+        addItemDialogOpen ||
+        deleteOrderOpen ||
+        deleteItemOpen ||
+        completeOrderOpen ||
+        alertState.open;
+
+    // Функция для сортировки продуктов по категориям
+    const getSortedProducts = (products) => {
+        return [...products].sort((a, b) => {
+            const categoryA = getProductInfo(a.id).category;
+            const categoryB = getProductInfo(b.id).category;
+
+            if (categoryA < categoryB) return -1;
+            if (categoryA > categoryB) return 1;
+
+            // Если категории одинаковые, сортируем по названию
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+
+            return 0;
+        });
+    };
+
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
             try {
@@ -82,17 +105,19 @@ const OrderDetails = () => {
         }
     }, [orderId, loadOrder]);
 
-    const filteredProducts = activeProducts
-        .filter((product) => {
-            if (!searchInput) return true;
+    const filteredProducts = getSortedProducts(
+        activeProducts
+            .filter((product) => {
+                if (!searchInput) return true;
 
-            const searchLower = searchInput.toLowerCase();
-            const productName = product.name.toLowerCase();
-            const category = getProductInfo(product.id).category.toLowerCase();
+                const searchLower = searchInput.toLowerCase();
+                const productName = product.name.toLowerCase();
+                const category = getProductInfo(product.id).category.toLowerCase();
 
-            return productName.includes(searchLower) || category.includes(searchLower);
-        })
-        .filter((product) => !order?.items?.some((item) => item.productId === product.id));
+                return productName.includes(searchLower) || category.includes(searchLower);
+            })
+            .filter((product) => !order?.items?.some((item) => item.productId === product.id))
+    );
 
     const pendingItems = order?.items?.filter((item) => !item.isCompleted) || [];
     const groupedPendingItems = pendingItems.reduce((acc, item) => {
@@ -113,24 +138,6 @@ const OrderDetails = () => {
         acc[category].push(item);
         return acc;
     }, {});
-
-    const expandAllPendingCategories = () => {
-        const categories = Object.keys(groupedPendingItems);
-        setExpandedPendingCategories(new Set(categories));
-    };
-
-    const collapseAllPendingCategories = () => {
-        setExpandedPendingCategories(new Set());
-    };
-
-    const expandAllCompletedCategories = () => {
-        const categories = Object.keys(groupedCompletedItems);
-        setExpandedCompletedCategories(new Set(categories));
-    };
-
-    const collapseAllCompletedCategories = () => {
-        setExpandedCompletedCategories(new Set());
-    };
 
     const handleProductSelect = (_, value) => {
         if (value) {
@@ -286,8 +293,10 @@ const OrderDetails = () => {
                 await ordersService.completeOrder(orderId, complete);
                 setCompleteOrderOpen(false);
 
-                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`, "Успешно", () =>
-                    complete ? navigate("/") : null
+                showSuccess(
+                    `Список ${complete ? "завершен" : "возобновлен"}`,
+                    "Успешно",
+                    complete ? navigate("/") : loadOrder
                 );
             } catch (error) {
                 showError(error.message);
@@ -300,15 +309,11 @@ const OrderDetails = () => {
             try {
                 await ordersService.deleteOrder(orderId);
                 setDeleteOrderOpen(false);
-                showSuccess("Список успешно удален", "Успешно", () => navigate("/"));
+                showSuccess("Список успешно удален", "Успешно", navigate("/"));
             } catch (error) {
                 showError(error.message);
             }
         });
-    };
-
-    const handleBack = () => {
-        navigate(-1);
     };
 
     const handleTogglePendingCategory = (category) => {
@@ -346,334 +351,212 @@ const OrderDetails = () => {
     if (!order) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography variant="h6">Список не найден</Typography>
-                <Button onClick={handleBack}>Назад</Button>
+                <Typography variant="h6">Загрузка...</Typography>
             </Box>
         );
     }
 
     const progressPercentage = order.items?.length > 0 ? (completedItems.length / order.items.length) * 100 : 0;
 
-    const getItemToDeleteInfo = () => {
-        if (!itemToDelete) return { name: "", category: "", quantity: 1 };
-        const { category, unit } = getProductInfo(itemToDelete.productId);
-        return {
-            name: getProductNameById(itemToDelete.productId),
-            category,
-            quantity: itemToDelete.quantity,
-            unit,
-        };
-    };
-
-    const itemToDeleteInfo = getItemToDeleteInfo();
-
     return (
-        <Box sx={{ p: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+        <Box sx={{ pb: 8 }}>
+            <AppBar position="sticky" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
+                <Toolbar>
+                    <IconButton
+                        edge="start"
+                        onClick={() => navigate(order.isCompleted ? "/history" : "/")}
+                        sx={{ mr: 2 }}
+                        size="large"
+                    >
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h4">{order.title}</Typography>
-                </Box>
+                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                        {order.title}
+                    </Typography>
+                    <IconButton color="error" onClick={() => setDeleteOrderOpen(true)} size="large">
+                        <DeleteIcon />
+                    </IconButton>
+                </Toolbar>
+            </AppBar>
 
-                <Box sx={{ display: "flex", gap: 2 }}>
-                    {!order.isCompleted && (
-                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddItemDialogOpen(true)}>
-                            Добавить товар
-                        </Button>
-                    )}
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => setDeleteOrderOpen(true)}
-                    >
-                        Удалить список
-                    </Button>
-                </Box>
-            </Box>
-
-            <Card sx={{ mb: 3 }}>
-                <CardContent>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start", mb: 2 }}>
-                        <Box>
+            <Box sx={{ p: 2 }}>
+                {/* Статистика списка */}
+                <Card sx={{ mb: 3, borderRadius: 2 }}>
+                    <CardContent>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                            <Chip
+                                label={order.isCompleted ? "Завершен" : "Активный"}
+                                color={order.isCompleted ? "success" : "primary"}
+                                variant="filled"
+                            />
                             <Typography variant="body2" color="textSecondary">
-                                Создан: {formatFirebaseTimestamp(order.createdAt)}
+                                {formatFirebaseTimestamp(order.createdAt)}
                             </Typography>
-                            {order.completedAt && (
+                        </Box>
+
+                        <Box sx={{ mb: 2 }}>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                                 <Typography variant="body2" color="textSecondary">
-                                    Завершен: {formatFirebaseTimestamp(order.completedAt)}
+                                    Прогресс:
                                 </Typography>
-                            )}
-                        </Box>
-                        <Chip
-                            label={order.isCompleted ? "Завершен" : "В процессе"}
-                            color={order.isCompleted ? "success" : "primary"}
-                        />
-                    </Box>
-
-                    <Box sx={{ mb: 2 }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                            <Typography variant="body2" color="textSecondary">
-                                Прогресс:
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                {completedItems.length} / {order.items?.length} товаров
-                            </Typography>
-                        </Box>
-                        <LinearProgress
-                            variant="determinate"
-                            value={progressPercentage}
-                            sx={{
-                                height: 8,
-                                borderRadius: 4,
-                                backgroundColor: "#f0f0f0",
-                                "& .MuiLinearProgress-bar": {
+                                <Typography variant="body2" color="textSecondary">
+                                    {completedItems.length} / {order.items?.length}
+                                </Typography>
+                            </Box>
+                            <LinearProgress
+                                variant="determinate"
+                                value={progressPercentage}
+                                sx={{
+                                    height: 8,
                                     borderRadius: 4,
-                                    backgroundColor: order.isCompleted ? "#4caf50" : "#1976d2",
-                                },
-                            }}
-                        />
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
-                            <Typography variant="body2" color="textSecondary">
-                                {Math.round(progressPercentage)}% выполнено
-                            </Typography>
-                            {!order.isCompleted && pendingItems.length > 0 && (
-                                <Typography variant="body2" color="textSecondary">
-                                    Осталось: {pendingItems.length}
+                                    backgroundColor: "#f0f0f0",
+                                    "& .MuiLinearProgress-bar": {
+                                        borderRadius: 4,
+                                        backgroundColor: order.isCompleted ? "#4caf50" : "#1976d2",
+                                    },
+                                }}
+                            />
+                        </Box>
+                    </CardContent>
+                </Card>
+
+                {/* Товары для покупки */}
+                {pendingItems.length > 0 && (
+                    <Card sx={{ mb: 3, borderRadius: 2 }}>
+                        <CardContent sx={{ p: 0 }}>
+                            <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    Осталось купить ({pendingItems.length})
                                 </Typography>
-                            )}
-                        </Box>
-                    </Box>
-                </CardContent>
-            </Card>
-
-            <Typography variant="h5" gutterBottom>
-                Товары ({order.items?.length || 0})
-            </Typography>
-
-            {pendingItems.length > 0 && (
-                <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                        <Typography variant="h6">Осталось купить ({pendingItems.length})</Typography>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                            <Tooltip title="Развернуть все категории">
-                                <IconButton size="small" onClick={expandAllPendingCategories} color="primary">
-                                    <UnfoldMore />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Свернуть все категории">
-                                <IconButton size="small" onClick={collapseAllPendingCategories} color="primary">
-                                    <UnfoldLess />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </Box>
-                    <List>
-                        {Object.entries(groupedPendingItems).map(([category, items]) => (
-                            <Box key={category}>
-                                <ListItem
-                                    button="true"
-                                    onClick={() => handleTogglePendingCategory(category)}
-                                    sx={{
-                                        backgroundColor: "grey.50",
-                                        borderBottom: "1px solid",
-                                        borderColor: "grey.200",
-                                    }}
-                                >
-                                    <ListItemText
-                                        primary={
-                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                    {category}
-                                                </Typography>
-                                                <Chip
-                                                    label={items.length}
-                                                    size="small"
-                                                    color="primary"
-                                                    variant="outlined"
-                                                />
-                                            </Box>
-                                        }
-                                    />
-                                    {isPendingCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
-                                </ListItem>
-                                <Collapse in={isPendingCategoryExpanded(category)} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        {items.map((item) => {
-                                            const { unit } = getProductInfo(item.productId);
-                                            return (
-                                                <ListItem
-                                                    key={item.productId}
-                                                    sx={{
-                                                        pr: 8,
-                                                        pl: 4,
-                                                        backgroundColor: "background.paper",
-                                                    }}
-                                                    secondaryAction={
-                                                        <Box sx={{ display: "flex", gap: 1 }}>
-                                                            <IconButton
-                                                                edge="end"
-                                                                onClick={() => handleEditItem(item)}
-                                                                color="primary"
-                                                            >
-                                                                <EditIcon />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                edge="end"
-                                                                onClick={() => handleOpenDeleteItem(item)}
-                                                                color="error"
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                edge="end"
-                                                                onClick={() => handleCompleteItem(item.productId)}
-                                                            >
-                                                                <RadioButtonUnchecked />
-                                                            </IconButton>
-                                                        </Box>
-                                                    }
-                                                >
-                                                    <ListItemText
-                                                        primary={
-                                                            <>
-                                                                {getProductNameById(item.productId)}&nbsp;
-                                                                {item.buyOnlyByAction && (
-                                                                    <Chip
-                                                                        label="Только по акции"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                        sx={{ mr: 1, color: "red" }}
-                                                                    />
-                                                                )}
-                                                            </>
-                                                        }
-                                                        secondary={`Количество: ${item.quantity} ${unit}`}
-                                                    />
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </List>
-                                </Collapse>
                             </Box>
-                        ))}
-                    </List>
-                    <Divider sx={{ my: 2 }} />
-                </>
-            )}
-
-            {completedItems.length > 0 && (
-                <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                        <Typography variant="h6">Куплено ({completedItems.length})</Typography>
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                            <Tooltip title="Развернуть все категории">
-                                <IconButton size="small" onClick={expandAllCompletedCategories} color="primary">
-                                    <UnfoldMore />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Свернуть все категории">
-                                <IconButton size="small" onClick={collapseAllCompletedCategories} color="primary">
-                                    <UnfoldLess />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </Box>
-                    <List>
-                        {Object.entries(groupedCompletedItems).map(([category, items]) => (
-                            <Box key={category}>
-                                <ListItem
-                                    button="true"
-                                    onClick={() => handleToggleCompletedCategory(category)}
-                                    sx={{
-                                        backgroundColor: "grey.50",
-                                        borderBottom: "1px solid",
-                                        borderColor: "grey.200",
-                                    }}
-                                >
-                                    <ListItemText
-                                        primary={
-                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                    {category}
-                                                </Typography>
-                                                <Chip
-                                                    label={items.length}
-                                                    size="small"
-                                                    color="success"
-                                                    variant="outlined"
-                                                />
-                                            </Box>
-                                        }
-                                    />
-                                    {isCompletedCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
-                                </ListItem>
-                                <Collapse in={isCompletedCategoryExpanded(category)} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        {items.map((item) => {
-                                            const { unit } = getProductInfo(item.productId);
-                                            return (
-                                                <ListItem
-                                                    key={item.productId}
-                                                    sx={{
-                                                        pr: 8,
-                                                        pl: 4,
-                                                        backgroundColor: "background.paper",
-                                                    }}
-                                                    secondaryAction={
-                                                        !order.isCompleted && (
-                                                            <IconButton
-                                                                edge="end"
-                                                                onClick={() =>
-                                                                    handleCompleteItem(item.productId, false)
-                                                                }
-                                                            >
-                                                                <RadioButtonChecked />
-                                                            </IconButton>
-                                                        )
-                                                    }
-                                                >
-                                                    <ListItemText
-                                                        primary={
-                                                            <>
-                                                                {getProductNameById(item.productId)}&nbsp;
-                                                                {item.buyOnlyByAction && (
-                                                                    <Chip
-                                                                        label="Только по акции"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                        sx={{ mr: 1, color: "red" }}
-                                                                    />
-                                                                )}
-                                                            </>
-                                                        }
-                                                        secondary={`Количество: ${item.quantity} ${unit}`}
-                                                        sx={{
-                                                            opacity: 0.7,
-                                                            textDecoration: order.isCompleted ? "line-through" : "none",
-                                                        }}
+                            <List>
+                                {Object.entries(groupedPendingItems).map(([category, items]) => (
+                                    <Box key={category}>
+                                        <ListItem
+                                            button="true"
+                                            onClick={() => handleTogglePendingCategory(category)}
+                                            sx={{
+                                                backgroundColor: "grey.50",
+                                                borderBottom: "1px solid",
+                                                borderColor: "grey.200",
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                            {category}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={items.length}
+                                                            size="small"
+                                                            color="primary"
+                                                            variant="outlined"
+                                                        />
+                                                    </Box>
+                                                }
+                                            />
+                                            {isPendingCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
+                                        </ListItem>
+                                        <Collapse in={isPendingCategoryExpanded(category)} timeout="auto" unmountOnExit>
+                                            <List component="div" disablePadding>
+                                                {items.map((item) => (
+                                                    <OrderItem
+                                                        key={item.productId}
+                                                        item={item}
+                                                        order={order}
+                                                        onEdit={handleEditItem}
+                                                        onDelete={handleOpenDeleteItem}
+                                                        onComplete={handleCompleteItem}
+                                                        getProductNameById={getProductNameById}
+                                                        getProductInfo={getProductInfo}
                                                     />
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </List>
-                                </Collapse>
-                            </Box>
-                        ))}
-                    </List>
-                </>
-            )}
+                                                ))}
+                                            </List>
+                                        </Collapse>
+                                    </Box>
+                                ))}
+                            </List>
+                        </CardContent>
+                    </Card>
+                )}
 
-            <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+                {/* Купленные товары */}
+                {completedItems.length > 0 && (
+                    <Card sx={{ mb: 3, borderRadius: 2 }}>
+                        <CardContent sx={{ p: 0 }}>
+                            <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    Куплено ({completedItems.length})
+                                </Typography>
+                            </Box>
+                            <List>
+                                {Object.entries(groupedCompletedItems).map(([category, items]) => (
+                                    <Box key={category}>
+                                        <ListItem
+                                            button="true"
+                                            onClick={() => handleToggleCompletedCategory(category)}
+                                            sx={{
+                                                backgroundColor: "grey.50",
+                                                borderBottom: "1px solid",
+                                                borderColor: "grey.200",
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                            {category}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={items.length}
+                                                            size="small"
+                                                            color="success"
+                                                            variant="outlined"
+                                                        />
+                                                    </Box>
+                                                }
+                                            />
+                                            {isCompletedCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
+                                        </ListItem>
+                                        <Collapse
+                                            in={isCompletedCategoryExpanded(category)}
+                                            timeout="auto"
+                                            unmountOnExit
+                                        >
+                                            <List component="div" disablePadding>
+                                                {items.map((item) => (
+                                                    <OrderItem
+                                                        key={item.productId}
+                                                        item={item}
+                                                        order={order}
+                                                        onEdit={handleEditItem}
+                                                        onDelete={handleOpenDeleteItem}
+                                                        onComplete={handleCompleteItem}
+                                                        getProductNameById={getProductNameById}
+                                                        getProductInfo={getProductInfo}
+                                                    />
+                                                ))}
+                                            </List>
+                                        </Collapse>
+                                    </Box>
+                                ))}
+                            </List>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Кнопка завершения/возобновления */}
                 {!order.isCompleted ? (
                     <Button
                         variant="contained"
                         color="success"
                         onClick={() => handleTryCompleteOrder(true)}
                         disabled={order.items.length === 0}
-                        sx={{ flex: 1 }}
+                        fullWidth
+                        size="large"
+                        startIcon={<CheckIcon />}
+                        sx={{ borderRadius: 2 }}
                     >
                         Завершить список
                     </Button>
@@ -682,19 +565,54 @@ const OrderDetails = () => {
                         variant="outlined"
                         color="primary"
                         onClick={() => handleTryCompleteOrder(false)}
-                        sx={{ flex: 1 }}
+                        fullWidth
+                        size="large"
+                        sx={{ borderRadius: 2 }}
                     >
                         Возобновить список
                     </Button>
                 )}
             </Box>
 
-            <Dialog open={editItemDialogOpen} onClose={() => setEditItemDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Редактировать товар</DialogTitle>
-                <DialogContent>
+            {/* Диалог редактирования товара */}
+            <Dialog
+                open={editItemDialogOpen}
+                onClose={() => setEditItemDialogOpen(false)}
+                sx={{
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(2px)",
+                    },
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
+                    },
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        pb: 2,
+                        pt: 3,
+                        px: 3,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                    }}
+                >
+                    Редактировать товар
+                </DialogTitle>
+                <DialogContent sx={{ p: 3 }}>
                     {editingItem && (
                         <Box sx={{ pt: 2 }}>
-                            <Typography variant="body1" gutterBottom>
+                            <Typography variant="h6" gutterBottom>
                                 {getProductNameById(editingItem.productId)}
                             </Typography>
                             <TextField
@@ -708,8 +626,12 @@ const OrderDetails = () => {
                                     })
                                 }
                                 fullWidth
-                                margin="normal"
-                                inputProps={{ min: 1 }}
+                                sx={{ mb: 3 }}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 1,
+                                    },
+                                }}
                             />
                             <FormControlLabel
                                 control={
@@ -723,108 +645,190 @@ const OrderDetails = () => {
                                         }
                                     />
                                 }
-                                label="только по акции"
-                                sx={{ whiteSpace: "nowrap" }}
+                                label="Только по акции"
                             />
                         </Box>
                     )}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setEditItemDialogOpen(false)}>Отмена</Button>
-                    <Button onClick={handleUpdateItem} variant="contained">
+                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
+                    <Button
+                        onClick={() => setEditItemDialogOpen(false)}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Отмена
+                    </Button>
+                    <Button
+                        onClick={handleUpdateItem}
+                        variant="contained"
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
                         Сохранить
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={addItemDialogOpen} onClose={() => setAddItemDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Добавить товар</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ pt: 2 }}>
-                        <FormControl fullWidth margin="normal">
-                            <Autocomplete
-                                value={activeProducts.find((p) => p.id === newItem.productId) || null}
-                                onChange={handleProductSelect}
-                                onInputChange={handleSearchInputChange}
-                                inputValue={searchInput}
-                                options={filteredProducts}
-                                getOptionLabel={(option) => option.name}
-                                groupBy={(option) => getProductInfo(option.id).category}
-                                renderOption={(props, option) => {
-                                    const { key, ...otherProps } = props;
-                                    const { unit } = getProductInfo(option.id);
-                                    return (
-                                        <li key={option.id} {...otherProps}>
-                                            <Box sx={{ pl: 2 }}>
-                                                <Typography variant="body1">{option.name}</Typography>
-                                                <Typography variant="body2" color="textSecondary">
-                                                    {unit}
-                                                </Typography>
-                                            </Box>
-                                        </li>
-                                    );
-                                }}
-                                renderGroup={(params) => (
-                                    <div key={params.key}>
-                                        <Box
-                                            sx={{
-                                                backgroundColor: "grey.100",
-                                                fontWeight: "bold",
-                                                px: 2,
-                                                py: 1,
-                                                position: "sticky",
-                                                top: 0,
-                                                zIndex: 1,
-                                            }}
-                                        >
-                                            <Typography variant="subtitle1" fontWeight="bold">
-                                                {params.group}
+            {/* Диалог добавления товара */}
+            <Dialog
+                open={addItemDialogOpen}
+                onClose={() => setAddItemDialogOpen(false)}
+                sx={{
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(2px)",
+                    },
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            maxHeight: "calc(100% - 40px)",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
+                    },
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        pb: 2,
+                        pt: 3,
+                        px: 3,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                    }}
+                >
+                    Добавить товар
+                </DialogTitle>
+                <DialogContent sx={{ p: 3 }}>
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                        <Autocomplete
+                            value={activeProducts.find((p) => p.id === newItem.productId) || null}
+                            onChange={handleProductSelect}
+                            onInputChange={handleSearchInputChange}
+                            inputValue={searchInput}
+                            options={filteredProducts}
+                            getOptionLabel={(option) => option.name}
+                            groupBy={(option) => getProductInfo(option.id).category}
+                            renderOption={(props, option) => {
+                                const { key, ...otherProps } = props;
+                                const { unit } = getProductInfo(option.id);
+                                return (
+                                    <li key={option.id} {...otherProps}>
+                                        <Box sx={{ pl: 2 }}>
+                                            <Typography variant="body1">{option.name}</Typography>
+                                            <Typography variant="body2" color="textSecondary">
+                                                {unit}
                                             </Typography>
                                         </Box>
-                                        <Box sx={{ pl: 0 }}>{params.children}</Box>
-                                    </div>
-                                )}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Поиск товара"
-                                        placeholder="Начните вводить название товара..."
-                                    />
-                                )}
-                                noOptionsText="Товары не найдены"
-                                filterOptions={(options, state) => options}
+                                    </li>
+                                );
+                            }}
+                            renderGroup={(params) => (
+                                <div key={params.key}>
+                                    <Box
+                                        sx={{
+                                            backgroundColor: "grey.100",
+                                            fontWeight: "bold",
+                                            px: 2,
+                                            py: 1,
+                                            position: "sticky",
+                                            top: 0,
+                                            zIndex: 1,
+                                        }}
+                                    >
+                                        <Typography variant="subtitle1" fontWeight="bold">
+                                            {params.group}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ pl: 0 }}>{params.children}</Box>
+                                </div>
+                            )}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Поиск товара" placeholder="Начните вводить название..." />
+                            )}
+                            noOptionsText="Товары не найдены"
+                        />
+                    </FormControl>
+                    <TextField
+                        label="Количество"
+                        type="number"
+                        value={newItem.quantity}
+                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                        fullWidth
+                        sx={{ mb: 3 }}
+                        slotProps={{
+                            htmlInput: {
+                                min: 1,
+                            },
+                        }}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={newItem.buyOnlyByAction}
+                                onChange={() => setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })}
                             />
-                        </FormControl>
-                        <TextField
-                            label="Количество"
-                            type="number"
-                            value={newItem.quantity}
-                            onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                            fullWidth
-                            margin="normal"
-                            inputProps={{ min: 1 }}
-                        />
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={newItem.buyOnlyByAction}
-                                    onChange={() =>
-                                        setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })
-                                    }
-                                />
-                            }
-                            label="только по акции"
-                            sx={{ whiteSpace: "nowrap" }}
-                        />
-                    </Box>
+                        }
+                        label="Только по акции"
+                    />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setAddItemDialogOpen(false)}>Отмена</Button>
-                    <Button onClick={handleAddItem} variant="contained" disabled={!newItem.productId}>
+                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
+                    <Button
+                        onClick={() => setAddItemDialogOpen(false)}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Отмена
+                    </Button>
+                    <Button
+                        onClick={handleAddItem}
+                        variant="contained"
+                        disabled={!newItem.productId}
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
                         Добавить
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* FAB для добавления товара */}
+            {!order.isCompleted && !isAnyDialogOpen && (
+                <Fab
+                    color="primary"
+                    aria-label="add item"
+                    onClick={() => setAddItemDialogOpen(true)}
+                    sx={{
+                        position: "fixed",
+                        bottom: 72,
+                        right: 16,
+                        width: 56,
+                        height: 56,
+                    }}
+                >
+                    <AddIcon />
+                </Fab>
+            )}
 
             <AlertDialog
                 open={alertState.open}
@@ -839,7 +843,7 @@ const OrderDetails = () => {
                 onClose={() => setCompleteOrderOpen(false)}
                 onConfirm={() => handleCompleteOrder(true)}
                 title="Завершить список"
-                message={`В списке имеются не завершенные товары. Вы уверены, что хотите завершить список?`}
+                message="В списке имеются не завершенные товары. Вы уверены, что хотите завершить список?"
                 confirmText="Завершить"
                 cancelText="Отмена"
             />
@@ -865,7 +869,7 @@ const OrderDetails = () => {
                 title="Удалить товар"
                 message={
                     itemToDelete
-                        ? `Вы уверены, что хотите удалить "${itemToDeleteInfo.name}" (${itemToDeleteInfo.quantity} ${itemToDeleteInfo.unit}) из списка?`
+                        ? `Вы уверены, что хотите удалить "${getProductNameById(itemToDelete.productId)}" из списка?`
                         : "Удалить товар?"
                 }
                 confirmText="Удалить"
