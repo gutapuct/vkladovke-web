@@ -1,15 +1,4 @@
-import {
-    Avatar,
-    Box,
-    Button,
-    Container,
-    createTheme,
-    Grid,
-    TextField,
-    Typography,
-    Link,
-    ThemeProvider,
-} from "@mui/material";
+import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
 import { useEffect, useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
@@ -21,12 +10,9 @@ import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
-const defaultTheme = createTheme();
-
 const Login = () => {
     const navigate = useNavigate();
     const { login, currentUser } = useAuth();
-
     const { alertState, showError, hideAlert } = useAlert();
 
     const [formData, setFormData] = useState({
@@ -46,7 +32,6 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         await withLoading(async () => {
             try {
                 await login(formData.email, formData.password);
@@ -65,76 +50,131 @@ const Login = () => {
 
     return (
         <>
-            <ThemeProvider theme={defaultTheme}>
-                <Container component="main" maxWidth="xs">
-                    <Box
+            <Container
+                component="main"
+                maxWidth="sm"
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    minHeight: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <Avatar
                         sx={{
-                            marginTop: 8,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
+                            m: 2,
+                            bgcolor: "primary.main",
+                            width: 64,
+                            height: 64,
                         }}
                     >
-                        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                            <LockOutlinedIcon />
-                        </Avatar>
-                        <Typography component="h1" variant="h4">
-                            Вход
-                        </Typography>
-                        <Box component="form" noValidate sx={{ mt: 3 }}>
-                            <Grid container spacing={2}>
-                                <Grid>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        id="email"
-                                        label="Эл.почта"
-                                        name="email"
-                                        autoComplete="email"
-                                        onChange={handleInputChange}
-                                        value={formData.email}
-                                        sx={{ mb: 3 }}
-                                    />
-                                    <PasswordTextField onChange={handleInputChange} value={formData.password} />
-                                </Grid>
-                            </Grid>
-                            <Button
-                                disabled={!formData.email || !formData.password}
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
-                                onClick={handleSubmit}
+                        <LockOutlinedIcon fontSize="large" />
+                    </Avatar>
+                    <Typography
+                        component="h1"
+                        variant="h4"
+                        sx={{
+                            fontWeight: 600,
+                            mb: 3,
+                            fontSize: "1.75rem",
+                        }}
+                    >
+                        Вход
+                    </Typography>
+                    <Box component="form" noValidate sx={{ width: "100%" }}>
+                        <TextField
+                            required
+                            fullWidth
+                            id="email"
+                            label="Эл.почта"
+                            name="email"
+                            autoComplete="email"
+                            onChange={handleInputChange}
+                            value={formData.email}
+                            sx={{ mb: 3 }}
+                            size="medium"
+                            InputProps={{
+                                sx: { fontSize: "16px" },
+                            }}
+                        />
+                        <PasswordTextField onChange={handleInputChange} value={formData.password} size="medium" />
+
+                        <Button
+                            disabled={!formData.email || !formData.password}
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{
+                                mt: 3,
+                                mb: 2,
+                                py: 1.5,
+                                fontSize: "1rem",
+                                borderRadius: 2,
+                            }}
+                            onClick={handleSubmit}
+                            size="large"
+                        >
+                            Войти
+                        </Button>
+
+                        <GoogleLogin />
+
+                        <Box
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="space-between"
+                            alignItems="stretch"
+                            width="100%"
+                            mt={3}
+                            gap={2}
+                        >
+                            <Link
+                                variant="body2"
+                                onClick={() => navigate("/forgot-password")}
+                                sx={{
+                                    cursor: "pointer",
+                                    textAlign: "center",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                    py: 1,
+                                }}
                             >
-                                Войти
-                            </Button>
-
-                            <GoogleLogin />
-
-                            <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" mt={2}>
-                                <Link
-                                    variant="body2"
-                                    onClick={() => navigate("/forgot-password")}
-                                    sx={{ cursor: "pointer" }}
-                                >
-                                    Забыли пароль?
-                                </Link>
-                                <Link variant="body2" onClick={() => navigate("/register")} sx={{ cursor: "pointer" }}>
-                                    Нет аккаунта? Зарегистрироваться
-                                </Link>
-                            </Box>
+                                Забыли пароль?
+                            </Link>
+                            <Link
+                                variant="body2"
+                                onClick={() => navigate("/register")}
+                                sx={{
+                                    cursor: "pointer",
+                                    textAlign: "center",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                    py: 1,
+                                }}
+                            >
+                                Нет аккаунта? Зарегистрироваться
+                            </Link>
                         </Box>
                     </Box>
-                </Container>
+                </Box>
+            </Container>
 
-                <AlertDialog
-                    open={alertState.open}
-                    onClose={hideAlert}
-                    title={alertState.title}
-                    message={alertState.message}
-                    type={alertState.type}
-                />
-            </ThemeProvider>
+            <AlertDialog
+                open={alertState.open}
+                onClose={hideAlert}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </>
     );
 };

@@ -12,12 +12,11 @@ const AlertDialog = ({
     onClose,
     title = "Информация",
     message = "Операция выполнена успешно",
-    type = "success", // 'info' | 'success' | 'warning' | 'error'
+    type = "success",
     confirmText = "OK",
     autoClose = false,
     autoCloseDelay = 10000,
 }) => {
-    // Автозакрытие
     React.useEffect(() => {
         if (open && autoClose) {
             const timer = setTimeout(() => {
@@ -28,7 +27,6 @@ const AlertDialog = ({
         }
     }, [open, autoClose, autoCloseDelay, onClose]);
 
-    // Настройки в зависимости от типа
     const getDialogSettings = () => {
         switch (type) {
             case "success":
@@ -68,12 +66,19 @@ const AlertDialog = ({
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
             sx={{
-                '& .MuiPaper-root': {
-                    borderRadius: 2,
-                    minWidth: 300,
-                    maxWidth: 400,
-                    mx: 2 // Отступы по бокам на мобильных
-                }
+                "& .MuiBackdrop-root": {
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    backdropFilter: "blur(2px)",
+                },
+            }}
+            PaperProps={{
+                sx: {
+                    margin: "20px",
+                    maxWidth: "calc(100% - 40px)",
+                    width: "100%",
+                    borderRadius: 3,
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                },
             }}
         >
             <DialogTitle
@@ -81,33 +86,55 @@ const AlertDialog = ({
                 sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1,
+                    gap: 2,
                     color: color,
                     fontWeight: 600,
+                    fontSize: "1.25rem",
+                    pt: 3,
+                    pb: 2,
+                    px: 3,
                 }}
             >
-                <Icon sx={{ color: "inherit" }}>{icon}</Icon>
+                <Icon sx={{ color: "inherit", fontSize: "1.5rem" }}>{icon}</Icon>
                 {dialogTitle}
             </DialogTitle>
 
-            <DialogContent>
-                <DialogContentText id="alert-dialog-description" sx={{ color: "text.primary", mt: 1 }}>
+            <DialogContent sx={{ pt: 1, px: 3 }}>
+                <DialogContentText
+                    id="alert-dialog-description"
+                    sx={{
+                        color: "text.primary",
+                        mt: 1,
+                        fontSize: "1rem",
+                        lineHeight: 1.6,
+                    }}
+                >
                     {message}
                 </DialogContentText>
             </DialogContent>
 
-            <DialogActions sx={{ px: 3, pb: 2 }}>
+            <DialogActions
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    pt: 2,
+                }}
+            >
                 <Button
                     onClick={onClose}
                     variant="contained"
+                    size="large"
                     sx={{
                         backgroundColor: color,
                         "&:hover": {
                             backgroundColor: color,
                             opacity: 0.9,
                         },
+                        minHeight: "48px",
+                        fontSize: "1rem",
+                        borderRadius: 2,
+                        flex: 1,
                     }}
-                    fullWidth
                 >
                     {confirmText}
                 </Button>

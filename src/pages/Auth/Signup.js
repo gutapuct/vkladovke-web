@@ -1,15 +1,4 @@
-import {
-    Avatar,
-    Box,
-    Button,
-    Container,
-    createTheme,
-    Grid,
-    TextField,
-    Typography,
-    Link,
-    ThemeProvider,
-} from "@mui/material";
+import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
@@ -20,8 +9,6 @@ import GoogleLogin from "./GoogleLogin";
 import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
-
-const defaultTheme = createTheme();
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -70,61 +57,100 @@ const Signup = () => {
 
     return (
         <>
-            <ThemeProvider theme={defaultTheme}>
-                <Container component="main" maxWidth="xs">
-                    <Box
+            <Container
+                component="main"
+                maxWidth="sm"
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    minHeight: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <Avatar
                         sx={{
-                            marginTop: 8,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
+                            m: 2,
+                            bgcolor: "primary.main",
+                            width: 64,
+                            height: 64,
                         }}
                     >
-                        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                            <LockOutlinedIcon />
-                        </Avatar>
-                        <Typography component="h1" variant="h4">
-                            Регистрация
-                        </Typography>
-                        <Box component="form" noValidate sx={{ mt: 3 }}>
-                            <Grid container spacing={2}>
-                                <Grid>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        id="email"
-                                        label="Эл.почта"
-                                        name="email"
-                                        autoComplete="email"
-                                        onChange={handleInputChange}
-                                        value={formData.email}
-                                        sx={{ mb: 3 }}
-                                    />
-                                    <PasswordTextField onChange={handleInputChange} value={formData.password} />
-                                </Grid>
-                            </Grid>
-                            <Button
-                                disabled={!formData.email || !formData.password}
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
-                                onClick={handleSubmit}
+                        <LockOutlinedIcon fontSize="large" />
+                    </Avatar>
+                    <Typography
+                        component="h1"
+                        variant="h4"
+                        sx={{
+                            fontWeight: 600,
+                            mb: 3,
+                            fontSize: "1.75rem",
+                        }}
+                    >
+                        Регистрация
+                    </Typography>
+                    <Box component="form" noValidate sx={{ width: "100%" }}>
+                        <TextField
+                            required
+                            fullWidth
+                            id="email"
+                            label="Эл.почта"
+                            name="email"
+                            autoComplete="email"
+                            onChange={handleInputChange}
+                            value={formData.email}
+                            sx={{ mb: 3 }}
+                            size="medium"
+                            InputProps={{
+                                sx: { fontSize: "16px" },
+                            }}
+                        />
+                        <PasswordTextField onChange={handleInputChange} value={formData.password} size="medium" />
+
+                        <Button
+                            disabled={!formData.email || !formData.password}
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{
+                                mt: 3,
+                                mb: 2,
+                                py: 1.5,
+                                fontSize: "1rem",
+                                borderRadius: 2,
+                            }}
+                            onClick={handleSubmit}
+                            size="large"
+                        >
+                            Создать аккаунт
+                        </Button>
+
+                        <GoogleLogin />
+
+                        <Box textAlign="center" sx={{ mt: 2 }}>
+                            <Link
+                                variant="body2"
+                                onClick={() => navigate("/login")}
+                                sx={{
+                                    cursor: "pointer",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                }}
                             >
-                                Создать аккаунт
-                            </Button>
-
-                            <GoogleLogin />
-
-                            <Grid item textAlign="right">
-                                <Link variant="body2" onClick={() => navigate("/login")} sx={{ cursor: "pointer" }}>
-                                    Уже имеется аккаунт? Войти
-                                </Link>
-                            </Grid>
+                                Уже имеется аккаунт? Войти
+                            </Link>
                         </Box>
                     </Box>
-                </Container>
-            </ThemeProvider>
+                </Box>
+            </Container>
 
             <AlertDialog
                 open={alertState.open}

@@ -3,15 +3,10 @@ import {
     Box,
     TextField,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
+    Card,
+    CardContent,
     IconButton,
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
     FormControl,
@@ -19,9 +14,21 @@ import {
     Select,
     MenuItem,
     Chip,
-    TableSortLabel,
+    AppBar,
+    Toolbar,
+    Typography,
+    Fab,
+    ToggleButton,
+    ToggleButtonGroup,
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Save as SaveIcon } from "@mui/icons-material";
+import {
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Add as AddIcon,
+    Save as SaveIcon,
+    ArrowBack,
+    Sort as SortIcon,
+} from "@mui/icons-material";
 import { settingsService } from "../../services/settingsService";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useSettings } from "../../hooks/useSettings";
@@ -48,54 +55,43 @@ const Products = () => {
     const [removeProductDialogOpen, setRemoveProductDialogOpen] = useState(false);
     const [productToRemove, setProductToRemove] = useState({});
     const [productToEdit, setProductToEdit] = useState({});
-
-    // Состояние для сортировки
-    const [orderBy, setOrderBy] = useState("category"); // поле для сортировки
-    const [order, setOrder] = useState("asc"); // направление сортировки: 'asc' или 'desc'
+    const [sortBy, setSortBy] = useState("name"); // "name" или "category"
 
     const defaultNewProduct = { name: "", categoryId: "", unitId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
     const toggleAddProduct = () => setIsModalAddProductOpen(!isModalAddProductOpen);
 
-    // Функция для обработки сортировки
-    const handleRequestSort = (property) => {
-        const isAsc = orderBy === property && order === "asc";
-        setOrder(isAsc ? "desc" : "asc");
-        setOrderBy(property);
-    };
+    // Проверяем, открыт ли какой-либо диалог
+    const isAnyDialogOpen = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
 
     // Функция сортировки продуктов
     const getSortedProducts = () => {
         return [...activeProducts].sort((a, b) => {
-            let aValue, bValue;
+            if (sortBy === "name") {
+                // Сортировка по названию (A-Z)
+                return a.name.localeCompare(b.name);
+            } else {
+                // Сортировка по категории, затем по названию
+                const categoryA = getProductInfo(a.id).category;
+                const categoryB = getProductInfo(b.id).category;
 
-            if (orderBy === "name") {
-                aValue = a.name.toLowerCase();
-                bValue = b.name.toLowerCase();
-            } else if (orderBy === "category") {
-                const aCategory = getProductInfo(a.id).category;
-                const bCategory = getProductInfo(b.id).category;
-                aValue = aCategory.toLowerCase();
-                bValue = bCategory.toLowerCase();
-            } else if (orderBy === "unit") {
-                const aUnit = getProductInfo(a.id).unit;
-                const bUnit = getProductInfo(b.id).unit;
-                aValue = aUnit.toLowerCase();
-                bValue = bUnit.toLowerCase();
-            }
+                if (categoryA < categoryB) return -1;
+                if (categoryA > categoryB) return 1;
 
-            if (aValue < bValue) {
-                return order === "asc" ? -1 : 1;
+                // Если категории одинаковые, сортируем по названию
+                return a.name.localeCompare(b.name);
             }
-            if (aValue > bValue) {
-                return order === "asc" ? 1 : -1;
-            }
-            return 0;
         });
     };
 
     const sortedProducts = getSortedProducts();
+
+    const handleSortChange = (event, newSortBy) => {
+        if (newSortBy !== null) {
+            setSortBy(newSortBy);
+        }
+    };
 
     const handleAddProduct = async () => {
         await withLoading(async () => {
@@ -148,155 +144,208 @@ const Products = () => {
     };
 
     return (
-        <>
-            <Box sx={{ mt: 3 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={toggleAddProduct}>
-                        Добавить товар
-                    </Button>
-                </Box>
+        <Box sx={{ pb: 8 }}>
+            {/* Панель сортировки */}
+            <Card sx={{ mb: 2, borderRadius: 2 }}>
+                <CardContent sx={{ py: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            sx={{ display: "flex", alignItems: "center" }}
+                        >
+                            <SortIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                            Сортировка:
+                        </Typography>
+                        <ToggleButtonGroup
+                            value={sortBy}
+                            exclusive
+                            onChange={handleSortChange}
+                            aria-label="Сортировка товаров"
+                            size="small"
+                        >
+                            <ToggleButton value="name" aria-label="По названию">
+                                По названию
+                            </ToggleButton>
+                            <ToggleButton value="category" aria-label="По категории">
+                                По категории
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+                </CardContent>
+            </Card>
 
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === "name"}
-                                        direction={orderBy === "name" ? order : "asc"}
-                                        onClick={() => handleRequestSort("name")}
-                                    >
-                                        Наименование
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === "category"}
-                                        direction={orderBy === "category" ? order : "asc"}
-                                        onClick={() => handleRequestSort("category")}
-                                    >
-                                        Категория
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === "unit"}
-                                        direction={orderBy === "unit" ? order : "asc"}
-                                        onClick={() => handleRequestSort("unit")}
-                                    >
-                                        Единица измерения
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell align="center">Действия</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sortedProducts.map((product) => {
-                                const { category, unit } = getProductInfo(product.id);
+            {/* Список товаров */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {sortedProducts.map((product) => {
+                    const { category, unit } = getProductInfo(product.id);
+                    const isEditing = productToEdit?.id === product.id;
 
-                                return (
-                                    <TableRow key={product.id}>
-                                        <TableCell>
-                                            {productToEdit?.id === product.id ? (
-                                                <TextField
-                                                    value={productToEdit.name}
-                                                    onChange={(e) =>
-                                                        setProductToEdit({
-                                                            ...productToEdit,
-                                                            name: e.target.value,
-                                                        })
-                                                    }
+                    return (
+                        <Card key={product.id} variant="outlined" sx={{ borderRadius: 3 }}>
+                            <CardContent>
+                                {isEditing ? (
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                        <TextField
+                                            value={productToEdit.name}
+                                            onChange={(e) =>
+                                                setProductToEdit({ ...productToEdit, name: e.target.value })
+                                            }
+                                            label="Название товара"
+                                            fullWidth
+                                            size="medium"
+                                        />
+                                        <FormControl fullWidth size="medium">
+                                            <InputLabel>Категория</InputLabel>
+                                            <Select
+                                                value={productToEdit.categoryId}
+                                                onChange={(e) =>
+                                                    setProductToEdit({
+                                                        ...productToEdit,
+                                                        categoryId: parseInt(e.target.value),
+                                                    })
+                                                }
+                                                label="Категория"
+                                            >
+                                                {Object.entries(categories).map(([id, name]) => (
+                                                    <MenuItem key={id} value={parseInt(id)}>
+                                                        {name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                        <FormControl fullWidth size="medium">
+                                            <InputLabel>Единица измерения</InputLabel>
+                                            <Select
+                                                value={productToEdit.unitId}
+                                                onChange={(e) =>
+                                                    setProductToEdit({
+                                                        ...productToEdit,
+                                                        unitId: parseInt(e.target.value),
+                                                    })
+                                                }
+                                                label="Единица измерения"
+                                            >
+                                                {Object.entries(units).map(([id, name]) => (
+                                                    <MenuItem key={id} value={parseInt(id)}>
+                                                        {name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<SaveIcon />}
+                                            onClick={handleSaveProductToEdit}
+                                            fullWidth
+                                            size="large"
+                                            sx={{ borderRadius: 2 }}
+                                        >
+                                            Сохранить
+                                        </Button>
+                                    </Box>
+                                ) : (
+                                    <>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "flex-start",
+                                                mb: 2,
+                                            }}
+                                        >
+                                            <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{
+                                                        fontSize: "1.1rem",
+                                                        fontWeight: 600,
+                                                        wordBreak: "break-word",
+                                                        lineHeight: 1.3,
+                                                    }}
+                                                >
+                                                    {product.name}
+                                                </Typography>
+                                                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
+                                                    <Chip
+                                                        label={category}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        color="primary"
+                                                    />
+                                                    <Chip label={unit} variant="outlined" size="small" />
+                                                </Box>
+                                            </Box>
+                                            <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => handleEditProduct(product)}
                                                     size="small"
-                                                    fullWidth
-                                                />
-                                            ) : (
-                                                product.name
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {productToEdit?.id === product.id ? (
-                                                <FormControl fullWidth size="small">
-                                                    <Select
-                                                        value={productToEdit.categoryId}
-                                                        onChange={(e) =>
-                                                            setProductToEdit({
-                                                                ...productToEdit,
-                                                                categoryId: parseInt(e.target.value),
-                                                            })
-                                                        }
-                                                    >
-                                                        {Object.entries(categories).map(([id, name]) => (
-                                                            <MenuItem key={id} value={parseInt(id)}>
-                                                                {name}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
-                                            ) : (
-                                                <Chip label={category} variant="outlined" />
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {productToEdit?.id === product.id ? (
-                                                <FormControl fullWidth size="small">
-                                                    <Select
-                                                        value={productToEdit.unitId}
-                                                        onChange={(e) =>
-                                                            setProductToEdit({
-                                                                ...productToEdit,
-                                                                unitId: parseInt(e.target.value),
-                                                            })
-                                                        }
-                                                    >
-                                                        {Object.entries(units).map(([id, name]) => (
-                                                            <MenuItem key={id} value={parseInt(id)}>
-                                                                {name}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
-                                            ) : (
-                                                unit
-                                            )}
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            {productToEdit?.id === product.id ? (
-                                                <IconButton color="primary" onClick={handleSaveProductToEdit}>
-                                                    <SaveIcon />
-                                                </IconButton>
-                                            ) : (
-                                                <IconButton color="primary" onClick={() => handleEditProduct(product)}>
+                                                >
                                                     <EditIcon />
                                                 </IconButton>
-                                            )}
-                                            <IconButton
-                                                color="error"
-                                                onClick={() => handleOpenRemoveProductDialog(product)}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => handleOpenRemoveProductDialog(product)}
+                                                    size="small"
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Box>
+                                        </Box>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </Box>
 
+            {activeProducts.length === 0 && (
+                <Card sx={{ textAlign: "center", py: 6, borderRadius: 3 }}>
+                    <CardContent>
+                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                            Товаров пока нет
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                            Добавьте первый товар в ваш справочник
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={toggleAddProduct}
+                            size="large"
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Добавить товар
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Диалог добавления товара */}
-            <Dialog open={isModalAddProductOpen} onClose={toggleAddProduct} maxWidth="sm" fullWidth>
-                <DialogTitle>Добавить новый товар</DialogTitle>
-                <DialogContent>
+            <Dialog open={isModalAddProductOpen} onClose={toggleAddProduct} fullScreen>
+                <AppBar position="sticky" sx={{ bgcolor: "white", color: "text.primary" }}>
+                    <Toolbar>
+                        <IconButton edge="start" onClick={toggleAddProduct} sx={{ mr: 2 }} size="large">
+                            <ArrowBack />
+                        </IconButton>
+                        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                            Новый товар
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+                <DialogContent sx={{ p: 2 }}>
                     <Box sx={{ pt: 2 }}>
                         <TextField
                             label="Наименование товара"
                             value={newProduct.name}
                             onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                             fullWidth
-                            margin="normal"
+                            sx={{ mb: 2 }}
+                            size="medium"
                         />
-                        <FormControl fullWidth margin="normal">
+                        <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>Категория</InputLabel>
                             <Select
                                 value={newProduct.categoryId}
@@ -311,7 +360,7 @@ const Products = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth margin="normal">
+                        <FormControl fullWidth>
                             <InputLabel>Единица измерения</InputLabel>
                             <Select
                                 value={newProduct.unitId}
@@ -328,17 +377,46 @@ const Products = () => {
                         </FormControl>
                     </Box>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={toggleAddProduct}>Отмена</Button>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button
+                        onClick={toggleAddProduct}
+                        variant="outlined"
+                        fullWidth
+                        size="large"
+                        sx={{ borderRadius: 2, mr: 1 }}
+                    >
+                        Отмена
+                    </Button>
                     <Button
                         onClick={handleAddProduct}
                         variant="contained"
                         disabled={!newProduct.name || !newProduct.categoryId || !newProduct.unitId}
+                        fullWidth
+                        size="large"
+                        sx={{ borderRadius: 2, ml: 1 }}
                     >
                         Добавить
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* FAB для добавления товара - СКРЫВАЕМ ПРИ ОТКРЫТЫХ ДИАЛОГАХ */}
+            {!isAnyDialogOpen && (
+                <Fab
+                    color="primary"
+                    aria-label="add product"
+                    onClick={toggleAddProduct}
+                    sx={{
+                        position: "fixed",
+                        bottom: 72,
+                        right: 16,
+                        width: 56,
+                        height: 56,
+                    }}
+                >
+                    <AddIcon />
+                </Fab>
+            )}
 
             {/* Диалог удаления товара */}
             <ConfirmDialog
@@ -346,7 +424,7 @@ const Products = () => {
                 onClose={handleCloseRemoveProductDialog}
                 onConfirm={handleDeleteProduct}
                 title="Удалить товар"
-                message={`Вы уверены, что хотите удалить товар "${productToRemove.name}" ?`}
+                message={`Вы уверены, что хотите удалить товар "${productToRemove.name}"?`}
                 confirmText="Удалить"
                 cancelText="Отмена"
             />
@@ -358,7 +436,7 @@ const Products = () => {
                 message={alertState.message}
                 type={alertState.type}
             />
-        </>
+        </Box>
     );
 };
 

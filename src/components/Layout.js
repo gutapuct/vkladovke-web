@@ -12,8 +12,6 @@ import {
     ListItemText,
     BottomNavigation,
     BottomNavigationAction,
-    useTheme,
-    useMediaQuery,
     Divider,
 } from "@mui/material";
 import {
@@ -36,8 +34,6 @@ const Layout = ({ children }) => {
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const { logout } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
@@ -56,8 +52,6 @@ const Layout = ({ children }) => {
         navigate(path);
         setMobileOpen(false);
     };
-
-    const GetCurrentYear = () => new Date().getFullYear();
 
     const handleConfirmLogout = async () => {
         await withLoading(async () => {
@@ -80,9 +74,23 @@ const Layout = ({ children }) => {
     };
 
     const drawer = (
-        <Box sx={{ width: 250, height: "100%", display: "flex", flexDirection: "column" }} role="presentation">
-            {/* Main Menu Items */}
-            <List sx={{ flex: 1 }}>
+        <Box
+            sx={{
+                width: 280,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                background: "white",
+            }}
+            role="presentation"
+        >
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Меню
+                </Typography>
+            </Box>
+
+            <List sx={{ flex: 1, pt: 1 }}>
                 {menuItems.map((item) => (
                     <ListItem
                         button="true"
@@ -101,15 +109,31 @@ const Layout = ({ children }) => {
                                 },
                             },
                             cursor: "pointer",
+                            py: 2.5,
+                            px: 3,
+                            borderBottom: "1px solid",
+                            borderColor: "divider",
                         }}
                     >
-                        <ListItemIcon>{item.icon}</ListItemIcon>
-                        <ListItemText primary={item.text} />
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 48,
+                                fontSize: "1.5rem",
+                            }}
+                        >
+                            {item.icon}
+                        </ListItemIcon>
+                        <ListItemText
+                            primary={item.text}
+                            primaryTypographyProps={{
+                                fontSize: "1.1rem",
+                                fontWeight: 500,
+                            }}
+                        />
                     </ListItem>
                 ))}
             </List>
 
-            {/* Logout Section */}
             <Box sx={{ mt: "auto" }}>
                 <Divider />
                 <List>
@@ -123,12 +147,20 @@ const Layout = ({ children }) => {
                                 backgroundColor: "error.light",
                                 color: "white",
                             },
+                            py: 2.5,
+                            px: 3,
                         }}
                     >
-                        <ListItemIcon sx={{ color: "inherit" }}>
+                        <ListItemIcon sx={{ color: "inherit", minWidth: 48 }}>
                             <LogoutIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Выйти" />
+                        <ListItemText
+                            primary="Выйти"
+                            primaryTypographyProps={{
+                                fontSize: "1.1rem",
+                                fontWeight: 500,
+                            }}
+                        />
                     </ListItem>
                 </List>
             </Box>
@@ -137,25 +169,39 @@ const Layout = ({ children }) => {
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            {/* Header */}
-            <AppBar position="sticky" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
-                <Toolbar>
+            <AppBar
+                position="sticky"
+                sx={{
+                    bgcolor: "white",
+                    color: "text.primary",
+                    boxShadow: 2,
+                }}
+            >
+                <Toolbar sx={{ minHeight: 56, px: 2 }}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
                         edge="start"
                         onClick={handleDrawerToggle}
                         sx={{ mr: 2 }}
+                        size="large"
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{
+                            flexGrow: 1,
+                            fontSize: "1.25rem",
+                            fontWeight: 600,
+                        }}
+                    >
                         В Кладовке
                     </Typography>
                 </Toolbar>
             </AppBar>
 
-            {/* Sidebar Drawer */}
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
@@ -164,7 +210,7 @@ const Layout = ({ children }) => {
                 sx={{
                     "& .MuiDrawer-paper": {
                         boxSizing: "border-box",
-                        width: 250,
+                        width: 280,
                         display: "flex",
                         flexDirection: "column",
                     },
@@ -173,71 +219,61 @@ const Layout = ({ children }) => {
                 {drawer}
             </Drawer>
 
-            {/* Main Content */}
             <Box
                 component="main"
                 sx={{
                     flex: 1,
-                    p: 2,
                     width: "100%",
                     maxWidth: "100%",
                     boxSizing: "border-box",
-                    ...(isMobile && { pb: 8 }),
+                    pb: 8,
+                    background: "#f5f5f5",
+                    minHeight: "calc(100vh - 56px)",
                 }}
             >
                 {children}
             </Box>
 
-            {/* Bottom Navigation for Mobile */}
-            {isMobile && (
-                <BottomNavigation
-                    showLabels
-                    value={location.pathname}
-                    sx={{
-                        position: "fixed",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        bgcolor: "background.paper",
-                        borderTop: 1,
-                        borderColor: "divider",
-                        zIndex: 1000,
-                    }}
-                >
-                    {menuItems.map((item) => (
-                        <BottomNavigationAction
-                            key={item.text}
-                            label={item.text}
-                            icon={item.icon}
-                            value={item.path}
-                            onClick={() => handleNavigation(item.path)}
-                            sx={{
-                                minWidth: "auto",
-                                px: 1,
-                                "&.Mui-selected": {
-                                    color: "primary.main",
-                                },
-                            }}
-                        />
-                    ))}
-                </BottomNavigation>
-            )}
-
-            {/* Footer */}
-            <Box
-                component="footer"
+            <BottomNavigation
+                showLabels
+                value={location.pathname}
                 sx={{
-                    bgcolor: "grey.100",
-                    py: 1,
-                    mt: "auto",
-                    textAlign: "center",
-                    ...(isMobile && { pb: 7 }),
+                    position: "fixed",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    bgcolor: "background.paper",
+                    borderTop: 1,
+                    borderColor: "divider",
+                    zIndex: 1000,
+                    height: 56,
                 }}
             >
-                <Typography variant="body2" color="text.secondary">
-                    © {GetCurrentYear()} В Кладовке. Все права защищены.
-                </Typography>
-            </Box>
+                {menuItems.map((item) => (
+                    <BottomNavigationAction
+                        key={item.text}
+                        label={item.text}
+                        icon={item.icon}
+                        value={item.path}
+                        onClick={() => handleNavigation(item.path)}
+                        sx={{
+                            minWidth: "auto",
+                            px: 1,
+                            minHeight: 56,
+                            "& .MuiBottomNavigationAction-label": {
+                                fontSize: "0.75rem",
+                                mt: 0.5,
+                            },
+                            "&.Mui-selected": {
+                                color: "primary.main",
+                                "& .MuiBottomNavigationAction-label": {
+                                    fontSize: "0.75rem",
+                                },
+                            },
+                        }}
+                    />
+                ))}
+            </BottomNavigation>
 
             <ConfirmDialog
                 open={logoutDialogOpen}

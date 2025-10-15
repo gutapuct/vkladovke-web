@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Container, createTheme, TextField, Typography, Link, ThemeProvider } from "@mui/material";
+import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
 import { useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +7,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
-
-const defaultTheme = createTheme();
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
@@ -39,62 +37,105 @@ const ForgotPassword = () => {
 
     return (
         <>
-            <ThemeProvider theme={defaultTheme}>
-                <Container component="main" maxWidth="xs">
-                    <Box
+            <Container
+                component="main"
+                maxWidth="sm"
+                sx={{
+                    px: 3,
+                    pb: 3,
+                    minHeight: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <Avatar
                         sx={{
-                            marginTop: 8,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
+                            m: 2,
+                            bgcolor: "primary.main",
+                            width: 64,
+                            height: 64,
                         }}
                     >
-                        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                            <LockOutlinedIcon />
-                        </Avatar>
-                        <Typography component="h1" variant="h4">
-                            Восстановление пароля
-                        </Typography>
-                        <Box component="form" noValidate sx={{ mt: 3 }}>
-                            <TextField
-                                required
-                                fullWidth
-                                id="email"
-                                label="Эл.почта"
-                                name="email"
-                                autoComplete="email"
-                                onChange={(event) => setEmail(event.target.value)}
-                                value={email}
-                            />
+                        <LockOutlinedIcon fontSize="large" />
+                    </Avatar>
+                    <Typography
+                        component="h1"
+                        variant="h4"
+                        sx={{
+                            textAlign: "center",
+                            fontWeight: 600,
+                            mb: 3,
+                            fontSize: "1.75rem",
+                        }}
+                    >
+                        Восстановление пароля
+                    </Typography>
+                    <Box component="form" noValidate sx={{ width: "100%" }}>
+                        <TextField
+                            required
+                            fullWidth
+                            id="email"
+                            label="Эл.почта"
+                            name="email"
+                            autoComplete="email"
+                            onChange={(event) => setEmail(event.target.value)}
+                            value={email}
+                            sx={{ mb: 3 }}
+                            size="medium"
+                            InputProps={{
+                                sx: { fontSize: "16px" },
+                            }}
+                        />
 
-                            <Button
-                                disabled={!email}
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3 }}
-                                onClick={handleSubmit}
+                        <Button
+                            disabled={!email}
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{
+                                mt: 3,
+                                py: 1.5,
+                                fontSize: "1rem",
+                                borderRadius: 2,
+                            }}
+                            onClick={handleSubmit}
+                            size="large"
+                        >
+                            Сбросить пароль
+                        </Button>
+
+                        <Box textAlign="center" sx={{ mt: 3 }}>
+                            <Link
+                                variant="body2"
+                                onClick={() => navigate("/login")}
+                                sx={{
+                                    cursor: "pointer",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                }}
                             >
-                                Сбросить пароль
-                            </Button>
-
-                            <Box textAlign="right" sx={{ mt: 2, mr: 2 }}>
-                                <Link variant="body2" onClick={() => navigate("/login")} sx={{ cursor: "pointer" }}>
-                                    Назад
-                                </Link>
-                            </Box>
+                                Назад к входу
+                            </Link>
                         </Box>
                     </Box>
-                </Container>
+                </Box>
+            </Container>
 
-                <AlertDialog
-                    open={alertState.open}
-                    onClose={closeModal}
-                    title={alertState.title}
-                    message={alertState.message}
-                    type={alertState.type}
-                />
-            </ThemeProvider>
+            <AlertDialog
+                open={alertState.open}
+                onClose={closeModal}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+            />
         </>
     );
 };

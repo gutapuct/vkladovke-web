@@ -2,7 +2,7 @@ import { TextField, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useState } from "react";
 
-const PasswordTextField = ({ onChange, value }) => {
+const PasswordTextField = ({ onChange, value, size = "medium" }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const toggleShowPassword = () => {
@@ -24,15 +24,26 @@ const PasswordTextField = ({ onChange, value }) => {
             autoComplete="password"
             onChange={onChange}
             value={value}
+            size={size}
             slotProps={{
                 input: {
                     endAdornment: (
                         <InputAdornment position="end">
-                            <IconButton onClick={toggleShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
+                            <IconButton
+                                onClick={toggleShowPassword}
+                                onMouseDown={handleMouseDownPassword}
+                                edge="end"
+                                size="large"
+                            >
                                 {showPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                         </InputAdornment>
                     ),
+                },
+            }}
+            sx={{
+                "& .MuiInputBase-input": {
+                    fontSize: "16px",
                 },
             }}
         />

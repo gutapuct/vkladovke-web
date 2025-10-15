@@ -26,36 +26,24 @@ const GoogleLogin = () => {
 
     return (
         <>
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mb: 2,
-                }}
-            >
+            <Box sx={{ mb: 2 }}>
                 <Button
                     variant="outlined"
                     onClick={handleGoogleSignIn}
                     startIcon={<GoogleIcon />}
                     sx={{
                         height: 48,
-                        minWidth: 280,
+                        width: "100%",
                         borderRadius: 2,
                         border: "2px solid #4285F4",
                         backgroundColor: "white",
                         color: "#4285F4",
                         textTransform: "none",
-                        fontSize: "16px",
+                        fontSize: "1rem",
                         fontWeight: 600,
-                        px: 3,
                         "&:hover": {
                             backgroundColor: "#f8f9fa",
                             border: "2px solid #357ae8",
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                        },
-                        "&:active": {
-                            backgroundColor: "#f1f3f4",
-                            transform: "translateY(1px)",
                         },
                         "& .MuiButton-startIcon": {
                             marginRight: 2,
