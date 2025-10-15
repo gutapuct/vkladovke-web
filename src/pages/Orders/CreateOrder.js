@@ -132,11 +132,6 @@ const CreateOrder = () => {
     };
 
     const handleCreateOrder = async () => {
-        if (!orderData.title.trim()) {
-            showError("Введите название списка");
-            return;
-        }
-
         if (orderData.items.length === 0) {
             showError("Добавьте хотя бы один товар");
             return;
@@ -151,8 +146,7 @@ const CreateOrder = () => {
                     items: orderData.items,
                 });
 
-                showSuccess("Список успешно создан!");
-                navigate(`/order-details/${order.id}`);
+                showSuccess("Список успешно создан!", navigate(`/order-details/${order.id}`));
             } catch (error) {
                 showError(error.message);
             }
@@ -301,7 +295,7 @@ const CreateOrder = () => {
                         <Button
                             onClick={handleCreateOrder}
                             variant="contained"
-                            disabled={!orderData.title || orderData.items.length === 0}
+                            disabled={orderData.items.length === 0}
                             fullWidth
                             size="large"
                             startIcon={<SaveIcon />}

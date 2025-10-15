@@ -364,7 +364,7 @@ const OrderDetails = () => {
         <Box sx={{ pb: 8 }}>
             <AppBar position="sticky" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
                 <Toolbar>
-                    <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
+                    <IconButton edge="start" onClick={() => navigate(order.isCompleted ? "/history" : "/")} sx={{ mr: 2 }} size="large">
                         <ArrowBack />
                     </IconButton>
                     <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
