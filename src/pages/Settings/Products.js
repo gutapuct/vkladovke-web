@@ -62,7 +62,6 @@ const Products = () => {
 
     const toggleAddProduct = () => setIsModalAddProductOpen(!isModalAddProductOpen);
 
-    // Проверяем, открыт ли какой-либо диалог
     const isAnyDialogOpen = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
 
     // Функция сортировки продуктов
@@ -145,6 +144,7 @@ const Products = () => {
 
     return (
         <Box sx={{ pb: 8 }}>
+            
             {/* Панель сортировки */}
             <Card sx={{ mb: 2, borderRadius: 2 }}>
                 <CardContent sx={{ py: 2 }}>
@@ -400,7 +400,7 @@ const Products = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* FAB для добавления товара - СКРЫВАЕМ ПРИ ОТКРЫТЫХ ДИАЛОГАХ */}
+            {/* FAB для добавления товара */}
             {!isAnyDialogOpen && (
                 <Fab
                     color="primary"

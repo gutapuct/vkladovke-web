@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ordersService } from "../services/ordersService";
 import { useAuth } from "../hooks/useAuth";
-import { Box, Button, Card, CardContent, Typography, Chip, Fab } from "@mui/material";
+import { Box, Button, Card, CardContent, Typography, Chip, Fab, CircularProgress } from "@mui/material";
 import { Add as AddIcon, ShoppingCart as CartIcon } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
 import AlertDialog from "../components/AlertDialog";
@@ -14,7 +14,7 @@ const Main = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { alertState, showError, hideAlert } = useAlert();
-    const { withLoading } = useLoading();
+    const { withLoading, loading } = useLoading();
     const [orders, setOrders] = useState([]);
 
     const handleCreateOrder = () => {
@@ -40,9 +40,28 @@ const Main = () => {
         catchOrders();
     }, [catchOrders]);
 
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "60vh",
+                    flexDirection: "column",
+                    gap: 2,
+                }}
+            >
+                <CircularProgress size={60} />
+                <Typography variant="h6" color="textSecondary">
+                    Загрузка списков...
+                </Typography>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ pb: 10 }}>
-            {/* Заголовок и кнопка - БЕЗ ОТСТУПОВ */}
             <Box
                 sx={{
                     display: "flex",

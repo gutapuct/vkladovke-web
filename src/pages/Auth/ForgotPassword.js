@@ -90,8 +90,10 @@ const ForgotPassword = () => {
                             value={email}
                             sx={{ mb: 3 }}
                             size="medium"
-                            InputProps={{
-                                sx: { fontSize: "16px" },
+                            slotProps={{
+                                input: {
+                                    sx: { fontSize: "16px" },
+                                },
                             }}
                         />
 

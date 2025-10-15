@@ -20,13 +20,15 @@ const ConfirmDialog = ({
                     backdropFilter: "blur(2px)",
                 },
             }}
-            PaperProps={{
-                sx: {
-                    margin: "20px",
-                    maxWidth: "calc(100% - 40px)",
-                    width: "100%",
-                    borderRadius: 3,
-                    boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+            slotProps={{
+                paper: {
+                    sx: {
+                        margin: "20px",
+                        maxWidth: "calc(100% - 40px)",
+                        width: "100%",
+                        borderRadius: 3,
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                    },
                 },
             }}
         >

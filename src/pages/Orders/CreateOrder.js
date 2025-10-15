@@ -61,7 +61,6 @@ const CreateOrder = () => {
             if (categoryA < categoryB) return -1;
             if (categoryA > categoryB) return 1;
 
-            // Если категории одинаковые, сортируем по названию
             if (a.name < b.name) return -1;
             if (a.name > b.name) return 1;
 
@@ -155,7 +154,6 @@ const CreateOrder = () => {
 
     return (
         <Box sx={{ pb: 8 }}>
-            {/* AppBar без боковых отступов */}
             <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
                 <Toolbar>
                     <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
@@ -167,9 +165,7 @@ const CreateOrder = () => {
                 </Toolbar>
             </AppBar>
 
-            {/* Контент без боковых отступов */}
             <Box>
-                {/* Название списка */}
                 <Card sx={{ borderRadius: 0, boxShadow: 2 }}>
                     <CardContent sx={{ p: 3 }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
@@ -181,8 +177,10 @@ const CreateOrder = () => {
                             onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
                             fullWidth
                             size="medium"
-                            InputProps={{
-                                sx: { fontSize: "16px" },
+                            slotProps={{
+                                input: {
+                                    sx: { fontSize: "16px" },
+                                },
                             }}
                         />
                     </CardContent>
@@ -317,14 +315,16 @@ const CreateOrder = () => {
                         backdropFilter: "blur(2px)",
                     },
                 }}
-                PaperProps={{
-                    sx: {
-                        margin: "20px",
-                        maxWidth: "calc(100% - 40px)",
-                        width: "100%",
-                        maxHeight: "calc(100% - 40px)",
-                        borderRadius: 3,
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            maxHeight: "calc(100% - 40px)",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
                     },
                 }}
             >
@@ -400,7 +400,11 @@ const CreateOrder = () => {
                         onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
                         fullWidth
                         sx={{ mb: 3 }}
-                        inputProps={{ min: 1 }}
+                        slotProps={{
+                            input: {
+                                min: 1,
+                            },
+                        }}
                     />
 
                     <FormControlLabel

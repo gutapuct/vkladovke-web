@@ -133,7 +133,6 @@ const Users = () => {
                         Ваша группа
                     </Typography>
 
-                    {/* ИСПРАВЛЕННАЯ СТРОКА: убираем Chip из Typography */}
                     <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                         <Typography variant="body2" color="textSecondary">
                             ID группы:

@@ -293,12 +293,11 @@ const OrderDetails = () => {
                 await ordersService.completeOrder(orderId, complete);
                 setCompleteOrderOpen(false);
 
-                showSuccess(`Список ${complete ? "завершен" : "возобновлен"}`);
-                if (complete) {
-                    navigate("/");
-                } else {
-                    loadOrder();
-                }
+                showSuccess(
+                    `Список ${complete ? "завершен" : "возобновлен"}`,
+                    "Успешно",
+                    complete ? navigate("/") : loadOrder
+                );
             } catch (error) {
                 showError(error.message);
             }
@@ -310,8 +309,7 @@ const OrderDetails = () => {
             try {
                 await ordersService.deleteOrder(orderId);
                 setDeleteOrderOpen(false);
-                showSuccess("Список успешно удален");
-                navigate("/");
+                showSuccess("Список успешно удален", "Успешно", navigate("/"));
             } catch (error) {
                 showError(error.message);
             }
@@ -586,13 +584,15 @@ const OrderDetails = () => {
                         backdropFilter: "blur(2px)",
                     },
                 }}
-                PaperProps={{
-                    sx: {
-                        margin: "20px",
-                        maxWidth: "calc(100% - 40px)",
-                        width: "100%",
-                        borderRadius: 3,
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
                     },
                 }}
             >
@@ -627,7 +627,11 @@ const OrderDetails = () => {
                                 }
                                 fullWidth
                                 sx={{ mb: 3 }}
-                                inputProps={{ min: 1 }}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 1,
+                                    },
+                                }}
                             />
                             <FormControlLabel
                                 control={
@@ -682,14 +686,16 @@ const OrderDetails = () => {
                         backdropFilter: "blur(2px)",
                     },
                 }}
-                PaperProps={{
-                    sx: {
-                        margin: "20px",
-                        maxWidth: "calc(100% - 40px)",
-                        width: "100%",
-                        maxHeight: "calc(100% - 40px)",
-                        borderRadius: 3,
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            maxHeight: "calc(100% - 40px)",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
                     },
                 }}
             >
@@ -763,7 +769,11 @@ const OrderDetails = () => {
                         onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
                         fullWidth
                         sx={{ mb: 3 }}
-                        inputProps={{ min: 1 }}
+                        slotProps={{
+                            htmlInput: {
+                                min: 1,
+                            },
+                        }}
                     />
                     <FormControlLabel
                         control={

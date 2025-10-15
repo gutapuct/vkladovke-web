@@ -37,5 +37,4 @@ button,
 /* Улучшаем скролл для мобильных */
 html {
     -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
 }

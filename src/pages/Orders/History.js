@@ -68,7 +68,6 @@ const History = () => {
 
     return (
         <Box sx={{ pb: 8 }}>
-            {/* AppBar без боковых отступов */}
             <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
                 <Toolbar>
                     <IconButton edge="start" onClick={handleBackToActive} sx={{ mr: 2 }} size="large">
@@ -80,7 +79,6 @@ const History = () => {
                 </Toolbar>
             </AppBar>
 
-            {/* Контент без боковых отступов */}
             <Box>
                 {/* Статистика */}
                 <Card sx={{ borderRadius: 0, boxShadow: 2 }}>
