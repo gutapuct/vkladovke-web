@@ -720,6 +720,7 @@ const OrderDetails = () => {
                             onInputChange={handleSearchInputChange}
                             inputValue={searchInput}
                             options={filteredProducts}
+                            filterOptions={(x) => x}
                             getOptionLabel={(option) => option.name}
                             groupBy={(option) => getProductInfo(option.id).category}
                             renderOption={(props, option) => {
