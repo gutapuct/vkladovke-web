@@ -11,7 +11,7 @@ import {
     orderBy,
     serverTimestamp,
 } from "firebase/firestore";
-import { getNowString } from "../utils/datetimeHelper";
+import { getTodayString } from "../utils/datetimeHelper";
 import { db } from "../utils/firebase_firestore";
 import { newGuid } from "../utils/guidHelper";
 import { FIREBASE_COLLECTION_ORDERS } from "../utils/constants";
@@ -126,7 +126,7 @@ export const ordersService = {
             const order = {
                 id: orderId,
                 groupId: orderData.groupId,
-                title: orderData.title || `Список от ${getNowString()}`,
+                title: orderData.title || `Список от ${getTodayString()}`,
                 createdAt: serverTimestamp(),
                 isCompleted: false,
                 completedAt: null,

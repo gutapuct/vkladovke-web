@@ -1,5 +1,6 @@
 export const getNow = () => new Date();
 export const getNowString = () => new Date().toLocaleString();
+export const getTodayString = () => new Date().toLocaleDateString();
 
 export const formatFirebaseTimestamp = (timestamp, options = {}) => {
     if (!timestamp) return "Не указано";
