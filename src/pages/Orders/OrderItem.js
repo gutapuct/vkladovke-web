@@ -133,14 +133,18 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                     </Typography>
 
                     <List>
-                        <ListItem button onClick={() => handleAction("edit")} sx={{ borderRadius: 2, mb: 1 }}>
+                        <ListItem button="true" onClick={() => handleAction("edit")} sx={{ borderRadius: 2, mb: 1 }}>
                             <ListItemIcon>
                                 <EditIcon color="primary" />
                             </ListItemIcon>
                             <ListItemText primary={<Typography sx={{ fontWeight: 500 }}>Редактировать</Typography>} />
                         </ListItem>
 
-                        <ListItem button onClick={() => handleAction("complete")} sx={{ borderRadius: 2, mb: 1 }}>
+                        <ListItem
+                            button="true"
+                            onClick={() => handleAction("complete")}
+                            sx={{ borderRadius: 2, mb: 1 }}
+                        >
                             <ListItemIcon>
                                 {isCompleted ? (
                                     <RadioButtonUnchecked color="primary" />
@@ -157,7 +161,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                             />
                         </ListItem>
 
-                        <ListItem button onClick={() => handleAction("delete")} sx={{ borderRadius: 2 }}>
+                        <ListItem button="true" onClick={() => handleAction("delete")} sx={{ borderRadius: 2 }}>
                             <ListItemIcon>
                                 <DeleteIcon color="error" />
                             </ListItemIcon>

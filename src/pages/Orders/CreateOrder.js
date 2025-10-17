@@ -28,6 +28,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
+import QuantityInput from "../../components/QuantityInput";
 
 const CreateOrder = () => {
     const navigate = useNavigate();
@@ -394,19 +395,18 @@ const CreateOrder = () => {
                         />
                     </FormControl>
 
-                    <TextField
-                        label="Количество"
-                        type="number"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                        fullWidth
-                        sx={{ mb: 3 }}
-                        slotProps={{
-                            input: {
-                                min: 1,
-                            },
-                        }}
-                    />
+                    <Box sx={{ mb: 3 }}>
+                        <QuantityInput
+                            label="Количество"
+                            value={newItem.quantity}
+                            onChange={(val) =>
+                                setNewItem({
+                                    ...newItem,
+                                    quantity: val === "" ? "" : Math.max(1, parseInt(val)),
+                                })
+                            }
+                        />
+                    </Box>
 
                     <FormControlLabel
                         control={

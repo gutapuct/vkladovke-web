@@ -42,6 +42,7 @@ import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import OrderItem from "./OrderItem";
+import QuantityInput from "../../components/QuantityInput";
 
 const OrderDetails = () => {
     const { orderId } = useParams();
@@ -615,24 +616,18 @@ const OrderDetails = () => {
                             <Typography variant="h6" gutterBottom>
                                 {getProductNameById(editingItem.productId)}
                             </Typography>
-                            <TextField
-                                label="Количество"
-                                type="number"
-                                value={editingItem.quantity}
-                                onChange={(e) =>
-                                    setEditingItem({
-                                        ...editingItem,
-                                        quantity: parseInt(e.target.value) || 1,
-                                    })
-                                }
-                                fullWidth
-                                sx={{ mb: 3 }}
-                                slotProps={{
-                                    htmlInput: {
-                                        min: 1,
-                                    },
-                                }}
-                            />
+                            <Box sx={{ mb: 3 }}>
+                                <QuantityInput
+                                    label="Количество"
+                                    value={editingItem.quantity}
+                                    onChange={(val) =>
+                                        setEditingItem({
+                                            ...editingItem,
+                                            quantity: val === "" ? "" : Math.max(1, parseInt(val)),
+                                        })
+                                    }
+                                />
+                            </Box>
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -763,19 +758,18 @@ const OrderDetails = () => {
                             noOptionsText="Товары не найдены"
                         />
                     </FormControl>
-                    <TextField
-                        label="Количество"
-                        type="number"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                        fullWidth
-                        sx={{ mb: 3 }}
-                        slotProps={{
-                            htmlInput: {
-                                min: 1,
-                            },
-                        }}
-                    />
+                    <Box sx={{ mb: 3 }}>
+                        <QuantityInput
+                            label="Количество"
+                            value={newItem.quantity}
+                            onChange={(val) =>
+                                setNewItem({
+                                    ...newItem,
+                                    quantity: val === "" ? "" : Math.max(1, parseInt(val)),
+                                })
+                            }
+                        />
+                    </Box>
                     <FormControlLabel
                         control={
                             <Checkbox
