@@ -1,5 +1,5 @@
 import { Box, Button, IconButton, TextField, Typography, Card, CardContent } from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import { Edit as EditIcon, Save as SaveIcon, ExitToApp as LogoutIcon } from "@mui/icons-material";
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/userService";
@@ -7,10 +7,12 @@ import { useLoading } from "../../hooks/LoadingContext";
 import { getErrorMessage } from "../../utils/firebase_firestore";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const Profile = () => {
     const [canChangeName, setCanChangeName] = useState(false);
-    const { currentUser, changeDisplayName } = useAuth();
+    const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+    const { currentUser, changeDisplayName, logout } = useAuth();
     const [tempName, setTempName] = useState("");
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
@@ -35,6 +37,25 @@ const Profile = () => {
                 showError(getErrorMessage(error));
             }
         });
+    };
+
+    const handleConfirmLogout = async () => {
+        await withLoading(async () => {
+            try {
+                await logout();
+                setLogoutDialogOpen(false);
+            } catch (error) {
+                showError(getErrorMessage(error));
+            }
+        });
+    };
+
+    const handleOpenLogoutDialog = () => {
+        setLogoutDialogOpen(true);
+    };
+
+    const handleCloseLogoutDialog = () => {
+        setLogoutDialogOpen(false);
     };
 
     return (
@@ -97,7 +118,7 @@ const Profile = () => {
                 </CardContent>
             </Card>
 
-            <Card sx={{ borderRadius: 3 }}>
+            <Card sx={{ borderRadius: 3, mb: 3 }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                         Информация
@@ -128,6 +149,30 @@ const Profile = () => {
                     </Box>
                 </CardContent>
             </Card>
+
+            {/* Простая кнопка выхода */}
+            <Button
+                variant="outlined"
+                color="error"
+                startIcon={<LogoutIcon />}
+                onClick={handleOpenLogoutDialog}
+                fullWidth
+                size="large"
+                sx={{ borderRadius: 2 }}
+            >
+                Выйти из аккаунта
+            </Button>
+
+            <ConfirmDialog
+                open={logoutDialogOpen}
+                onClose={handleCloseLogoutDialog}
+                onConfirm={handleConfirmLogout}
+                title="Выход из аккаунта"
+                message="Вы уверены, что хотите выйти из своего аккаунта?"
+                confirmText="Выйти"
+                cancelText="Отмена"
+                confirmColor="error"
+            />
 
             <AlertDialog
                 open={alertState.open}
