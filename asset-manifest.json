@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/vkladovke-web/static/css/main.0705e07e.css",
-    "main.js": "/vkladovke-web/static/js/main.56b6bf3a.js",
+    "main.js": "/vkladovke-web/static/js/main.32b8b278.js",
     "static/js/453.ef1797bb.chunk.js": "/vkladovke-web/static/js/453.ef1797bb.chunk.js",
     "index.html": "/vkladovke-web/index.html",
     "main.0705e07e.css.map": "/vkladovke-web/static/css/main.0705e07e.css.map",
-    "main.56b6bf3a.js.map": "/vkladovke-web/static/js/main.56b6bf3a.js.map",
+    "main.32b8b278.js.map": "/vkladovke-web/static/js/main.32b8b278.js.map",
     "453.ef1797bb.chunk.js.map": "/vkladovke-web/static/js/453.ef1797bb.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0705e07e.css",
-    "static/js/main.56b6bf3a.js"
+    "static/js/main.32b8b278.js"
   ]
 }
