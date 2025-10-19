@@ -18,8 +18,9 @@ import {
     Toolbar,
     Typography,
     Fab,
-    ToggleButton,
-    ToggleButtonGroup,
+    ListItem,
+    ListItemText,
+    Collapse,
 } from "@mui/material";
 import {
     Edit as EditIcon,
@@ -27,7 +28,8 @@ import {
     Add as AddIcon,
     Save as SaveIcon,
     ArrowBack,
-    Sort as SortIcon,
+    ExpandLess,
+    ExpandMore,
 } from "@mui/icons-material";
 import { settingsService } from "../../services/settingsService";
 import { useLoading } from "../../hooks/LoadingContext";
@@ -55,7 +57,7 @@ const Products = () => {
     const [removeProductDialogOpen, setRemoveProductDialogOpen] = useState(false);
     const [productToRemove, setProductToRemove] = useState({});
     const [productToEdit, setProductToEdit] = useState({});
-    const [sortBy, setSortBy] = useState("name"); // "name" или "category"
+    const [expandedCategories, setExpandedCategories] = useState(new Set());
 
     const defaultNewProduct = { name: "", categoryId: "", unitId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
@@ -64,32 +66,36 @@ const Products = () => {
 
     const isAnyDialogOpen = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
 
-    // Функция сортировки продуктов
-    const getSortedProducts = () => {
-        return [...activeProducts].sort((a, b) => {
-            if (sortBy === "name") {
-                // Сортировка по названию (A-Z)
-                return a.name.localeCompare(b.name);
+    // Группировка продуктов по категориям и сортировка внутри категорий
+    const groupedProducts = activeProducts.reduce((acc, product) => {
+        const { category } = getProductInfo(product.id);
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(product);
+        return acc;
+    }, {});
+
+    // Сортируем категории по алфавиту и товары внутри категорий по названию
+    const sortedCategories = Object.keys(groupedProducts).sort();
+    sortedCategories.forEach((category) => {
+        groupedProducts[category].sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    const handleToggleCategory = (category) => {
+        setExpandedCategories((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(category)) {
+                newSet.delete(category);
             } else {
-                // Сортировка по категории, затем по названию
-                const categoryA = getProductInfo(a.id).category;
-                const categoryB = getProductInfo(b.id).category;
-
-                if (categoryA < categoryB) return -1;
-                if (categoryA > categoryB) return 1;
-
-                // Если категории одинаковые, сортируем по названию
-                return a.name.localeCompare(b.name);
+                newSet.add(category);
             }
+            return newSet;
         });
     };
 
-    const sortedProducts = getSortedProducts();
-
-    const handleSortChange = (event, newSortBy) => {
-        if (newSortBy !== null) {
-            setSortBy(newSortBy);
-        }
+    const isCategoryExpanded = (category) => {
+        return expandedCategories.has(category);
     };
 
     const handleAddProduct = async () => {
@@ -144,164 +150,215 @@ const Products = () => {
 
     return (
         <Box sx={{ pb: 8 }}>
-            
-            {/* Панель сортировки */}
-            <Card sx={{ mb: 2, borderRadius: 2 }}>
-                <CardContent sx={{ py: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography
-                            variant="body2"
-                            color="textSecondary"
-                            sx={{ display: "flex", alignItems: "center" }}
-                        >
-                            <SortIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
-                            Сортировка:
-                        </Typography>
-                        <ToggleButtonGroup
-                            value={sortBy}
-                            exclusive
-                            onChange={handleSortChange}
-                            aria-label="Сортировка товаров"
-                            size="small"
-                        >
-                            <ToggleButton value="name" aria-label="По названию">
-                                По названию
-                            </ToggleButton>
-                            <ToggleButton value="category" aria-label="По категории">
-                                По категории
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-                    </Box>
-                </CardContent>
-            </Card>
+            {/* Список товаров по категориям */}
+            {activeProducts.length > 0 ? (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {sortedCategories.map((category) => {
+                        const categoryProducts = groupedProducts[category];
+                        const isExpanded = isCategoryExpanded(category);
 
-            {/* Список товаров */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {sortedProducts.map((product) => {
-                    const { category, unit } = getProductInfo(product.id);
-                    const isEditing = productToEdit?.id === product.id;
-
-                    return (
-                        <Card key={product.id} variant="outlined" sx={{ borderRadius: 3 }}>
-                            <CardContent>
-                                {isEditing ? (
-                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                        <TextField
-                                            value={productToEdit.name}
-                                            onChange={(e) =>
-                                                setProductToEdit({ ...productToEdit, name: e.target.value })
-                                            }
-                                            label="Название товара"
-                                            fullWidth
-                                            size="medium"
-                                        />
-                                        <FormControl fullWidth size="medium">
-                                            <InputLabel>Категория</InputLabel>
-                                            <Select
-                                                value={productToEdit.categoryId}
-                                                onChange={(e) =>
-                                                    setProductToEdit({
-                                                        ...productToEdit,
-                                                        categoryId: parseInt(e.target.value),
-                                                    })
-                                                }
-                                                label="Категория"
-                                            >
-                                                {Object.entries(categories).map(([id, name]) => (
-                                                    <MenuItem key={id} value={parseInt(id)}>
-                                                        {name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                        <FormControl fullWidth size="medium">
-                                            <InputLabel>Единица измерения</InputLabel>
-                                            <Select
-                                                value={productToEdit.unitId}
-                                                onChange={(e) =>
-                                                    setProductToEdit({
-                                                        ...productToEdit,
-                                                        unitId: parseInt(e.target.value),
-                                                    })
-                                                }
-                                                label="Единица измерения"
-                                            >
-                                                {Object.entries(units).map(([id, name]) => (
-                                                    <MenuItem key={id} value={parseInt(id)}>
-                                                        {name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<SaveIcon />}
-                                            onClick={handleSaveProductToEdit}
-                                            fullWidth
-                                            size="large"
-                                            sx={{ borderRadius: 2 }}
-                                        >
-                                            Сохранить
-                                        </Button>
-                                    </Box>
-                                ) : (
-                                    <>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "flex-start",
-                                                mb: 2,
-                                            }}
-                                        >
-                                            <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
-                                                <Typography
-                                                    variant="h6"
-                                                    sx={{
-                                                        fontSize: "1.1rem",
-                                                        fontWeight: 600,
-                                                        wordBreak: "break-word",
-                                                        lineHeight: 1.3,
-                                                    }}
-                                                >
-                                                    {product.name}
-                                                </Typography>
-                                                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
+                        return (
+                            <Card key={category} variant="outlined" sx={{ borderRadius: 3 }}>
+                                <CardContent sx={{ p: 0 }}>
+                                    <ListItem
+                                        button="true"
+                                        onClick={() => handleToggleCategory(category)}
+                                        sx={{
+                                            backgroundColor: "grey.50",
+                                            borderBottom: isExpanded ? "1px solid" : "none",
+                                            borderColor: "grey.200",
+                                            borderRadius: "12px 12px 0 0",
+                                        }}
+                                    >
+                                        <ListItemText
+                                            primary={
+                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                    <Typography variant="subtitle1" fontWeight="bold">
+                                                        {category}
+                                                    </Typography>
                                                     <Chip
-                                                        label={category}
-                                                        variant="outlined"
+                                                        label={categoryProducts.length}
                                                         size="small"
                                                         color="primary"
+                                                        variant="outlined"
                                                     />
-                                                    <Chip label={unit} variant="outlined" size="small" />
                                                 </Box>
-                                            </Box>
-                                            <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
-                                                <IconButton
-                                                    color="primary"
-                                                    onClick={() => handleEditProduct(product)}
-                                                    size="small"
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={() => handleOpenRemoveProductDialog(product)}
-                                                    size="small"
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Box>
-                                        </Box>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </Box>
+                                            }
+                                        />
+                                        {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                    </ListItem>
+                                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                        <Box sx={{ p: 2 }}>
+                                            {categoryProducts.map((product) => {
+                                                const { unit } = getProductInfo(product.id);
+                                                const isEditing = productToEdit?.id === product.id;
 
-            {activeProducts.length === 0 && (
+                                                return (
+                                                    <Card
+                                                        key={product.id}
+                                                        variant="outlined"
+                                                        sx={{
+                                                            borderRadius: 2,
+                                                            mb: 2,
+                                                            "&:last-child": { mb: 0 },
+                                                        }}
+                                                    >
+                                                        <CardContent sx={{ py: 2, px: 2 }}>
+                                                            {isEditing ? (
+                                                                <Box
+                                                                    sx={{
+                                                                        display: "flex",
+                                                                        flexDirection: "column",
+                                                                        gap: 2,
+                                                                    }}
+                                                                >
+                                                                    <TextField
+                                                                        value={productToEdit.name}
+                                                                        onChange={(e) =>
+                                                                            setProductToEdit({
+                                                                                ...productToEdit,
+                                                                                name: e.target.value,
+                                                                            })
+                                                                        }
+                                                                        label="Название товара"
+                                                                        fullWidth
+                                                                        size="medium"
+                                                                    />
+                                                                    <FormControl fullWidth size="medium">
+                                                                        <InputLabel>Категория</InputLabel>
+                                                                        <Select
+                                                                            value={productToEdit.categoryId}
+                                                                            onChange={(e) =>
+                                                                                setProductToEdit({
+                                                                                    ...productToEdit,
+                                                                                    categoryId: parseInt(
+                                                                                        e.target.value
+                                                                                    ),
+                                                                                })
+                                                                            }
+                                                                            label="Категория"
+                                                                        >
+                                                                            {Object.entries(categories).map(
+                                                                                ([id, name]) => (
+                                                                                    <MenuItem
+                                                                                        key={id}
+                                                                                        value={parseInt(id)}
+                                                                                    >
+                                                                                        {name}
+                                                                                    </MenuItem>
+                                                                                )
+                                                                            )}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                    <FormControl fullWidth size="medium">
+                                                                        <InputLabel>Единица измерения</InputLabel>
+                                                                        <Select
+                                                                            value={productToEdit.unitId}
+                                                                            onChange={(e) =>
+                                                                                setProductToEdit({
+                                                                                    ...productToEdit,
+                                                                                    unitId: parseInt(e.target.value),
+                                                                                })
+                                                                            }
+                                                                            label="Единица измерения"
+                                                                        >
+                                                                            {Object.entries(units).map(([id, name]) => (
+                                                                                <MenuItem key={id} value={parseInt(id)}>
+                                                                                    {name}
+                                                                                </MenuItem>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </FormControl>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        startIcon={<SaveIcon />}
+                                                                        onClick={handleSaveProductToEdit}
+                                                                        fullWidth
+                                                                        size="large"
+                                                                        sx={{ borderRadius: 2 }}
+                                                                    >
+                                                                        Сохранить
+                                                                    </Button>
+                                                                </Box>
+                                                            ) : (
+                                                                <>
+                                                                    <Box
+                                                                        sx={{
+                                                                            display: "flex",
+                                                                            justifyContent: "space-between",
+                                                                            alignItems: "flex-start",
+                                                                        }}
+                                                                    >
+                                                                        <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
+                                                                            <Typography
+                                                                                variant="h6"
+                                                                                sx={{
+                                                                                    fontSize: "1.1rem",
+                                                                                    fontWeight: 600,
+                                                                                    wordBreak: "break-word",
+                                                                                    lineHeight: 1.3,
+                                                                                }}
+                                                                            >
+                                                                                {product.name}
+                                                                            </Typography>
+                                                                            <Box
+                                                                                sx={{
+                                                                                    display: "flex",
+                                                                                    gap: 1,
+                                                                                    flexWrap: "wrap",
+                                                                                    mt: 1,
+                                                                                }}
+                                                                            >
+                                                                                <Chip
+                                                                                    label={unit}
+                                                                                    variant="outlined"
+                                                                                    size="small"
+                                                                                />
+                                                                            </Box>
+                                                                        </Box>
+                                                                        <Box
+                                                                            sx={{
+                                                                                display: "flex",
+                                                                                gap: 0.5,
+                                                                                flexShrink: 0,
+                                                                            }}
+                                                                        >
+                                                                            <IconButton
+                                                                                color="primary"
+                                                                                onClick={() =>
+                                                                                    handleEditProduct(product)
+                                                                                }
+                                                                                size="small"
+                                                                            >
+                                                                                <EditIcon />
+                                                                            </IconButton>
+                                                                            <IconButton
+                                                                                color="error"
+                                                                                onClick={() =>
+                                                                                    handleOpenRemoveProductDialog(
+                                                                                        product
+                                                                                    )
+                                                                                }
+                                                                                size="small"
+                                                                            >
+                                                                                <DeleteIcon />
+                                                                            </IconButton>
+                                                                        </Box>
+                                                                    </Box>
+                                                                </>
+                                                            )}
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            })}
+                                        </Box>
+                                    </Collapse>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
+                </Box>
+            ) : (
                 <Card sx={{ textAlign: "center", py: 6, borderRadius: 3 }}>
                     <CardContent>
                         <Typography variant="h6" color="textSecondary" gutterBottom>
