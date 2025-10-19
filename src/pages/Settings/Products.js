@@ -381,8 +381,19 @@ const Products = () => {
             )}
 
             {/* Диалог добавления товара */}
-            <Dialog open={isModalAddProductOpen} onClose={toggleAddProduct} fullScreen>
-                <AppBar position="sticky" sx={{ bgcolor: "white", color: "text.primary" }}>
+            <Dialog
+                open={isModalAddProductOpen}
+                onClose={toggleAddProduct}
+                fullScreen
+                sx={{
+                    "& .MuiDialog-paper": {
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                }}
+            >
+                <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary" }}>
                     <Toolbar>
                         <IconButton edge="start" onClick={toggleAddProduct} sx={{ mr: 2 }} size="large">
                             <ArrowBack />
@@ -392,7 +403,8 @@ const Products = () => {
                         </Typography>
                     </Toolbar>
                 </AppBar>
-                <DialogContent sx={{ p: 2 }}>
+
+                <DialogContent sx={{ flex: 1, p: 2, overflow: "auto" }}>
                     <Box sx={{ pt: 2 }}>
                         <TextField
                             label="Наименование товара"
@@ -401,6 +413,11 @@ const Products = () => {
                             fullWidth
                             sx={{ mb: 2 }}
                             size="medium"
+                            slotProps={{
+                                input: {
+                                    autoCapitalize: "sentences",
+                                },
+                            }}
                         />
                         <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>Категория</InputLabel>
@@ -434,7 +451,8 @@ const Products = () => {
                         </FormControl>
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
+
+                <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
                     <Button
                         onClick={toggleAddProduct}
                         variant="outlined"
