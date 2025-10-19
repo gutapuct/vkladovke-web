@@ -150,7 +150,6 @@ const Profile = () => {
                 </CardContent>
             </Card>
 
-            {/* Простая кнопка выхода */}
             <Button
                 variant="outlined"
                 color="error"
