@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect } from "react";
+import { useState } from "react";
 import {
     Box,
     TextField,
@@ -38,42 +38,10 @@ import { getErrorMessage } from "../../utils/firebase_firestore";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
+import { useVisualViewportHeight } from "../../hooks/useVisualViewportHeight";
 
 const Products = () => {
-    const [height, setHeight] = useState();
-    const [offsetTop, setOffsetTop] = useState();
-
-    useLayoutEffect(() => {
-        const onResize = () => {
-            const calculateSize = () => {
-                if (!window.visualViewport) {
-                    setHeight(undefined);
-                    setOffsetTop(undefined);
-
-                    return;
-                }
-
-                const newHeight = window.visualViewport.height;
-                const newOffsetTop = window.visualViewport.offsetTop;
-
-                setHeight(newHeight);
-                setOffsetTop(newOffsetTop);
-            };
-
-            calculateSize();
-
-            setTimeout(() => {
-                calculateSize();
-            }, 300);
-        };
-
-        window.visualViewport?.addEventListener('resize', onResize);
-
-        return () => {
-            window.visualViewport?.removeEventListener('resize', onResize);
-        };
-    }, []);
-
+    const height = useVisualViewportHeight();
     const { withLoading } = useLoading();
     const {
         units,
@@ -422,18 +390,12 @@ const Products = () => {
                 sx={{
                     "& .MuiDialog-paper": {
                         height: height || "100dvh",
-                        maxHeight: height || "100dvh",
-                        margin: 0,
-                        marginTop: 0,
                         display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "flex-start",
                         position: "fixed",
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: "auto",
-                        transition: "height 0.2s ease, margin-top 0.2s ease"
                     },
                 }}
             >
