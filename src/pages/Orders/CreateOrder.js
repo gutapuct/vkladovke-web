@@ -7,135 +7,129 @@ import {
     Button,
     Card,
     CardContent,
-    Fab,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    FormControl,
-    Autocomplete,
-    Checkbox,
-    FormControlLabel,
+    IconButton,
     AppBar,
     Toolbar,
-    IconButton,
     Chip,
+    ListItem,
+    ListItemText,
+    Collapse,
+    Divider,
 } from "@mui/material";
-import { Add as AddIcon, Delete as DeleteIcon, ArrowBack, Save as SaveIcon } from "@mui/icons-material";
+import {
+    ShoppingCart as CartIcon,
+    ArrowBack,
+    Remove as RemoveIcon,
+    Add as AddIcon,
+    Clear as ClearIcon,
+    ExpandLess,
+    ExpandMore,
+} from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
-import QuantityInput from "../../components/QuantityInput";
-import { useVisualViewportHeight } from "../../hooks/useVisualViewportHeight";
 
 const CreateOrder = () => {
-    const height = useVisualViewportHeight();
     const navigate = useNavigate();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
     const { activeProducts, getProductNameById, getProductInfo } = useSettings();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const [expandedCategories, setExpandedCategories] = useState(new Set());
+
+    // Инициализируем все товары с quantity = 0
     const [orderData, setOrderData] = useState({
         title: "",
-        items: [],
+        items: activeProducts.map(product => ({
+            productId: product.id,
+            quantity: 0,
+            buyOnlyByAction: false,
+        })),
     });
 
-    const [newItem, setNewItem] = useState({
-        productId: "",
-        quantity: 1,
-        buyOnlyByAction: false,
+    // Фильтрация товаров по поисковому запросу
+    const filteredItems = orderData.items.filter(item => {
+        if (!searchQuery.trim()) return true;
+
+        const productName = getProductNameById(item.productId).toLowerCase();
+        const category = getProductInfo(item.productId).category.toLowerCase();
+        const searchLower = searchQuery.toLowerCase();
+
+        return productName.includes(searchLower) || category.includes(searchLower);
     });
 
-    const [searchInput, setSearchInput] = useState("");
-    const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+    // Группируем отфильтрованные товары по категориям
+    const groupedItems = filteredItems.reduce((acc, item) => {
+        const { category } = getProductInfo(item.productId);
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {});
 
-    const isAnyDialogOpen = addItemDialogOpen || alertState.open;
+    // Сортируем категории по алфавиту
+    const sortedCategories = Object.keys(groupedItems).sort();
 
-    // Функция для сортировки продуктов по категориям
-    const getSortedProducts = (products) => {
-        return [...products].sort((a, b) => {
-            const categoryA = getProductInfo(a.id).category;
-            const categoryB = getProductInfo(b.id).category;
-
-            if (categoryA < categoryB) return -1;
-            if (categoryA > categoryB) return 1;
-
-            if (a.name < b.name) return -1;
-            if (a.name > b.name) return 1;
-
-            return 0;
+    const handleToggleCategory = (category) => {
+        setExpandedCategories((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(category)) {
+                newSet.delete(category);
+            } else {
+                newSet.add(category);
+            }
+            return newSet;
         });
     };
 
-    const filteredProducts = getSortedProducts(
-        activeProducts
-            .filter((product) => {
-                if (!searchInput) return true;
+    const isCategoryExpanded = (category) => {
+        return expandedCategories.has(category);
+    };
 
-                const searchLower = searchInput.toLowerCase();
-                const productName = product.name.toLowerCase();
-                const category = getProductInfo(product.id).category.toLowerCase();
+    // Функция для подсчета товаров с quantity > 0 в категории
+    const getItemsWithQuantityCount = (categoryItems) => {
+        return categoryItems.filter(item => item.quantity > 0).length;
+    };
 
-                return productName.includes(searchLower) || category.includes(searchLower);
-            })
-            .filter((product) => !orderData.items.some((item) => item.productId === product.id))
-    );
-
-    const handleAddItem = () => {
-        if (!newItem.productId) return;
-
-        const product = activeProducts.find((p) => p.id === newItem.productId);
-        if (!product) return;
-
-        const isAlreadyAdded = orderData.items.some((item) => item.productId === newItem.productId);
-        if (isAlreadyAdded) {
-            showError("Этот продукт уже добавлен в список");
-            return;
-        }
-
-        const item = {
-            productId: newItem.productId,
-            quantity: newItem.quantity,
-            buyOnlyByAction: newItem.buyOnlyByAction,
-        };
-
+    const handleQuantityChange = (productId, newQuantity) => {
         setOrderData((prev) => ({
             ...prev,
-            items: [...prev.items, item],
+            items: prev.items.map((item) =>
+                item.productId === productId
+                    ? { ...item, quantity: Math.max(0, newQuantity) }
+                    : item
+            ),
         }));
-
-        setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
-        setSearchInput("");
-        setAddItemDialogOpen(false);
     };
 
-    const handleProductSelect = (_, value) => {
-        if (value) {
-            setNewItem({ ...newItem, productId: value.id });
-        } else {
-            setNewItem({ ...newItem, productId: "" });
-            setSearchInput("");
-        }
-    };
-
-    const handleSearchInputChange = (_, value) => {
-        setSearchInput(value);
-    };
-
-    const handleRemoveItem = (productId) => {
+    const handleToggleBuyOnlyByAction = (productId) => {
         setOrderData((prev) => ({
             ...prev,
-            items: prev.items.filter((item) => item.productId !== productId),
+            items: prev.items.map((item) =>
+                item.productId === productId
+                    ? { ...item, buyOnlyByAction: !item.buyOnlyByAction }
+                    : item
+            ),
         }));
     };
 
     const handleCreateOrder = async () => {
-        if (orderData.items.length === 0) {
-            showError("Добавьте хотя бы один товар");
+        // Фильтруем товары с quantity > 0
+        const validItems = orderData.items.filter(item => item.quantity > 0);
+
+        if (validItems.length === 0) {
+            showError("Добавьте хотя бы один товар с количеством больше 0");
+            return;
+        }
+
+        if (!orderData.title.trim()) {
+            showError("Введите название списка");
             return;
         }
 
@@ -143,9 +137,9 @@ const CreateOrder = () => {
             try {
                 const order = await ordersService.createOrder({
                     groupId: currentUser.groupId,
-                    title: orderData.title,
+                    title: orderData.title.trim(),
                     createdBy: currentUser.uid,
-                    items: orderData.items,
+                    items: validItems,
                 });
 
                 showSuccess("Список успешно создан!", navigate(`/order-details/${order.id}`));
@@ -153,6 +147,10 @@ const CreateOrder = () => {
                 showError(error.message);
             }
         });
+    };
+
+    const clearSearch = () => {
+        setSearchQuery("");
     };
 
     return (
@@ -168,298 +166,255 @@ const CreateOrder = () => {
                 </Toolbar>
             </AppBar>
 
-            <Box>
-                <Card sx={{ borderRadius: 0, boxShadow: 2 }}>
-                    <CardContent sx={{ p: 3 }}>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                            Название списка
-                        </Typography>
-                        <TextField
-                            label="Введите название"
-                            value={orderData.title}
-                            onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
-                            fullWidth
-                            size="medium"
-                            slotProps={{
-                                input: {
-                                    sx: { fontSize: "16px" },
-                                },
-                            }}
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* Список товаров */}
-                {orderData.items.length > 0 && (
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
-                            Товары в списке ({orderData.items.length})
-                        </Typography>
-
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                            {orderData.items.map((item) => {
-                                const { unit, category } = getProductInfo(item.productId);
-                                return (
-                                    <Card
-                                        key={item.productId}
-                                        variant="outlined"
-                                        sx={{
-                                            borderRadius: 2,
-                                        }}
-                                    >
-                                        <CardContent sx={{ p: 3 }}>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "flex-start",
-                                                    mb: 2,
-                                                }}
-                                            >
-                                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontSize: "1.1rem",
-                                                            fontWeight: 600,
-                                                            wordBreak: "break-word",
-                                                            lineHeight: 1.3,
-                                                            mb: 1,
-                                                        }}
-                                                    >
-                                                        {getProductNameById(item.productId)}
-                                                    </Typography>
-
-                                                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-                                                        <Chip
-                                                            label={category}
-                                                            size="small"
-                                                            variant="outlined"
-                                                            color="primary"
-                                                        />
-                                                        <Chip
-                                                            label={`${item.quantity} ${unit}`}
-                                                            size="small"
-                                                            variant="outlined"
-                                                        />
-                                                        {item.buyOnlyByAction && (
-                                                            <Chip
-                                                                label="по акции"
-                                                                size="small"
-                                                                variant="outlined"
-                                                                sx={{ color: "red", borderColor: "red" }}
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                </Box>
-                                            </Box>
-
-                                            <Button
-                                                onClick={() => handleRemoveItem(item.productId)}
-                                                variant="outlined"
-                                                color="error"
-                                                size="medium"
-                                                startIcon={<DeleteIcon />}
-                                                fullWidth
-                                                sx={{ borderRadius: 2 }}
-                                            >
-                                                Удалить из списка
-                                            </Button>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
-                        </Box>
-                    </Box>
-                )}
-
-                {orderData.items.length === 0 && (
-                    <Box sx={{ p: 3, textAlign: "center" }}>
-                        <Typography variant="body1" color="textSecondary">
-                            Добавьте товары в список
-                        </Typography>
-                    </Box>
-                )}
-
-                {/* Кнопки действий */}
-                <Box sx={{ p: 2, pt: 3 }}>
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                        <Button
-                            onClick={() => navigate(-1)}
-                            variant="outlined"
-                            fullWidth
-                            size="large"
-                            sx={{ borderRadius: 2 }}
-                        >
-                            Отмена
-                        </Button>
-                        <Button
-                            onClick={handleCreateOrder}
-                            variant="contained"
-                            disabled={orderData.items.length === 0}
-                            fullWidth
-                            size="large"
-                            startIcon={<SaveIcon />}
-                            sx={{ borderRadius: 2 }}
-                        >
-                            Создать
-                        </Button>
-                    </Box>
-                </Box>
+            {/* Название списка в одной строке */}
+            <Box sx={{ p: 1, display: "flex", alignItems: "center", gap: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, minWidth: 60 }}>
+                    Список
+                </Typography>
+                <TextField
+                    label="Введите название"
+                    value={orderData.title}
+                    onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
+                    fullWidth
+                    size="medium"
+                    slotProps={{
+                        input: {
+                            sx: { fontSize: "16px" },
+                        },
+                    }}
+                />
             </Box>
 
-            {/* Диалог добавления товара */}
-            <Dialog
-                open={addItemDialogOpen}
-                onClose={() => setAddItemDialogOpen(false)}
-                fullScreen
-                sx={{
-                    "& .MuiDialog-paper": {
-                        height: height || "100dvh", 
-                        display: "flex",
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: "auto",
-                    },
-                }}
-            >
-                <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", flexShrink: 0 }}>
-                    <Toolbar>
-                        <IconButton
-                            edge="start"
-                            onClick={() => setAddItemDialogOpen(false)}
-                            sx={{ mr: 2 }}
-                            size="large"
-                        >
-                            <ArrowBack />
-                        </IconButton>
-                        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                            Добавить товар
-                        </Typography>
-                    </Toolbar>
-                </AppBar>
+            {/* Заголовок и поиск */}
+            <Box sx={{ p: 1 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 1, textAlign: "center" }}>
+                    Товары
+                </Typography>
 
-                <DialogContent sx={{ flex: 1, p: 2, overflow: "auto", minHeight: 0 }}>
-                    <FormControl fullWidth sx={{ mb: 3 }}>
-                        <Autocomplete
-                            value={activeProducts.find((p) => p.id === newItem.productId) || null}
-                            onChange={handleProductSelect}
-                            onInputChange={handleSearchInputChange}
-                            inputValue={searchInput}
-                            options={filteredProducts}
-                            filterOptions={(x) => x}
-                            getOptionLabel={(option) => option.name}
-                            groupBy={(option) => getProductInfo(option.id).category}
-                            renderOption={(props, option) => {
-                                const { key, ...otherProps } = props;
-                                const { unit } = getProductInfo(option.id);
-                                return (
-                                    <li key={option.id} {...otherProps}>
-                                        <Box sx={{ pl: 2 }}>
-                                            <Typography variant="body1">{option.name}</Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {unit}
-                                            </Typography>
-                                        </Box>
-                                    </li>
-                                );
-                            }}
-                            renderGroup={(params) => (
-                                <div key={params.key}>
-                                    <Box
-                                        sx={{
-                                            backgroundColor: "grey.100",
-                                            fontWeight: "bold",
-                                            px: 2,
-                                            py: 1,
-                                            position: "sticky",
-                                            top: 0,
-                                            zIndex: 1,
-                                        }}
-                                    >
-                                        <Typography variant="subtitle1" fontWeight="bold">
-                                            {params.group}
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ pl: 0 }}>{params.children}</Box>
-                                </div>
-                            )}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Поиск товара"
-                                    placeholder="Начните вводить название..."
-                                />
-                            )}
-                            noOptionsText="Товары не найдены"
-                        />
-                    </FormControl>
+                {/* Компактный поиск без карточки */}
+                <TextField
+                    label="Поиск товаров"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    fullWidth
+                    size="medium"
+                    placeholder="Введите название товара или категории..."
+                    slotProps={{
+                        input: {
+                            sx: { fontSize: "16px" },
+                            endAdornment: searchQuery && (
+                                <IconButton
+                                    onClick={clearSearch}
+                                    size="small"
+                                    sx={{ mr: -1 }}
+                                >
+                                    <ClearIcon />
+                                </IconButton>
+                            ),
+                        },
+                    }}
+                />
+            </Box>
 
-                    <Box sx={{ mb: 3 }}>
-                        <QuantityInput
-                            label="Количество"
-                            value={newItem.quantity}
-                            onChange={(val) =>
-                                setNewItem({
-                                    ...newItem,
-                                    quantity: val === "" ? "" : Math.max(1, parseInt(val)),
-                                })
+            {/* Список товаров с раскрывающимися категориями */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+                {sortedCategories.map((category) => {
+                    const categoryItems = groupedItems[category];
+                    const isExpanded = isCategoryExpanded(category);
+                    const itemsWithQuantityCount = getItemsWithQuantityCount(categoryItems);
+
+                    return (
+                        <Card key={category} variant="outlined" sx={{
+                            borderRadius: 0,
+                            mb: 0,
+                            '&:last-child': {
+                                mb: 0
                             }
-                        />
-                    </Box>
+                        }}>
+                            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                                <ListItem
+                                    button="true"
+                                    onClick={() => handleToggleCategory(category)}
+                                    sx={{
+                                        backgroundColor: '#e3f2fd',
+                                        borderBottom: isExpanded ? "1px solid" : "none",
+                                        borderColor: "grey.200",
+                                    }}
+                                >
+                                    <ListItemText
+                                        primary={
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <Typography variant="subtitle1" fontWeight="bold">
+                                                    {category}
+                                                </Typography>
+                                                {itemsWithQuantityCount > 0 && (
+                                                    <Chip
+                                                        label={itemsWithQuantityCount}
+                                                        size="small"
+                                                        color="primary"
+                                                        variant="outlined"
+                                                    />
+                                                )}
+                                            </Box>
+                                        }
+                                    />
+                                    {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                </ListItem>
+                                <Collapse in={isExpanded} timeout="auto" unmountOnExit sx={{ '&:last-child': { mb: 0 } }}>
+                                    <Box sx={{ '&:last-child': { mb: 0 } }}>
+                                        {categoryItems.map((item, index) => {
+                                            const { unit } = getProductInfo(item.productId);
+                                            // Фон только если quantity > 0
+                                            const backgroundColor = item.quantity > 0
+                                                ? (item.buyOnlyByAction ? '#ffebee' : '#e8f5e8')
+                                                : 'transparent';
 
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={newItem.buyOnlyByAction}
-                                onChange={() => setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })}
-                            />
-                        }
-                        label="Только по акции"
-                    />
-                </DialogContent>
+                                            return (
+                                                <Box key={item.productId} sx={{ '&:last-child': { mb: 0 } }}>
+                                                    <Box
+                                                        sx={{
+                                                            display: "flex",
+                                                            alignItems: "stretch",
+                                                            p: 0.5,
+                                                            py: 1,
+                                                            backgroundColor: backgroundColor,
+                                                            transition: "background-color 0.2s",
+                                                            minHeight: 60,
+                                                        }}
+                                                    >
+                                                        {/* Название товара */}
+                                                        <Box sx={{
+                                                            flex: 1,
+                                                            minWidth: 0,
+                                                            pr: 1,
+                                                            display: 'flex',
+                                                            alignItems: 'center'
+                                                        }}>
+                                                            <Typography
+                                                                variant="body1"
+                                                                sx={{
+                                                                    wordBreak: 'break-word',
+                                                                    lineHeight: 1.3,
+                                                                    fontSize: '0.9rem'
+                                                                }}
+                                                            >
+                                                                {getProductNameById(item.productId)}
+                                                            </Typography>
+                                                        </Box>
 
-                <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider", flexShrink: 0 }}>
+                                                        {/* Блок с управлением количеством, единицами и корзиной */}
+                                                        <Box sx={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            gap: 1,
+                                                            flexShrink: 0
+                                                        }}>
+                                                            {/* Управление количеством в кружочках */}
+                                                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                                                <IconButton
+                                                                    onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
+                                                                    disabled={item.quantity <= 0}
+                                                                    sx={{
+                                                                        border: '1px solid',
+                                                                        borderColor: 'divider',
+                                                                        borderRadius: '50%',
+                                                                    }}
+                                                                >
+                                                                    <RemoveIcon fontSize="small" />
+                                                                </IconButton>
+
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    sx={{
+                                                                        minWidth: 18,
+                                                                        textAlign: 'center',
+                                                                        fontWeight: 600,
+                                                                        color: item.quantity > 0 ? "primary.main" : "text.primary",
+                                                                        fontSize: '0.9rem'
+                                                                    }}
+                                                                >
+                                                                    {item.quantity}
+                                                                </Typography>
+
+                                                                <IconButton
+                                                                    onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                                                                    sx={{
+                                                                        border: '1px solid',
+                                                                        borderColor: 'divider',
+                                                                        borderRadius: '50%'
+                                                                    }}
+                                                                >
+                                                                    <AddIcon fontSize="small" />
+                                                                </IconButton>
+                                                            </Box>
+
+                                                            {/* Текст с единицами измерения */}
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{
+                                                                    width: 16,
+                                                                    textAlign: 'center',
+                                                                    color: 'text.secondary',
+                                                                    fontSize: '0.8rem',
+                                                                    fontStyle: 'italic'
+                                                                }}
+                                                            >
+                                                                {unit}
+                                                            </Typography>
+
+                                                            {/* Иконка корзины для акции */}
+                                                            <IconButton
+                                                                onClick={() => handleToggleBuyOnlyByAction(item.productId)}
+                                                                color={item.buyOnlyByAction && item.quantity > 0 ? "error" : "default"}
+                                                                sx={{
+                                                                    opacity: item.quantity > 0 ? 1 : 0.3,
+                                                                    width: 32,
+                                                                    height: 32,
+                                                                }}
+                                                                disabled={item.quantity === 0}
+                                                            >
+                                                                <CartIcon fontSize="medium" />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </Box>
+                                                    {index < categoryItems.length - 1 && (
+                                                        <Divider sx={{ my: 0 }} />
+                                                    )}
+                                                </Box>
+                                            );
+                                        })}
+                                    </Box>
+                                </Collapse>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </Box>
+
+            {/* Кнопки действий */}
+            <Box sx={{ p: 1, pt: 2 }}>
+                <Box sx={{ display: "flex", gap: 1 }}>
                     <Button
-                        onClick={() => setAddItemDialogOpen(false)}
+                        onClick={() => navigate(-1)}
                         variant="outlined"
                         fullWidth
-                        size="large"
-                        sx={{ borderRadius: 2, mr: 1 }}
+                        size="medium"
+                        sx={{ borderRadius: 1 }}
                     >
                         Отмена
                     </Button>
                     <Button
-                        onClick={handleAddItem}
+                        onClick={handleCreateOrder}
                         variant="contained"
-                        disabled={!newItem.productId}
+                        disabled={orderData.items.filter(item => item.quantity > 0).length === 0}
                         fullWidth
-                        size="large"
-                        sx={{ borderRadius: 2, ml: 1 }}
+                        size="medium"
+                        sx={{ borderRadius: 1 }}
                     >
-                        Добавить
+                        Создать
                     </Button>
-                </DialogActions>
-            </Dialog>
-
-            {!isAnyDialogOpen && (
-                <Fab
-                    color="primary"
-                    aria-label="add item"
-                    onClick={() => setAddItemDialogOpen(true)}
-                    sx={{
-                        position: "fixed",
-                        bottom: 72,
-                        right: 16,
-                        width: 56,
-                        height: 56,
-                    }}
-                >
-                    <AddIcon />
-                </Fab>
-            )}
+                </Box>
+            </Box>
 
             <AlertDialog
                 open={alertState.open}
