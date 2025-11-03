@@ -205,7 +205,7 @@ const Layout = ({ children }) => {
                     boxShadow: 2,
                 }}
             >
-                <Toolbar sx={{ minHeight: 56, px: 2 }}>
+                <Toolbar sx={{ minHeight: 48, px: 2 }}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
@@ -293,7 +293,7 @@ const Layout = ({ children }) => {
                     borderTop: 1,
                     borderColor: "divider",
                     zIndex: 1000,
-                    height: 56,
+                    height: 48,
                 }}
             >
                 {menuItems.map((item) => (
@@ -306,7 +306,7 @@ const Layout = ({ children }) => {
                         sx={{
                             minWidth: "auto",
                             px: 1,
-                            minHeight: 56,
+                            minHeight: 48,
                             "& .MuiBottomNavigationAction-label": {
                                 fontSize: "0.75rem",
                                 mt: 0.5,
