@@ -29,8 +29,10 @@ import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
 import QuantityInput from "../../components/QuantityInput";
+import { useVisualViewportHeight } from "../../hooks/useVisualViewportHeight";
 
 const CreateOrder = () => {
+    const height = useVisualViewportHeight();
     const navigate = useNavigate();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
@@ -310,40 +312,36 @@ const CreateOrder = () => {
             <Dialog
                 open={addItemDialogOpen}
                 onClose={() => setAddItemDialogOpen(false)}
+                fullScreen
                 sx={{
-                    "& .MuiBackdrop-root": {
-                        backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        backdropFilter: "blur(2px)",
-                    },
-                }}
-                slotProps={{
-                    paper: {
-                        sx: {
-                            margin: "20px",
-                            maxWidth: "calc(100% - 40px)",
-                            width: "100%",
-                            maxHeight: "calc(100% - 40px)",
-                            borderRadius: 3,
-                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
-                        },
+                    "& .MuiDialog-paper": {
+                        height: height || "100dvh", 
+                        display: "flex",
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: "auto",
                     },
                 }}
             >
-                <DialogTitle
-                    sx={{
-                        fontSize: "1.25rem",
-                        fontWeight: 600,
-                        pb: 2,
-                        pt: 3,
-                        px: 3,
-                        borderBottom: 1,
-                        borderColor: "divider",
-                    }}
-                >
-                    Добавить товар
-                </DialogTitle>
+                <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", flexShrink: 0 }}>
+                    <Toolbar>
+                        <IconButton
+                            edge="start"
+                            onClick={() => setAddItemDialogOpen(false)}
+                            sx={{ mr: 2 }}
+                            size="large"
+                        >
+                            <ArrowBack />
+                        </IconButton>
+                        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                            Добавить товар
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
 
-                <DialogContent sx={{ p: 3 }}>
+                <DialogContent sx={{ flex: 1, p: 2, overflow: "auto", minHeight: 0 }}>
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <Autocomplete
                             value={activeProducts.find((p) => p.id === newItem.productId) || null}
@@ -389,7 +387,11 @@ const CreateOrder = () => {
                                 </div>
                             )}
                             renderInput={(params) => (
-                                <TextField {...params} label="Поиск товара" placeholder="Начните вводить название..." />
+                                <TextField
+                                    {...params}
+                                    label="Поиск товара"
+                                    placeholder="Начните вводить название..."
+                                />
                             )}
                             noOptionsText="Товары не найдены"
                         />
@@ -419,15 +421,13 @@ const CreateOrder = () => {
                     />
                 </DialogContent>
 
-                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
+                <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider", flexShrink: 0 }}>
                     <Button
                         onClick={() => setAddItemDialogOpen(false)}
                         variant="outlined"
+                        fullWidth
                         size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
+                        sx={{ borderRadius: 2, mr: 1 }}
                     >
                         Отмена
                     </Button>
@@ -435,11 +435,9 @@ const CreateOrder = () => {
                         onClick={handleAddItem}
                         variant="contained"
                         disabled={!newItem.productId}
+                        fullWidth
                         size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
+                        sx={{ borderRadius: 2, ml: 1 }}
                     >
                         Добавить
                     </Button>
