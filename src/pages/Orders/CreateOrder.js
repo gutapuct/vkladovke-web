@@ -239,6 +239,12 @@ const CreateOrder = () => {
                                         backgroundColor: '#e3f2fd',
                                         borderBottom: isExpanded ? "1px solid" : "none",
                                         borderColor: "grey.200",
+                                        '&:active': {
+                                            backgroundColor: '#e3f2fd',
+                                        },
+                                        '&:hover': {
+                                            backgroundColor: '#e3f2fd',
+                                        }
                                     }}
                                 >
                                     <ListItemText

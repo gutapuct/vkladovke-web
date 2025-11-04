@@ -33,6 +33,9 @@ import {
     ExpandLess,
     ExpandMore,
     Check as CheckIcon,
+    ShoppingCart as CartIcon,
+    Remove as RemoveIcon,
+    Edit as EditIcon,
 } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
@@ -56,10 +59,12 @@ const OrderDetails = () => {
     const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
     const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
     const [deleteItemOpen, setDeleteItemOpen] = useState(false);
+    const [editTitleDialogOpen, setEditTitleDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({ productId: "", quantity: 1, buyOnlyByAction: false });
     const [searchInput, setSearchInput] = useState("");
+    const [editedTitle, setEditedTitle] = useState("");
 
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
@@ -70,6 +75,7 @@ const OrderDetails = () => {
         deleteOrderOpen ||
         deleteItemOpen ||
         completeOrderOpen ||
+        editTitleDialogOpen ||
         alertState.open;
 
     // Функция для сортировки продуктов по категориям
@@ -317,6 +323,31 @@ const OrderDetails = () => {
         });
     };
 
+    const handleEditTitle = () => {
+        setEditedTitle(order.title);
+        setEditTitleDialogOpen(true);
+    };
+
+    const handleUpdateTitle = async () => {
+        if (!editedTitle.trim()) {
+            showError("Введите название списка");
+            return;
+        }
+
+        await withLoading(async () => {
+            try {
+                await ordersService.updateOrderTitle(orderId, editedTitle.trim());
+                setEditTitleDialogOpen(false);
+                setOrder({
+                    ...order,
+                    title: editedTitle.trim(),
+                });
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    };
+
     const handleTogglePendingCategory = (category) => {
         setExpandedPendingCategories((prev) => {
             const newSet = new Set(prev);
@@ -374,6 +405,9 @@ const OrderDetails = () => {
                     <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
                     </Typography>
+                    <IconButton color="primary" onClick={handleEditTitle} size="large" sx={{ mr: 1 }}>
+                        <EditIcon />
+                    </IconButton>
                     <IconButton color="error" onClick={() => setDeleteOrderOpen(true)} size="large">
                         <DeleteIcon />
                     </IconButton>
@@ -437,9 +471,15 @@ const OrderDetails = () => {
                                             button="true"
                                             onClick={() => handleTogglePendingCategory(category)}
                                             sx={{
-                                                backgroundColor: "grey.50",
+                                                backgroundColor: '#e3f2fd',
                                                 borderBottom: "1px solid",
                                                 borderColor: "grey.200",
+                                                '&:active': {
+                                                    backgroundColor: '#e3f2fd',
+                                                },
+                                                '&:hover': {
+                                                    backgroundColor: '#e3f2fd',
+                                                }
                                             }}
                                         >
                                             <ListItemText
@@ -498,9 +538,15 @@ const OrderDetails = () => {
                                             button="true"
                                             onClick={() => handleToggleCompletedCategory(category)}
                                             sx={{
-                                                backgroundColor: "grey.50",
+                                                backgroundColor: '#e3f2fd',
                                                 borderBottom: "1px solid",
                                                 borderColor: "grey.200",
+                                                '&:active': {
+                                                    backgroundColor: '#e3f2fd',
+                                                },
+                                                '&:hover': {
+                                                    backgroundColor: '#e3f2fd',
+                                                }
                                             }}
                                         >
                                             <ListItemText
@@ -575,6 +621,85 @@ const OrderDetails = () => {
                 )}
             </Box>
 
+            {/* Диалог редактирования названия списка */}
+            <Dialog
+                open={editTitleDialogOpen}
+                onClose={() => setEditTitleDialogOpen(false)}
+                sx={{
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(2px)",
+                    },
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
+                    },
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        pb: 2,
+                        pt: 3,
+                        px: 3,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                    }}
+                >
+                    Редактировать
+                </DialogTitle>
+                <DialogContent sx={{ p: 3 }}>
+                    <Box sx={{ pt: 2 }}>
+                        <TextField
+                            label="Название списка"
+                            value={editedTitle}
+                            onChange={(e) => setEditedTitle(e.target.value)}
+                            fullWidth
+                            size="medium"
+                            slotProps={{
+                                input: {
+                                    sx: { fontSize: "16px" },
+                                },
+                            }}
+                            autoFocus
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
+                    <Button
+                        onClick={() => setEditTitleDialogOpen(false)}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Отмена
+                    </Button>
+                    <Button
+                        onClick={handleUpdateTitle}
+                        variant="contained"
+                        disabled={!editedTitle.trim()}
+                        size="large"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                        }}
+                    >
+                        Сохранить
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* Диалог редактирования товара */}
             <Dialog
                 open={editItemDialogOpen}
@@ -616,18 +741,58 @@ const OrderDetails = () => {
                             <Typography variant="h6" gutterBottom>
                                 {getProductNameById(editingItem.productId)}
                             </Typography>
+
+                            {/* Управление количеством */}
                             <Box sx={{ mb: 3 }}>
-                                <QuantityInput
-                                    label="Количество"
-                                    value={editingItem.quantity}
-                                    onChange={(val) =>
-                                        setEditingItem({
+                                <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                                    Количество:
+                                </Typography>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <IconButton
+                                        onClick={() => setEditingItem({
                                             ...editingItem,
-                                            quantity: val === "" ? "" : Math.max(1, parseInt(val)),
-                                        })
-                                    }
-                                />
+                                            quantity: Math.max(1, editingItem.quantity - 1)
+                                        })}
+                                        disabled={editingItem.quantity <= 1}
+                                        sx={{
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                            borderRadius: '50%',
+                                        }}
+                                    >
+                                        <RemoveIcon fontSize="small" />
+                                    </IconButton>
+
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            minWidth: 40,
+                                            textAlign: 'center',
+                                            fontWeight: 600,
+                                            color: "primary.main",
+                                            fontSize: '1.1rem'
+                                        }}
+                                    >
+                                        {editingItem.quantity}
+                                    </Typography>
+
+                                    <IconButton
+                                        onClick={() => setEditingItem({
+                                            ...editingItem,
+                                            quantity: editingItem.quantity + 1
+                                        })}
+                                        sx={{
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                            borderRadius: '50%'
+                                        }}
+                                    >
+                                        <AddIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
                             </Box>
+
+                            {/* Чекбокс с иконкой корзинки */}
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -640,7 +805,15 @@ const OrderDetails = () => {
                                         }
                                     />
                                 }
-                                label="Только по акции"
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <CartIcon
+                                            fontSize="small"
+                                            color={editingItem.buyOnlyByAction ? "error" : "inherit"}
+                                        />
+                                        <Typography>Только по акции</Typography>
+                                    </Box>
+                                }
                             />
                         </Box>
                     )}
@@ -777,7 +950,15 @@ const OrderDetails = () => {
                                 onChange={() => setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })}
                             />
                         }
-                        label="Только по акции"
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <CartIcon
+                                    fontSize="small"
+                                    color={newItem.buyOnlyByAction ? "error" : "inherit"}
+                                />
+                                <Typography>Только по акции</Typography>
+                            </Box>
+                        }
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>

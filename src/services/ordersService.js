@@ -141,6 +141,19 @@ export const ordersService = {
         }
     },
 
+    // Обновление названия списка
+    updateOrderTitle: async (orderId, newTitle) => {
+        try {
+            const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
+            await updateDoc(orderRef, {
+                title: newTitle,
+            });
+        } catch (error) {
+            console.error("Ошибка обновления названия списка:", error);
+            throw error;
+        }
+    },
+
     // Завершение списка
     completeOrder: async (orderId, complete) => {
         try {
@@ -169,9 +182,9 @@ export const ordersService = {
             const updatedItems = orderData.items.map((item) =>
                 item.productId === productId
                     ? {
-                          ...item,
-                          isCompleted: complete,
-                      }
+                        ...item,
+                        isCompleted: complete,
+                    }
                     : item
             );
 
