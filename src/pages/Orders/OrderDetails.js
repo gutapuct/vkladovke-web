@@ -397,15 +397,15 @@ const OrderDetails = () => {
                     <IconButton
                         edge="start"
                         onClick={() => navigate(order.isCompleted ? "/history" : "/")}
-                        sx={{ mr: 2 }}
+                        sx={{ mr: 0.5 }}
                         size="large"
                     >
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
                     </Typography>
-                    <IconButton color="primary" onClick={handleEditTitle} size="large" sx={{ mr: 1 }}>
+                    <IconButton color="primary" onClick={handleEditTitle} size="large">
                         <EditIcon />
                     </IconButton>
                     <IconButton color="error" onClick={() => setDeleteOrderOpen(true)} size="large">

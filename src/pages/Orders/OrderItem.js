@@ -24,7 +24,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
     const isCompleted = item.isCompleted;
 
     // Фон для акционных товаров
-    const backgroundColor = item.buyOnlyByAction ? '#ffebee' : 'white';
+    const backgroundColor = item.buyOnlyByAction && !isCompleted ? '#ffebee' : 'white';
 
     const handleAction = (action) => {
         setShowActions(false);
