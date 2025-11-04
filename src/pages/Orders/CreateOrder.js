@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
     Box,
     Typography,
@@ -34,6 +34,7 @@ import AlertDialog from "../../components/AlertDialog";
 
 const CreateOrder = () => {
     const navigate = useNavigate();
+    const { orderId } = useParams();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
     const { activeProducts, getProductNameById, getProductInfo } = useSettings();
@@ -41,16 +42,58 @@ const CreateOrder = () => {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedCategories, setExpandedCategories] = useState(new Set());
+    const [isEditing, setIsEditing] = useState(false);
 
-    // Инициализируем все товары с quantity = 0
     const [orderData, setOrderData] = useState({
         title: "",
-        items: activeProducts.map(product => ({
-            productId: product.id,
-            quantity: 0,
-            buyOnlyByAction: false,
-        })),
+        items: [],
     });
+
+    const initializeNewOrder = useCallback(() => {
+        setOrderData({
+            title: "",
+            items: activeProducts.map(product => ({
+                productId: product.id,
+                quantity: 0,
+                buyOnlyByAction: false,
+            })),
+        });
+    }, [activeProducts]);
+
+    const loadOrderForEdit = useCallback(async () => {
+        await withLoading(async () => {
+            try {
+                const order = await ordersService.getOrder(orderId);
+                setIsEditing(true);
+                
+                const allItems = activeProducts.map(product => {
+                    const existingItem = order.items.find(item => item.productId === product.id);
+                    return {
+                        productId: product.id,
+                        quantity: existingItem ? existingItem.quantity : 0,
+                        buyOnlyByAction: existingItem ? existingItem.buyOnlyByAction : false,
+                        isCompleted: existingItem ? existingItem.isCompleted : false,
+                    };
+                });
+
+                setOrderData({
+                    title: order.title,
+                    items: allItems,
+                });
+            } catch (error) {
+                showError(error.message);
+                navigate(-1);
+            }
+        });
+    }, [activeProducts, navigate, orderId, showError, withLoading]);
+
+    useEffect(() => {
+        if (orderId) {
+            loadOrderForEdit();
+        } else {
+            initializeNewOrder();
+        }
+    }, [orderId, activeProducts, initializeNewOrder, loadOrderForEdit]);
 
     // Фильтрация товаров по поисковому запросу
     const filteredItems = orderData.items.filter(item => {
@@ -128,11 +171,6 @@ const CreateOrder = () => {
             return;
         }
 
-        if (!orderData.title.trim()) {
-            showError("Введите название списка");
-            return;
-        }
-
         await withLoading(async () => {
             try {
                 const order = await ordersService.createOrder({
@@ -142,7 +180,30 @@ const CreateOrder = () => {
                     items: validItems,
                 });
 
-                showSuccess("Список успешно создан!", navigate(`/order-details/${order.id}`));
+                showSuccess("Список успешно создан!", "Успешно", () => navigate(`/order-details/${order.id}`));
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    };
+
+    const handleUpdateOrder = async () => {
+        // Фильтруем товары с quantity > 0
+        const validItems = orderData.items.filter(item => item.quantity > 0);
+
+        if (validItems.length === 0) {
+            showError("Добавьте хотя бы один товар с количеством больше 0");
+            return;
+        }
+
+        await withLoading(async () => {
+            try {
+                await ordersService.updateOrder(orderId, {
+                    title: orderData.title.trim(),
+                    items: validItems,
+                });
+
+                showSuccess("Список успешно обновлен!", "Успешно", () => navigate(`/order-details/${orderId}`));
             } catch (error) {
                 showError(error.message);
             }
@@ -153,6 +214,14 @@ const CreateOrder = () => {
         setSearchQuery("");
     };
 
+    const handleSubmit = () => {
+        if (isEditing) {
+            handleUpdateOrder();
+        } else {
+            handleCreateOrder();
+        }
+    };
+
     return (
         <Box sx={{ pb: 8 }}>
             <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
@@ -160,13 +229,13 @@ const CreateOrder = () => {
                     <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                        Новый список
+                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                        {isEditing ? "Редактировать список" : "Новый список"}
                     </Typography>
                 </Toolbar>
             </AppBar>
 
-            {/* Название списка в одной строке */}
+            {/* Название списка */}
             <Box sx={{ p: 1, display: "flex", alignItems: "center", gap: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, minWidth: 60 }}>
                     Список
@@ -191,7 +260,6 @@ const CreateOrder = () => {
                     Товары
                 </Typography>
 
-                {/* Компактный поиск без карточки */}
                 <TextField
                     label="Поиск товаров"
                     value={searchQuery}
@@ -270,7 +338,6 @@ const CreateOrder = () => {
                                     <Box sx={{ '&:last-child': { mb: 0 } }}>
                                         {categoryItems.map((item, index) => {
                                             const { unit } = getProductInfo(item.productId);
-                                            // Фон только если quantity > 0
                                             const backgroundColor = item.quantity > 0
                                                 ? (item.buyOnlyByAction ? '#ffebee' : '#e8f5e8')
                                                 : 'transparent';
@@ -315,7 +382,7 @@ const CreateOrder = () => {
                                                             gap: 1,
                                                             flexShrink: 0
                                                         }}>
-                                                            {/* Управление количеством в кружочках */}
+                                                            {/* Управление количеством */}
                                                             <Box sx={{ display: "flex", alignItems: "center" }}>
                                                                 <IconButton
                                                                     onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
@@ -410,14 +477,14 @@ const CreateOrder = () => {
                         Отмена
                     </Button>
                     <Button
-                        onClick={handleCreateOrder}
+                        onClick={handleSubmit}
                         variant="contained"
                         disabled={orderData.items.filter(item => item.quantity > 0).length === 0}
                         fullWidth
                         size="medium"
                         sx={{ borderRadius: 1 }}
                     >
-                        Создать
+                        {isEditing ? "Сохранить" : "Создать"}
                     </Button>
                 </Box>
             </Box>

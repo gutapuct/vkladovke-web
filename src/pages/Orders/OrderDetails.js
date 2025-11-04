@@ -10,13 +10,10 @@ import {
     List,
     ListItem,
     ListItemText,
-    TextField,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
-    FormControl,
-    Autocomplete,
     LinearProgress,
     FormControlLabel,
     Checkbox,
@@ -24,7 +21,6 @@ import {
     AppBar,
     Toolbar,
     IconButton,
-    Fab,
 } from "@mui/material";
 import {
     ArrowBack,
@@ -45,55 +41,23 @@ import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import OrderItem from "./OrderItem";
-import QuantityInput from "../../components/QuantityInput";
 
 const OrderDetails = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
-    const { activeProducts, getProductNameById, getProductInfo } = useSettings();
+    const { getProductNameById, getProductInfo } = useSettings();
     const { withLoading } = useLoading();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
     const [completeOrderOpen, setCompleteOrderOpen] = useState(false);
     const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
-    const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
     const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
     const [deleteItemOpen, setDeleteItemOpen] = useState(false);
-    const [editTitleDialogOpen, setEditTitleDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
-    const [newItem, setNewItem] = useState({ productId: "", quantity: 1, buyOnlyByAction: false });
-    const [searchInput, setSearchInput] = useState("");
-    const [editedTitle, setEditedTitle] = useState("");
 
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
-
-    const isAnyDialogOpen =
-        editItemDialogOpen ||
-        addItemDialogOpen ||
-        deleteOrderOpen ||
-        deleteItemOpen ||
-        completeOrderOpen ||
-        editTitleDialogOpen ||
-        alertState.open;
-
-    // Функция для сортировки продуктов по категориям
-    const getSortedProducts = (products) => {
-        return [...products].sort((a, b) => {
-            const categoryA = getProductInfo(a.id).category;
-            const categoryB = getProductInfo(b.id).category;
-
-            if (categoryA < categoryB) return -1;
-            if (categoryA > categoryB) return 1;
-
-            // Если категории одинаковые, сортируем по названию
-            if (a.name < b.name) return -1;
-            if (a.name > b.name) return 1;
-
-            return 0;
-        });
-    };
 
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
@@ -111,20 +75,6 @@ const OrderDetails = () => {
             loadOrder();
         }
     }, [orderId, loadOrder]);
-
-    const filteredProducts = getSortedProducts(
-        activeProducts
-            .filter((product) => {
-                if (!searchInput) return true;
-
-                const searchLower = searchInput.toLowerCase();
-                const productName = product.name.toLowerCase();
-                const category = getProductInfo(product.id).category.toLowerCase();
-
-                return productName.includes(searchLower) || category.includes(searchLower);
-            })
-            .filter((product) => !order?.items?.some((item) => item.productId === product.id))
-    );
 
     const pendingItems = order?.items?.filter((item) => !item.isCompleted) || [];
     const groupedPendingItems = pendingItems.reduce((acc, item) => {
@@ -145,19 +95,6 @@ const OrderDetails = () => {
         acc[category].push(item);
         return acc;
     }, {});
-
-    const handleProductSelect = (_, value) => {
-        if (value) {
-            setNewItem({ ...newItem, productId: value.id });
-        } else {
-            setNewItem({ ...newItem, productId: "", buyOnlyByAction: false });
-            setSearchInput("");
-        }
-    };
-
-    const handleSearchInputChange = (_, value) => {
-        setSearchInput(value);
-    };
 
     const handleCompleteItem = async (productId, complete = true) => {
         if (order.isCompleted) return;
@@ -239,53 +176,6 @@ const OrderDetails = () => {
         });
     };
 
-    const handleAddItem = async () => {
-        if (!newItem.productId) {
-            showError("Выберите товар");
-            return;
-        }
-
-        if (newItem.quantity < 1) {
-            showError("Введите корректное количество");
-            return;
-        }
-
-        const isAlreadyAdded = order.items.some((item) => item.productId === newItem.productId);
-        if (isAlreadyAdded) {
-            showError("Этот товар уже есть в списке");
-            return;
-        }
-
-        await withLoading(async () => {
-            try {
-                await ordersService.addItemToOrder(orderId, {
-                    productId: newItem.productId,
-                    quantity: newItem.quantity,
-                    buyOnlyByAction: newItem.buyOnlyByAction,
-                });
-                setAddItemDialogOpen(false);
-
-                setOrder({
-                    ...order,
-                    items: [
-                        ...order.items,
-                        {
-                            productId: newItem.productId,
-                            quantity: newItem.quantity,
-                            isCompleted: false,
-                            buyOnlyByAction: newItem.buyOnlyByAction,
-                        },
-                    ],
-                });
-
-                setNewItem({ productId: "", quantity: 1, buyOnlyByAction: false });
-                setSearchInput("");
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-    };
-
     const handleTryCompleteOrder = async (complete = true) => {
         if (pendingItems.length > 0 && complete) {
             setCompleteOrderOpen(true);
@@ -317,31 +207,6 @@ const OrderDetails = () => {
                 await ordersService.deleteOrder(orderId);
                 setDeleteOrderOpen(false);
                 showSuccess("Список успешно удален", "Успешно", navigate("/"));
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-    };
-
-    const handleEditTitle = () => {
-        setEditedTitle(order.title);
-        setEditTitleDialogOpen(true);
-    };
-
-    const handleUpdateTitle = async () => {
-        if (!editedTitle.trim()) {
-            showError("Введите название списка");
-            return;
-        }
-
-        await withLoading(async () => {
-            try {
-                await ordersService.updateOrderTitle(orderId, editedTitle.trim());
-                setEditTitleDialogOpen(false);
-                setOrder({
-                    ...order,
-                    title: editedTitle.trim(),
-                });
             } catch (error) {
                 showError(error.message);
             }
@@ -405,7 +270,11 @@ const OrderDetails = () => {
                     <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
                     </Typography>
-                    <IconButton color="primary" onClick={handleEditTitle} size="large">
+                    <IconButton
+                        color="primary"
+                        onClick={() => navigate(`/edit-order/${orderId}`)}
+                        size="large"
+                    >
                         <EditIcon />
                     </IconButton>
                     <IconButton color="error" onClick={() => setDeleteOrderOpen(true)} size="large">
@@ -621,85 +490,6 @@ const OrderDetails = () => {
                 )}
             </Box>
 
-            {/* Диалог редактирования названия списка */}
-            <Dialog
-                open={editTitleDialogOpen}
-                onClose={() => setEditTitleDialogOpen(false)}
-                sx={{
-                    "& .MuiBackdrop-root": {
-                        backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        backdropFilter: "blur(2px)",
-                    },
-                }}
-                slotProps={{
-                    paper: {
-                        sx: {
-                            margin: "20px",
-                            maxWidth: "calc(100% - 40px)",
-                            width: "100%",
-                            borderRadius: 3,
-                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
-                        },
-                    },
-                }}
-            >
-                <DialogTitle
-                    sx={{
-                        fontSize: "1.25rem",
-                        fontWeight: 600,
-                        pb: 2,
-                        pt: 3,
-                        px: 3,
-                        borderBottom: 1,
-                        borderColor: "divider",
-                    }}
-                >
-                    Редактировать
-                </DialogTitle>
-                <DialogContent sx={{ p: 3 }}>
-                    <Box sx={{ pt: 2 }}>
-                        <TextField
-                            label="Название списка"
-                            value={editedTitle}
-                            onChange={(e) => setEditedTitle(e.target.value)}
-                            fullWidth
-                            size="medium"
-                            slotProps={{
-                                input: {
-                                    sx: { fontSize: "16px" },
-                                },
-                            }}
-                            autoFocus
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
-                    <Button
-                        onClick={() => setEditTitleDialogOpen(false)}
-                        variant="outlined"
-                        size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
-                    >
-                        Отмена
-                    </Button>
-                    <Button
-                        onClick={handleUpdateTitle}
-                        variant="contained"
-                        disabled={!editedTitle.trim()}
-                        size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
-                    >
-                        Сохранить
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
             {/* Диалог редактирования товара */}
             <Dialog
                 open={editItemDialogOpen}
@@ -843,168 +633,6 @@ const OrderDetails = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {/* Диалог добавления товара */}
-            <Dialog
-                open={addItemDialogOpen}
-                onClose={() => setAddItemDialogOpen(false)}
-                sx={{
-                    "& .MuiBackdrop-root": {
-                        backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        backdropFilter: "blur(2px)",
-                    },
-                }}
-                slotProps={{
-                    paper: {
-                        sx: {
-                            margin: "20px",
-                            maxWidth: "calc(100% - 40px)",
-                            width: "100%",
-                            maxHeight: "calc(100% - 40px)",
-                            borderRadius: 3,
-                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
-                        },
-                    },
-                }}
-            >
-                <DialogTitle
-                    sx={{
-                        fontSize: "1.25rem",
-                        fontWeight: 600,
-                        pb: 2,
-                        pt: 3,
-                        px: 3,
-                        borderBottom: 1,
-                        borderColor: "divider",
-                    }}
-                >
-                    Добавить товар
-                </DialogTitle>
-                <DialogContent sx={{ p: 3 }}>
-                    <FormControl fullWidth sx={{ mb: 3 }}>
-                        <Autocomplete
-                            value={activeProducts.find((p) => p.id === newItem.productId) || null}
-                            onChange={handleProductSelect}
-                            onInputChange={handleSearchInputChange}
-                            inputValue={searchInput}
-                            options={filteredProducts}
-                            filterOptions={(x) => x}
-                            getOptionLabel={(option) => option.name}
-                            groupBy={(option) => getProductInfo(option.id).category}
-                            renderOption={(props, option) => {
-                                const { key, ...otherProps } = props;
-                                const { unit } = getProductInfo(option.id);
-                                return (
-                                    <li key={option.id} {...otherProps}>
-                                        <Box sx={{ pl: 2 }}>
-                                            <Typography variant="body1">{option.name}</Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {unit}
-                                            </Typography>
-                                        </Box>
-                                    </li>
-                                );
-                            }}
-                            renderGroup={(params) => (
-                                <div key={params.key}>
-                                    <Box
-                                        sx={{
-                                            backgroundColor: "grey.100",
-                                            fontWeight: "bold",
-                                            px: 2,
-                                            py: 1,
-                                            position: "sticky",
-                                            top: 0,
-                                            zIndex: 1,
-                                        }}
-                                    >
-                                        <Typography variant="subtitle1" fontWeight="bold">
-                                            {params.group}
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ pl: 0 }}>{params.children}</Box>
-                                </div>
-                            )}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Поиск товара" placeholder="Начните вводить название..." />
-                            )}
-                            noOptionsText="Товары не найдены"
-                        />
-                    </FormControl>
-                    <Box sx={{ mb: 3 }}>
-                        <QuantityInput
-                            label="Количество"
-                            value={newItem.quantity}
-                            onChange={(val) =>
-                                setNewItem({
-                                    ...newItem,
-                                    quantity: val === "" ? "" : Math.max(1, parseInt(val)),
-                                })
-                            }
-                        />
-                    </Box>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={newItem.buyOnlyByAction}
-                                onChange={() => setNewItem({ ...newItem, buyOnlyByAction: !newItem.buyOnlyByAction })}
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <CartIcon
-                                    fontSize="small"
-                                    color={newItem.buyOnlyByAction ? "error" : "inherit"}
-                                />
-                                <Typography>Только по акции</Typography>
-                            </Box>
-                        }
-                    />
-                </DialogContent>
-                <DialogActions sx={{ p: 3, pt: 0, gap: 2 }}>
-                    <Button
-                        onClick={() => setAddItemDialogOpen(false)}
-                        variant="outlined"
-                        size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
-                    >
-                        Отмена
-                    </Button>
-                    <Button
-                        onClick={handleAddItem}
-                        variant="contained"
-                        disabled={!newItem.productId}
-                        size="large"
-                        sx={{
-                            flex: 1,
-                            borderRadius: 2,
-                        }}
-                    >
-                        Добавить
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* FAB для добавления товара */}
-            {!order.isCompleted && !isAnyDialogOpen && (
-                <Fab
-                    color="primary"
-                    aria-label="add item"
-                    onClick={() => setAddItemDialogOpen(true)}
-                    sx={{
-                        position: "fixed",
-                        bottom: 72,
-                        right: 16,
-                        width: 56,
-                        height: 56,
-                    }}
-                >
-                    <AddIcon />
-                </Fab>
-            )}
 
             <AlertDialog
                 open={alertState.open}

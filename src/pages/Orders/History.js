@@ -73,7 +73,7 @@ const History = () => {
                     <IconButton edge="start" onClick={handleBackToActive} sx={{ mr: 2 }} size="large">
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         История списков
                     </Typography>
                 </Toolbar>

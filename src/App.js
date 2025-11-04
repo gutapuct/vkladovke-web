@@ -53,6 +53,7 @@ const AppContent = () => {
                 <Route path="/settings" element={<PrivateRoute element={<Settings />} />}></Route>
                 <Route path="/history" element={<PrivateRoute element={<History />} />}></Route>
                 <Route path="/create-order" element={<PrivateRoute element={<CreateOrder />} />}></Route>
+                <Route path="/edit-order/:orderId" element={<PrivateRoute element={<CreateOrder />} />}></Route>
                 <Route path="/order-details/:orderId" element={<PrivateRoute element={<OrderDetails />} />}></Route>
             </Routes>
         </>

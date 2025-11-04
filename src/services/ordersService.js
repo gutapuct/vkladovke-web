@@ -141,15 +141,19 @@ export const ordersService = {
         }
     },
 
-    // Обновление названия списка
-    updateOrderTitle: async (orderId, newTitle) => {
+    // Обновление списка
+    updateOrder: async (orderId, orderData) => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await updateDoc(orderRef, {
-                title: newTitle,
+                title: orderData.title,
+                items: orderData.items.filter(item => item.quantity > 0).map(item => ({
+                    ...item,
+                    isCompleted: item.isCompleted || false
+                }))
             });
         } catch (error) {
-            console.error("Ошибка обновления названия списка:", error);
+            console.error("Ошибка обновления списка:", error);
             throw error;
         }
     },
@@ -202,31 +206,6 @@ export const ordersService = {
             await deleteDoc(orderRef);
         } catch (error) {
             console.error("Ошибка удаления списка:", error);
-            throw error;
-        }
-    },
-
-    // Добавление товара в существующий список
-    addItemToOrder: async (orderId, itemData) => {
-        try {
-            const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
-            const orderSnap = await getDoc(orderRef);
-
-            if (!orderSnap.exists()) {
-                throw new Error("Список не найден");
-            }
-
-            const orderData = orderSnap.data();
-            const newItem = {
-                productId: itemData.productId,
-                quantity: itemData.quantity,
-                buyOnlyByAction: itemData.buyOnlyByAction,
-                isCompleted: false,
-            };
-
-            await updateDoc(orderRef, { items: [...orderData.items, newItem] });
-        } catch (error) {
-            console.error("Ошибка добавления товара:", error);
             throw error;
         }
     },
