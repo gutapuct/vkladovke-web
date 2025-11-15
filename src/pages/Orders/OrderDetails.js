@@ -46,7 +46,7 @@ const OrderDetails = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
-    const { getProductNameById, getProductInfo } = useSettings();
+    const { getProductNameById, getProductInfo, sortCategories } = useSettings();
     const { withLoading } = useLoading();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
     const [completeOrderOpen, setCompleteOrderOpen] = useState(false);
@@ -58,21 +58,6 @@ const OrderDetails = () => {
 
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
-
-    // Функция для сортировки категорий по алфавиту с "Другое" в конце
-    const sortCategoriesWithOtherLast = (groupedItems) => {
-        return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
-            const nameA = categoryA.toLowerCase();
-            const nameB = categoryB.toLowerCase();
-
-            // Если одна из категорий "Другое", помещаем её в конец
-            if (nameA === "другое") return 1;
-            if (nameB === "другое") return -1;
-
-            // Остальные категории сортируем по алфавиту
-            return nameA.localeCompare(nameB);
-        });
-    };
 
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
@@ -111,9 +96,18 @@ const OrderDetails = () => {
         return acc;
     }, {});
 
-    // Сортируем категории для обоих блоков
-    const sortedPendingCategories = sortCategoriesWithOtherLast(groupedPendingItems);
-    const sortedCompletedCategories = sortCategoriesWithOtherLast(groupedCompletedItems);
+    // Сортируем категории для обоих блоков и товары внутри категорий по названию
+    const sortedPendingCategories = sortCategories(groupedPendingItems);
+    const sortedCompletedCategories = sortCategories(groupedCompletedItems);
+
+    // Сортируем товары внутри каждой категории по названию
+    sortedPendingCategories.forEach(([_, items]) => {
+        items.sort((a, b) => getProductNameById(a.productId).localeCompare(getProductNameById(b.productId)));
+    });
+
+    sortedCompletedCategories.forEach(([_, items]) => {
+        items.sort((a, b) => getProductNameById(a.productId).localeCompare(getProductNameById(b.productId)));
+    });
 
     const handleCompleteItem = async (productId, complete = true) => {
         if (order.isCompleted) return;

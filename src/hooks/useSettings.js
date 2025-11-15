@@ -8,6 +8,34 @@ export const useSettings = () => {
     return useContext(SettingsContext);
 };
 
+export const sortCategories = (groupedItems) => {
+    return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
+        const nameA = categoryA.toLowerCase();
+        const nameB = categoryB.toLowerCase();
+
+        // Если одна из категорий "Другое", помещаем её в конец
+        if (nameA === "другое") return 1;
+        if (nameB === "другое") return -1;
+
+        // Остальные категории сортируем по алфавиту
+        return nameA.localeCompare(nameB);
+    });
+};
+
+export const sortCategoryEntries = (categoriesEntries) => {
+    return [...categoriesEntries].sort((a, b) => {
+        const nameA = a[1].toLowerCase();
+        const nameB = b[1].toLowerCase();
+
+        // Если одна из категорий "Другое", помещаем её в конец
+        if (nameA === "другое") return 1;
+        if (nameB === "другое") return -1;
+
+        // Остальные категории сортируем по алфавиту
+        return nameA.localeCompare(nameB);
+    });
+};
+
 export const SettingsProvider = ({ children }) => {
     const [units, setUnits] = useState({});
     const [categories, setCategories] = useState({});
@@ -87,6 +115,8 @@ export const SettingsProvider = ({ children }) => {
         addProductToContext: addProduct,
         removeProductFromContext: removeProduct,
         updateProductInContext: updateProduct,
+        sortCategories,
+        sortCategoryEntries,
     };
 
     return <SettingsContext.Provider value={value}>{!loading && children}</SettingsContext.Provider>;

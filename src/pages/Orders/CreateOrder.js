@@ -37,7 +37,7 @@ const CreateOrder = () => {
     const { orderId } = useParams();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
-    const { activeProducts, getProductNameById, getProductInfo } = useSettings();
+    const { activeProducts, getProductNameById, getProductInfo, sortCategories } = useSettings();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -48,21 +48,6 @@ const CreateOrder = () => {
         title: "",
         items: [],
     });
-
-    // Функция для сортировки категорий по алфавиту с "Другое" в конце
-    const sortCategoriesWithOtherLast = (groupedItems) => {
-        return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
-            const nameA = categoryA.toLowerCase();
-            const nameB = categoryB.toLowerCase();
-
-            // Если одна из категорий "Другое", помещаем её в конец
-            if (nameA === "другое") return 1;
-            if (nameB === "другое") return -1;
-
-            // Остальные категории сортируем по алфавиту
-            return nameA.localeCompare(nameB);
-        });
-    };
 
     const initializeNewOrder = useCallback(() => {
         setOrderData({
@@ -131,8 +116,13 @@ const CreateOrder = () => {
         return acc;
     }, {});
 
-    // Сортируем категории по алфавиту с "Другое" в конце
-    const sortedCategories = sortCategoriesWithOtherLast(groupedItems);
+    // Сортируем категории по алфавиту с "Другое" в конце и товары внутри категорий по названию
+    const sortedCategories = sortCategories(groupedItems);
+
+    // Сортируем товары внутри каждой категории по названию
+    sortedCategories.forEach(([_, items]) => {
+        items.sort((a, b) => getProductNameById(a.productId).localeCompare(getProductNameById(b.productId)));
+    });
 
     const handleToggleCategory = (category) => {
         setExpandedCategories((prev) => {

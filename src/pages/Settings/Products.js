@@ -51,6 +51,8 @@ const Products = () => {
         removeProductFromContext,
         updateProductInContext,
         getProductInfo,
+        sortCategories,
+        sortCategoryEntries,
     } = useSettings();
 
     const { alertState, showError, hideAlert } = useAlert();
@@ -70,20 +72,10 @@ const Products = () => {
 
     // Сортируем категории: по алфавиту, но "Другое" в конце
     const sortedCategoriesEntries = useMemo(() => {
-        return Object.entries(categories).sort((a, b) => {
-            const nameA = a[1].toLowerCase();
-            const nameB = b[1].toLowerCase();
+        return sortCategoryEntries(Object.entries(categories));
+    }, [categories, sortCategoryEntries]);
 
-            // Если одна из категорий "Другое", помещаем её в конец
-            if (nameA === "другое") return 1;
-            if (nameB === "другое") return -1;
-
-            // Остальные категории сортируем по алфавиту
-            return nameA.localeCompare(nameB);
-        });
-    }, [categories]);
-
-    // Группировка продуктов по категориям и сортировка внутри категорий
+    // Группировка продуктов по категориям
     const groupedProducts = activeProducts.reduce((acc, product) => {
         const { category } = getProductInfo(product.id);
         if (!acc[category]) {
@@ -93,12 +85,12 @@ const Products = () => {
         return acc;
     }, {});
 
-    // Сортируем категории по алфавиту (уже отсортированы в sortedCategoriesEntries) и товары внутри категорий по названию
-    const sortedCategoryNames = sortedCategoriesEntries.map(([id, name]) => name);
-    sortedCategoryNames.forEach((category) => {
-        if (groupedProducts[category]) {
-            groupedProducts[category].sort((a, b) => a.name.localeCompare(b.name));
-        }
+    // Сортируем категории по алфавиту с "Другое" в конце и товары внутри категорий по названию
+    const sortedCategories = sortCategories(groupedProducts);
+
+    // Сортируем товары внутри каждой категории по названию
+    sortedCategories.forEach(([_, products]) => {
+        products.sort((a, b) => a.name.localeCompare(b.name));
     });
 
     const handleToggleCategory = (category) => {
@@ -172,10 +164,7 @@ const Products = () => {
             {/* Список товаров по категориям */}
             {activeProducts.length > 0 ? (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {sortedCategoryNames.map((category) => {
-                        const categoryProducts = groupedProducts[category];
-                        if (!categoryProducts) return null;
-
+                    {sortedCategories.map(([category, categoryProducts]) => {
                         const isExpanded = isCategoryExpanded(category);
 
                         return (
