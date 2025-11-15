@@ -59,6 +59,21 @@ const OrderDetails = () => {
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
 
+    // Функция для сортировки категорий по алфавиту с "Другое" в конце
+    const sortCategoriesWithOtherLast = (groupedItems) => {
+        return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
+            const nameA = categoryA.toLowerCase();
+            const nameB = categoryB.toLowerCase();
+
+            // Если одна из категорий "Другое", помещаем её в конец
+            if (nameA === "другое") return 1;
+            if (nameB === "другое") return -1;
+
+            // Остальные категории сортируем по алфавиту
+            return nameA.localeCompare(nameB);
+        });
+    };
+
     const loadOrder = useCallback(async () => {
         await withLoading(async () => {
             try {
@@ -95,6 +110,10 @@ const OrderDetails = () => {
         acc[category].push(item);
         return acc;
     }, {});
+
+    // Сортируем категории для обоих блоков
+    const sortedPendingCategories = sortCategoriesWithOtherLast(groupedPendingItems);
+    const sortedCompletedCategories = sortCategoriesWithOtherLast(groupedCompletedItems);
 
     const handleCompleteItem = async (productId, complete = true) => {
         if (order.isCompleted) return;
@@ -265,7 +284,7 @@ const OrderDetails = () => {
                         sx={{ mr: 0.5 }}
                         size="large"
                     >
-                        <ArrowBack />
+                        <ArrowBack/>
                     </IconButton>
                     <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
@@ -275,10 +294,10 @@ const OrderDetails = () => {
                         onClick={() => navigate(`/edit-order/${orderId}`)}
                         size="large"
                     >
-                        <EditIcon />
+                        <EditIcon/>
                     </IconButton>
                     <IconButton color="error" onClick={() => setDeleteOrderOpen(true)} size="large">
-                        <DeleteIcon />
+                        <DeleteIcon/>
                     </IconButton>
                 </Toolbar>
             </AppBar>
@@ -334,7 +353,7 @@ const OrderDetails = () => {
                                 </Typography>
                             </Box>
                             <List>
-                                {Object.entries(groupedPendingItems).map(([category, items]) => (
+                                {sortedPendingCategories.map(([category, items]) => (
                                     <Box key={category}>
                                         <ListItem
                                             button="true"
@@ -366,7 +385,7 @@ const OrderDetails = () => {
                                                     </Box>
                                                 }
                                             />
-                                            {isPendingCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
+                                            {isPendingCategoryExpanded(category) ? <ExpandLess/> : <ExpandMore/>}
                                         </ListItem>
                                         <Collapse in={isPendingCategoryExpanded(category)} timeout="auto" unmountOnExit>
                                             <List component="div" disablePadding>
@@ -401,7 +420,7 @@ const OrderDetails = () => {
                                 </Typography>
                             </Box>
                             <List>
-                                {Object.entries(groupedCompletedItems).map(([category, items]) => (
+                                {sortedCompletedCategories.map(([category, items]) => (
                                     <Box key={category}>
                                         <ListItem
                                             button="true"
@@ -433,7 +452,7 @@ const OrderDetails = () => {
                                                     </Box>
                                                 }
                                             />
-                                            {isCompletedCategoryExpanded(category) ? <ExpandLess /> : <ExpandMore />}
+                                            {isCompletedCategoryExpanded(category) ? <ExpandLess/> : <ExpandMore/>}
                                         </ListItem>
                                         <Collapse
                                             in={isCompletedCategoryExpanded(category)}
@@ -471,7 +490,7 @@ const OrderDetails = () => {
                         disabled={order.items.length === 0}
                         fullWidth
                         size="large"
-                        startIcon={<CheckIcon />}
+                        startIcon={<CheckIcon/>}
                         sx={{ borderRadius: 2 }}
                     >
                         Завершить список
@@ -550,7 +569,7 @@ const OrderDetails = () => {
                                             borderRadius: '50%',
                                         }}
                                     >
-                                        <RemoveIcon fontSize="small" />
+                                        <RemoveIcon fontSize="small"/>
                                     </IconButton>
 
                                     <Typography
@@ -577,7 +596,7 @@ const OrderDetails = () => {
                                             borderRadius: '50%'
                                         }}
                                     >
-                                        <AddIcon fontSize="small" />
+                                        <AddIcon fontSize="small"/>
                                     </IconButton>
                                 </Box>
                             </Box>

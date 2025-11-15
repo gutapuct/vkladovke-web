@@ -49,6 +49,21 @@ const CreateOrder = () => {
         items: [],
     });
 
+    // Функция для сортировки категорий по алфавиту с "Другое" в конце
+    const sortCategoriesWithOtherLast = (groupedItems) => {
+        return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
+            const nameA = categoryA.toLowerCase();
+            const nameB = categoryB.toLowerCase();
+
+            // Если одна из категорий "Другое", помещаем её в конец
+            if (nameA === "другое") return 1;
+            if (nameB === "другое") return -1;
+
+            // Остальные категории сортируем по алфавиту
+            return nameA.localeCompare(nameB);
+        });
+    };
+
     const initializeNewOrder = useCallback(() => {
         setOrderData({
             title: "",
@@ -65,7 +80,7 @@ const CreateOrder = () => {
             try {
                 const order = await ordersService.getOrder(orderId);
                 setIsEditing(true);
-                
+
                 const allItems = activeProducts.map(product => {
                     const existingItem = order.items.find(item => item.productId === product.id);
                     return {
@@ -116,8 +131,8 @@ const CreateOrder = () => {
         return acc;
     }, {});
 
-    // Сортируем категории по алфавиту
-    const sortedCategories = Object.keys(groupedItems).sort();
+    // Сортируем категории по алфавиту с "Другое" в конце
+    const sortedCategories = sortCategoriesWithOtherLast(groupedItems);
 
     const handleToggleCategory = (category) => {
         setExpandedCategories((prev) => {
@@ -227,7 +242,7 @@ const CreateOrder = () => {
             <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
                 <Toolbar>
                     <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
-                        <ArrowBack />
+                        <ArrowBack/>
                     </IconButton>
                     <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {isEditing ? "Редактировать список" : "Новый список"}
@@ -276,7 +291,7 @@ const CreateOrder = () => {
                                     size="small"
                                     sx={{ mr: -1 }}
                                 >
-                                    <ClearIcon />
+                                    <ClearIcon/>
                                 </IconButton>
                             ),
                         },
@@ -286,8 +301,7 @@ const CreateOrder = () => {
 
             {/* Список товаров с раскрывающимися категориями */}
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-                {sortedCategories.map((category) => {
-                    const categoryItems = groupedItems[category];
+                {sortedCategories.map(([category, categoryItems]) => {
                     const isExpanded = isCategoryExpanded(category);
                     const itemsWithQuantityCount = getItemsWithQuantityCount(categoryItems);
 
@@ -332,9 +346,10 @@ const CreateOrder = () => {
                                             </Box>
                                         }
                                     />
-                                    {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                    {isExpanded ? <ExpandLess/> : <ExpandMore/>}
                                 </ListItem>
-                                <Collapse in={isExpanded} timeout="auto" unmountOnExit sx={{ '&:last-child': { mb: 0 } }}>
+                                <Collapse in={isExpanded} timeout="auto" unmountOnExit
+                                          sx={{ '&:last-child': { mb: 0 } }}>
                                     <Box sx={{ '&:last-child': { mb: 0 } }}>
                                         {categoryItems.map((item, index) => {
                                             const { unit } = getProductInfo(item.productId);
@@ -393,7 +408,7 @@ const CreateOrder = () => {
                                                                         borderRadius: '50%',
                                                                     }}
                                                                 >
-                                                                    <RemoveIcon fontSize="small" />
+                                                                    <RemoveIcon fontSize="small"/>
                                                                 </IconButton>
 
                                                                 <Typography
@@ -417,7 +432,7 @@ const CreateOrder = () => {
                                                                         borderRadius: '50%'
                                                                     }}
                                                                 >
-                                                                    <AddIcon fontSize="small" />
+                                                                    <AddIcon fontSize="small"/>
                                                                 </IconButton>
                                                             </Box>
 
@@ -446,12 +461,12 @@ const CreateOrder = () => {
                                                                 }}
                                                                 disabled={item.quantity === 0}
                                                             >
-                                                                <CartIcon fontSize="medium" />
+                                                                <CartIcon fontSize="medium"/>
                                                             </IconButton>
                                                         </Box>
                                                     </Box>
                                                     {index < categoryItems.length - 1 && (
-                                                        <Divider sx={{ my: 0 }} />
+                                                        <Divider sx={{ my: 0 }}/>
                                                     )}
                                                 </Box>
                                             );
