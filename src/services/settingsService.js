@@ -31,10 +31,7 @@ export const settingsService = {
 
         const nameToLowerCase = product.name.trim().toLowerCase();
 
-        if (
-            dbProducts.filter((x) => x.name.trim().toLowerCase() === nameToLowerCase ?? x.isDeleted === false).length >
-            0
-        ) {
+        if (dbProducts.filter((x) => x.name.trim().toLowerCase() === nameToLowerCase && x.isDeleted === false).length > 0) {
             throw new Error("Продукт с таким наименованием уже существует");
         }
 
@@ -62,11 +59,11 @@ export const settingsService = {
         const updatedItems = currentData.items.map((item) =>
             item.id === product.id
                 ? {
-                      ...item,
-                      name: product.name,
-                      categoryId: product.categoryId,
-                      unitId: product.unitId,
-                  }
+                    ...item,
+                    name: product.name,
+                    categoryId: product.categoryId,
+                    unitId: product.unitId,
+                }
                 : item
         );
 
@@ -85,9 +82,9 @@ export const settingsService = {
         const updatedItems = currentData.items.map((item) =>
             item.id === id
                 ? {
-                      ...item,
-                      isDeleted: true,
-                  }
+                    ...item,
+                    isDeleted: true,
+                }
                 : item
         );
 
