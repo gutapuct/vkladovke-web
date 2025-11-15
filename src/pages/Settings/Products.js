@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Box,
     TextField,
@@ -68,6 +68,21 @@ const Products = () => {
 
     const isAnyDialogOpen = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
 
+    // Сортируем категории: по алфавиту, но "Другое" в конце
+    const sortedCategoriesEntries = useMemo(() => {
+        return Object.entries(categories).sort((a, b) => {
+            const nameA = a[1].toLowerCase();
+            const nameB = b[1].toLowerCase();
+
+            // Если одна из категорий "Другое", помещаем её в конец
+            if (nameA === "другое") return 1;
+            if (nameB === "другое") return -1;
+
+            // Остальные категории сортируем по алфавиту
+            return nameA.localeCompare(nameB);
+        });
+    }, [categories]);
+
     // Группировка продуктов по категориям и сортировка внутри категорий
     const groupedProducts = activeProducts.reduce((acc, product) => {
         const { category } = getProductInfo(product.id);
@@ -78,10 +93,12 @@ const Products = () => {
         return acc;
     }, {});
 
-    // Сортируем категории по алфавиту и товары внутри категорий по названию
-    const sortedCategories = Object.keys(groupedProducts).sort();
-    sortedCategories.forEach((category) => {
-        groupedProducts[category].sort((a, b) => a.name.localeCompare(b.name));
+    // Сортируем категории по алфавиту (уже отсортированы в sortedCategoriesEntries) и товары внутри категорий по названию
+    const sortedCategoryNames = sortedCategoriesEntries.map(([id, name]) => name);
+    sortedCategoryNames.forEach((category) => {
+        if (groupedProducts[category]) {
+            groupedProducts[category].sort((a, b) => a.name.localeCompare(b.name));
+        }
     });
 
     const handleToggleCategory = (category) => {
@@ -155,8 +172,10 @@ const Products = () => {
             {/* Список товаров по категориям */}
             {activeProducts.length > 0 ? (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {sortedCategories.map((category) => {
+                    {sortedCategoryNames.map((category) => {
                         const categoryProducts = groupedProducts[category];
+                        if (!categoryProducts) return null;
+
                         const isExpanded = isCategoryExpanded(category);
 
                         return (
@@ -187,7 +206,7 @@ const Products = () => {
                                                 </Box>
                                             }
                                         />
-                                        {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                                        {isExpanded ? <ExpandLess/> : <ExpandMore/>}
                                     </ListItem>
                                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                                         <Box sx={{ p: 2 }}>
@@ -240,7 +259,7 @@ const Products = () => {
                                                                             }
                                                                             label="Категория"
                                                                         >
-                                                                            {Object.entries(categories).map(
+                                                                            {sortedCategoriesEntries.map(
                                                                                 ([id, name]) => (
                                                                                     <MenuItem
                                                                                         key={id}
@@ -273,7 +292,7 @@ const Products = () => {
                                                                     </FormControl>
                                                                     <Button
                                                                         variant="contained"
-                                                                        startIcon={<SaveIcon />}
+                                                                        startIcon={<SaveIcon/>}
                                                                         onClick={handleSaveProductToEdit}
                                                                         fullWidth
                                                                         size="large"
@@ -332,7 +351,7 @@ const Products = () => {
                                                                                 }
                                                                                 size="small"
                                                                             >
-                                                                                <EditIcon />
+                                                                                <EditIcon/>
                                                                             </IconButton>
                                                                             <IconButton
                                                                                 color="error"
@@ -343,7 +362,7 @@ const Products = () => {
                                                                                 }
                                                                                 size="small"
                                                                             >
-                                                                                <DeleteIcon />
+                                                                                <DeleteIcon/>
                                                                             </IconButton>
                                                                         </Box>
                                                                     </Box>
@@ -371,7 +390,7 @@ const Products = () => {
                         </Typography>
                         <Button
                             variant="contained"
-                            startIcon={<AddIcon />}
+                            startIcon={<AddIcon/>}
                             onClick={toggleAddProduct}
                             size="large"
                             sx={{ borderRadius: 2 }}
@@ -402,7 +421,7 @@ const Products = () => {
                 <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary" }}>
                     <Toolbar>
                         <IconButton edge="start" onClick={toggleAddProduct} sx={{ mr: 2 }} size="large">
-                            <ArrowBack />
+                            <ArrowBack/>
                         </IconButton>
                         <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
                             Новый товар
@@ -433,7 +452,7 @@ const Products = () => {
                                 label="Категория"
                             >
                                 <MenuItem value="">Выберите категорию</MenuItem>
-                                {Object.entries(categories).map(([id, name]) => (
+                                {sortedCategoriesEntries.map(([id, name]) => (
                                     <MenuItem key={id} value={id}>
                                         {name}
                                     </MenuItem>
@@ -495,7 +514,7 @@ const Products = () => {
                         height: 56,
                     }}
                 >
-                    <AddIcon />
+                    <AddIcon/>
                 </Fab>
             )}
 
