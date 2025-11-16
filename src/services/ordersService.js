@@ -127,6 +127,7 @@ export const ordersService = {
                 id: orderId,
                 groupId: orderData.groupId,
                 title: orderData.title || `Список от ${getTodayString()}`,
+                comment: orderData.comment || "",
                 createdAt: serverTimestamp(),
                 isCompleted: false,
                 completedAt: null,
@@ -147,6 +148,7 @@ export const ordersService = {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await updateDoc(orderRef, {
                 title: orderData.title,
+                comment: orderData.comment || "",
                 items: orderData.items.filter(item => item.quantity > 0).map(item => ({
                     ...item,
                     isCompleted: item.isCompleted || false

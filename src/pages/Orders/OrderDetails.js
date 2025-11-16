@@ -339,7 +339,7 @@ const OrderDetails = () => {
 
                 {/* Товары для покупки */}
                 {pendingItems.length > 0 && (
-                    <Card sx={{ mb: 3, borderRadius: 2 }}>
+                    <Card sx={{ borderRadius: 2 }}>
                         <CardContent sx={{ p: 0 }}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -404,9 +404,30 @@ const OrderDetails = () => {
                     </Card>
                 )}
 
+                {/* Комментарий */}
+                {order.comment && (
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                            Комментарий:
+                        </Typography>
+                        <Card variant="outlined" sx={{ backgroundColor: 'grey.50', p: 2 }}>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    lineHeight: 1.5,
+                                }}
+                            >
+                                {order.comment}
+                            </Typography>
+                        </Card>
+                    </Box>
+                )}
+
                 {/* Купленные товары */}
                 {completedItems.length > 0 && (
-                    <Card sx={{ mb: 3, borderRadius: 2 }}>
+                    <Card sx={{ my: 3, borderRadius: 2 }}>
                         <CardContent sx={{ p: 0 }}>
                             <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>

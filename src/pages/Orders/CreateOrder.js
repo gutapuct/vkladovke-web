@@ -46,12 +46,14 @@ const CreateOrder = () => {
 
     const [orderData, setOrderData] = useState({
         title: "",
+        comment: "",
         items: [],
     });
 
     const initializeNewOrder = useCallback(() => {
         setOrderData({
             title: "",
+            comment: "",
             items: activeProducts.map(product => ({
                 productId: product.id,
                 quantity: 0,
@@ -78,6 +80,7 @@ const CreateOrder = () => {
 
                 setOrderData({
                     title: order.title,
+                    comment: order.comment || "",
                     items: allItems,
                 });
             } catch (error) {
@@ -181,6 +184,7 @@ const CreateOrder = () => {
                 const order = await ordersService.createOrder({
                     groupId: currentUser.groupId,
                     title: orderData.title.trim(),
+                    comment: orderData.comment.trim(),
                     createdBy: currentUser.uid,
                     items: validItems,
                 });
@@ -205,6 +209,7 @@ const CreateOrder = () => {
             try {
                 await ordersService.updateOrder(orderId, {
                     title: orderData.title.trim(),
+                    comment: orderData.comment.trim(),
                     items: validItems,
                 });
 
@@ -467,6 +472,28 @@ const CreateOrder = () => {
                         </Card>
                     );
                 })}
+            </Box>
+
+            {/* Комментарий */}
+            <Box sx={{ p: 1 }}>
+                <TextField
+                    label="Комментарий"
+                    value={orderData.comment}
+                    onChange={(e) => setOrderData({ ...orderData, comment: e.target.value })}
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    size="medium"
+                    placeholder="Добавьте заметки или комментарии к списку..."
+                    slotProps={{
+                        input: {
+                            sx: {
+                                fontSize: "16px",
+                                whiteSpace: 'pre-wrap',
+                            },
+                        },
+                    }}
+                />
             </Box>
 
             {/* Кнопки действий */}
