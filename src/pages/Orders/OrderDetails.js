@@ -190,7 +190,7 @@ const OrderDetails = () => {
     };
 
     const handleTryCompleteOrder = async (complete = true) => {
-        if (pendingItems.length > 0 && complete) {
+        if (pendingItems.filter(x => !x.buyOnlyByAction).length > 0 && complete) {
             setCompleteOrderOpen(true);
         } else {
             await handleCompleteOrder(complete);
