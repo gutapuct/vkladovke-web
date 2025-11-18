@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
     Box,
     Typography,
@@ -35,6 +35,7 @@ import AlertDialog from "../../components/AlertDialog";
 const CreateOrder = () => {
     const navigate = useNavigate();
     const { orderId } = useParams();
+    const location = useLocation();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
     const { activeProducts, getProductNameById, getProductInfo, sortCategories } = useSettings();
@@ -59,6 +60,25 @@ const CreateOrder = () => {
                 quantity: 0,
                 buyOnlyByAction: false,
             })),
+        });
+    }, [activeProducts]);
+
+    const initializeCopiedOrder = useCallback((copiedOrder) => {
+        const baseItems = activeProducts.map(product => ({
+            productId: product.id,
+            quantity: 0,
+            buyOnlyByAction: false,
+        }));
+
+        const mergedItems = baseItems.map(baseItem => {
+            const copiedItem = copiedOrder.items.find(item => item.productId === baseItem.productId);
+            return copiedItem ? { ...baseItem, ...copiedItem } : baseItem;
+        });
+
+        setOrderData({
+            title: copiedOrder.title,
+            comment: copiedOrder.comment,
+            items: mergedItems,
         });
     }, [activeProducts]);
 
@@ -91,12 +111,19 @@ const CreateOrder = () => {
     }, [activeProducts, navigate, orderId, showError, withLoading]);
 
     useEffect(() => {
-        if (orderId) {
+        const copiedOrder = location.state?.copiedOrder;
+
+        if (copiedOrder) {
+            // Копируем список
+            initializeCopiedOrder(copiedOrder);
+        } else if (orderId) {
+            // Редактируем список
             loadOrderForEdit();
         } else {
+            // Новый список
             initializeNewOrder();
         }
-    }, [orderId, activeProducts, initializeNewOrder, loadOrderForEdit]);
+    }, [orderId, activeProducts, initializeNewOrder, loadOrderForEdit, location.state, initializeCopiedOrder]);
 
     // Фильтрация товаров по поисковому запросу
     const filteredItems = orderData.items.filter(item => {

@@ -32,6 +32,7 @@ import {
     ShoppingCart as CartIcon,
     Remove as RemoveIcon,
     Edit as EditIcon,
+    ContentCopy as CopyIcon,
 } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
@@ -55,6 +56,7 @@ const OrderDetails = () => {
     const [deleteItemOpen, setDeleteItemOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [editingItem, setEditingItem] = useState(null);
+    const [copyOrderOpen, setCopyOrderOpen] = useState(false);
 
     const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
     const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
@@ -250,6 +252,30 @@ const OrderDetails = () => {
         });
     };
 
+    const handleCopyOrder = () => {
+        if (!order) return;
+
+        const orderDataToCopy = {
+            title: `${order.title} (копия)`,
+            comment: order.comment,
+            items: order.items.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                buyOnlyByAction: item.buyOnlyByAction,
+            }))
+        };
+
+        navigate('/create-order', {
+            state: {
+                copiedOrder: orderDataToCopy
+            }
+        });
+    };
+
+    const handleOpenCopyOrder = () => {
+        setCopyOrderOpen(true);
+    };
+
     const isPendingCategoryExpanded = (category) => {
         return expandedPendingCategories.has(category);
     };
@@ -283,6 +309,13 @@ const OrderDetails = () => {
                     <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
                     </Typography>
+                    <IconButton
+                        color="primary"
+                        onClick={handleOpenCopyOrder}
+                        size="large"
+                    >
+                        <CopyIcon/>
+                    </IconButton>
                     <IconButton
                         color="primary"
                         onClick={() => navigate(`/edit-order/${orderId}`)}
@@ -713,6 +746,18 @@ const OrderDetails = () => {
                 confirmText="Удалить"
                 cancelText="Отмена"
                 confirmColor="error"
+            />
+
+            {/* Диалог подтверждения копирования заказа */}
+            <ConfirmDialog
+                open={copyOrderOpen}
+                onClose={() => setCopyOrderOpen(false)}
+                onConfirm={handleCopyOrder}
+                title="Копировать список"
+                message={`Вы уверены, что хотите создать копию списка "${order.title}"?`}
+                confirmText="Копировать"
+                cancelText="Отмена"
+                confirmColor="primary"
             />
         </Box>
     );
