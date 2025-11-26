@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
     Box,
@@ -31,6 +31,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
+import { useNavigationGuard } from "../../contexts/NavigationGuardContext";
 
 const CreateOrder = () => {
     const navigate = useNavigate();
@@ -44,6 +45,9 @@ const CreateOrder = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedCategories, setExpandedCategories] = useState(new Set());
     const [isEditing, setIsEditing] = useState(false);
+    const { shouldBlock, setShouldBlock, confirmIfNeeded } = useNavigationGuard();
+
+    const [initialOrderData, setInitialOrderData] = useState(null);
 
     const [orderData, setOrderData] = useState({
         title: "",
@@ -52,7 +56,7 @@ const CreateOrder = () => {
     });
 
     const initializeNewOrder = useCallback(() => {
-        setOrderData({
+        const next = {
             title: "",
             comment: "",
             items: activeProducts.map(product => ({
@@ -60,7 +64,9 @@ const CreateOrder = () => {
                 quantity: 0,
                 buyOnlyByAction: false,
             })),
-        });
+        };
+        setOrderData(next);
+        setInitialOrderData(next);
     }, [activeProducts]);
 
     const initializeCopiedOrder = useCallback((copiedOrder) => {
@@ -75,11 +81,13 @@ const CreateOrder = () => {
             return copiedItem ? { ...baseItem, ...copiedItem } : baseItem;
         });
 
-        setOrderData({
+        const next = {
             title: copiedOrder.title,
             comment: copiedOrder.comment,
             items: mergedItems,
-        });
+        };
+        setOrderData(next);
+        setInitialOrderData(next);
     }, [activeProducts]);
 
     const loadOrderForEdit = useCallback(async () => {
@@ -98,11 +106,13 @@ const CreateOrder = () => {
                     };
                 });
 
-                setOrderData({
+                const next = {
                     title: order.title,
                     comment: order.comment || "",
                     items: allItems,
-                });
+                };
+                setOrderData(next);
+                setInitialOrderData(next);
             } catch (error) {
                 showError(error.message);
                 navigate(-1);
@@ -124,6 +134,37 @@ const CreateOrder = () => {
             initializeNewOrder();
         }
     }, [orderId, activeProducts, initializeNewOrder, loadOrderForEdit, location.state, initializeCopiedOrder]);
+
+    const normalized = (data) => ({
+        title: data.title?.trim() || "",
+        comment: data.comment?.trim() || "",
+        items: data.items
+            .map(i => ({ productId: i.productId, quantity: i.quantity || 0, buyOnlyByAction: !!i.buyOnlyByAction }))
+            .sort((a, b) => (a.productId > b.productId ? 1 : -1)),
+    });
+
+    const hasUnsavedChanges = useMemo(() => {
+        if (!initialOrderData) return false;
+        try {
+            return JSON.stringify(normalized(orderData)) !== JSON.stringify(normalized(initialOrderData));
+        } catch {
+            return true;
+        }
+    }, [orderData, initialOrderData]);
+
+    useEffect(() => {
+        setShouldBlock(hasUnsavedChanges);
+    }, [hasUnsavedChanges, setShouldBlock]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (!shouldBlock) return;
+            e.preventDefault();
+            e.returnValue = "";
+        };
+        if (shouldBlock) window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [shouldBlock]);
 
     // Фильтрация товаров по поисковому запросу
     const filteredItems = orderData.items.filter(item => {
@@ -216,7 +257,7 @@ const CreateOrder = () => {
                     items: validItems,
                 });
 
-                showSuccess("Список успешно создан!", "Успешно", () => navigate(`/order-details/${order.id}`));
+                showSuccess("Список успешно создан!", "Успешно", () => { setShouldBlock(false); navigate(`/order-details/${order.id}`); });
             } catch (error) {
                 showError(error.message);
             }
@@ -240,7 +281,7 @@ const CreateOrder = () => {
                     items: validItems,
                 });
 
-                showSuccess("Список успешно обновлен!", "Успешно", () => navigate(`/order-details/${orderId}`));
+                showSuccess("Список успешно обновлен!", "Успешно", () => { setShouldBlock(false); navigate(`/order-details/${orderId}`); });
             } catch (error) {
                 showError(error.message);
             }
@@ -263,7 +304,7 @@ const CreateOrder = () => {
         <Box sx={{ pb: 8 }}>
             <AppBar position="static" sx={{ bgcolor: "white", color: "text.primary", boxShadow: 1 }}>
                 <Toolbar>
-                    <IconButton edge="start" onClick={() => navigate(-1)} sx={{ mr: 2 }} size="large">
+                    <IconButton edge="start" onClick={() => confirmIfNeeded(() => navigate(-1))} sx={{ mr: 2 }} size="large">
                         <ArrowBack/>
                     </IconButton>
                     <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
@@ -527,7 +568,7 @@ const CreateOrder = () => {
             <Box sx={{ p: 1, pt: 2 }}>
                 <Box sx={{ display: "flex", gap: 1 }}>
                     <Button
-                        onClick={() => navigate(-1)}
+                        onClick={() => confirmIfNeeded(() => navigate(-1))}
                         variant="outlined"
                         fullWidth
                         size="medium"

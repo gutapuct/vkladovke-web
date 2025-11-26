@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
     Box,
     AppBar,
@@ -28,6 +28,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import { useLoading } from "../hooks/LoadingContext";
 import AlertDialog from "./AlertDialog";
 import { useAlert } from "../hooks/useAlert";
+import { NavigationGuardContext } from "../contexts/NavigationGuardContext";
 
 const Layout = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,6 +38,9 @@ const Layout = ({ children }) => {
     const { logout } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
+    const [navGuardOpen, setNavGuardOpen] = useState(false);
+    const [shouldBlock, setShouldBlock] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
 
     const menuItems = [
         { text: "Списки", icon: <HomeIcon />, path: "/" },
@@ -48,9 +52,33 @@ const Layout = ({ children }) => {
         setMobileOpen(!mobileOpen);
     };
 
+    const confirmIfNeeded = useCallback((action) => {
+        if (shouldBlock) {
+            setPendingAction(() => action);
+            setNavGuardOpen(true);
+        } else {
+            action && action();
+        }
+    }, [shouldBlock]);
+
     const handleNavigation = (path) => {
-        navigate(path);
-        setMobileOpen(false);
+        confirmIfNeeded(() => {
+            navigate(path);
+            setMobileOpen(false);
+        });
+    };
+
+    const handleConfirmNavigation = () => {
+        setNavGuardOpen(false);
+        const act = pendingAction;
+        setPendingAction(null);
+        setShouldBlock(false);
+        act && act();
+    };
+
+    const handleCancelNavigation = () => {
+        setNavGuardOpen(false);
+        setPendingAction(null);
     };
 
     const handleConfirmLogout = async () => {
@@ -196,6 +224,7 @@ const Layout = ({ children }) => {
     );
 
     return (
+        <NavigationGuardContext.Provider value={{ shouldBlock, setShouldBlock, confirmIfNeeded }}>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <AppBar
                 position="sticky"
@@ -339,7 +368,17 @@ const Layout = ({ children }) => {
                 message={alertState.message}
                 type={alertState.type}
             />
+            <ConfirmDialog
+                open={navGuardOpen}
+                onClose={handleCancelNavigation}
+                onConfirm={handleConfirmNavigation}
+                title="Несохранённые изменения"
+                message="Все несохранённые изменения будут потеряны. Продолжить?"
+                confirmText="Выйти"
+                cancelText="Отмена"
+            />
         </Box>
+        </NavigationGuardContext.Provider>
     );
 };
 
