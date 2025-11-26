@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     Box,
     Typography,
@@ -11,15 +11,19 @@ import {
     ListItemIcon,
     ListItemText,
     Checkbox,
+    Tooltip,
 } from "@mui/material";
 import {
     Edit as EditIcon,
     Delete as DeleteIcon,
     MoreVert as MoreIcon,
+    WarningAmber as WarningIcon,
 } from "@mui/icons-material";
 
 const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameById, getProductInfo }) => {
     const [showActions, setShowActions] = useState(false);
+    const [showComment, setShowComment] = useState(false);
+    const commentTimerRef = useRef(null);
     const { unit } = getProductInfo(item.productId);
     const isCompleted = item.isCompleted;
 
@@ -42,6 +46,17 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                 break;
         }
     };
+
+    const handleShowComment = () => {
+        if (!item.comment?.trim()) return;
+        setShowComment(true);
+        if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+        commentTimerRef.current = setTimeout(() => setShowComment(false), 3000);
+    };
+
+    useEffect(() => () => {
+        if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+    }, []);
 
     return (
         <>
@@ -73,19 +88,39 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
 
                 {/* Информация о товаре */}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                        variant="body1"
-                        sx={{
-                            fontWeight: 500,
-                            wordBreak: "break-word",
-                            lineHeight: 1.3,
-                            textDecoration: isCompleted ? "line-through" : "none",
-                            opacity: isCompleted ? 0.7 : 1,
-                        }}
-                    >
-                        {getProductNameById(item.productId)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0, minWidth: 0 }}>
+                        <Typography
+                            variant="body1"
+                            onClick={item.comment?.trim() ? handleShowComment : undefined}
+                            sx={{
+                                fontWeight: 500,
+                                wordBreak: "break-word",
+                                lineHeight: 1.3,
+                                textDecoration: isCompleted ? "line-through" : "none",
+                                opacity: isCompleted ? 0.7 : 1,
+                                cursor: item.comment?.trim() ? 'pointer' : 'default',
+                                flexShrink: 1,
+                            }}
 
+                        >
+                            {getProductNameById(item.productId)}
+                        </Typography>
+                        {item.comment?.trim() && (
+                            <Tooltip
+                                title={item.comment}
+                                open={showComment}
+                                onClose={() => setShowComment(false)}
+                                disableFocusListener
+                                disableHoverListener
+                                disableTouchListener
+                            >
+                                <IconButton onClick={handleShowComment}>
+                                    <WarningIcon color="warning" fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                    </Box>
+                    
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
                         <Typography
                             variant="body2"

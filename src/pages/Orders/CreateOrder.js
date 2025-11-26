@@ -15,6 +15,9 @@ import {
     ListItemText,
     Collapse,
     Divider,
+    Dialog,
+    DialogContent,
+    DialogActions,
 } from "@mui/material";
 import {
     ShoppingCart as CartIcon,
@@ -24,6 +27,7 @@ import {
     Clear as ClearIcon,
     ExpandLess,
     ExpandMore,
+    InsertCommentSharp as CommentIcon,
 } from "@mui/icons-material";
 import { ordersService } from "../../services/ordersService";
 import { useSettings } from "../../hooks/useSettings";
@@ -55,6 +59,34 @@ const CreateOrder = () => {
         items: [],
     });
 
+    const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+    const [commentDialogProductId, setCommentDialogProductId] = useState(null);
+    const [commentInput, setCommentInput] = useState("");
+
+    const openCommentDialog = (productId) => {
+        const item = orderData.items.find(i => i.productId === productId);
+        setCommentDialogProductId(productId);
+        setCommentInput(item?.comment || "");
+        setCommentDialogOpen(true);
+    };
+
+    const closeCommentDialog = () => {
+        setCommentDialogOpen(false);
+        setCommentDialogProductId(null);
+        setCommentInput("");
+    };
+
+    const saveComment = () => {
+        if (!commentDialogProductId) return;
+        setOrderData((prev) => ({
+            ...prev,
+            items: prev.items.map((item) =>
+                item.productId === commentDialogProductId ? { ...item, comment: commentInput } : item
+            ),
+        }));
+        closeCommentDialog();
+    };
+
     const initializeNewOrder = useCallback(() => {
         const next = {
             title: "",
@@ -63,6 +95,7 @@ const CreateOrder = () => {
                 productId: product.id,
                 quantity: 0,
                 buyOnlyByAction: false,
+                comment: "",
             })),
         };
         setOrderData(next);
@@ -74,6 +107,7 @@ const CreateOrder = () => {
             productId: product.id,
             quantity: 0,
             buyOnlyByAction: false,
+            comment: "",
         }));
 
         const mergedItems = baseItems.map(baseItem => {
@@ -103,6 +137,7 @@ const CreateOrder = () => {
                         quantity: existingItem ? existingItem.quantity : 0,
                         buyOnlyByAction: existingItem ? existingItem.buyOnlyByAction : false,
                         isCompleted: existingItem ? existingItem.isCompleted : false,
+                        comment: existingItem ? (existingItem.comment || "") : "",
                     };
                 });
 
@@ -139,7 +174,12 @@ const CreateOrder = () => {
         title: data.title?.trim() || "",
         comment: data.comment?.trim() || "",
         items: data.items
-            .map(i => ({ productId: i.productId, quantity: i.quantity || 0, buyOnlyByAction: !!i.buyOnlyByAction }))
+            .map(i => ({
+                productId: i.productId,
+                quantity: i.quantity || 0,
+                buyOnlyByAction: !!i.buyOnlyByAction,
+                comment: (i.comment || "").trim(),
+            }))
             .sort((a, b) => (a.productId > b.productId ? 1 : -1)),
     });
 
@@ -526,6 +566,19 @@ const CreateOrder = () => {
                                                             >
                                                                 <CartIcon fontSize="medium"/>
                                                             </IconButton>
+
+                                                            {/* Иконка для комментария к товару */}
+                                                            <IconButton
+                                                                onClick={() => openCommentDialog(item.productId)}
+                                                                sx={{
+                                                                    width: 32,
+                                                                    height: 32,
+                                                                    ml: -2.5,
+                                                                    mr: -1
+                                                                }}
+                                                            >
+                                                                <CommentIcon fontSize="small" color={item.comment?.trim() ? "info" : "action"} />
+                                                            </IconButton>
                                                         </Box>
                                                     </Box>
                                                     {index < categoryItems.length - 1 && (
@@ -563,6 +616,26 @@ const CreateOrder = () => {
                     }}
                 />
             </Box>
+
+            {/* Диалог ввода комментария к товару */}
+            <Dialog open={commentDialogOpen} onClose={closeCommentDialog} fullWidth>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Комментарий"
+                        value={commentInput}
+                        onChange={(e) => setCommentInput(e.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeCommentDialog}>Отмена</Button>
+                    <Button onClick={saveComment} variant="contained">Сохранить</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Кнопки действий */}
             <Box sx={{ p: 1, pt: 2 }}>
