@@ -1,14 +1,17 @@
+import firebase from "firebase/compat/app";
+import Timestamp = firebase.firestore.Timestamp;
+
 export const getNow = () => new Date();
 export const getNowString = () => new Date().toLocaleString();
 export const getTodayString = () => new Date().toLocaleDateString();
 
-export const formatFirebaseTimestamp = (timestamp, options = {}) => {
+export const formatFirebaseTimestamp = (timestamp: Timestamp, options: Intl.DateTimeFormatOptions = {}) => {
     if (!timestamp) return "Не указано";
 
     try {
         const date = timestamp.toDate();
 
-        const defaultOptions = {
+        const defaultOptions: Intl.DateTimeFormatOptions = {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",

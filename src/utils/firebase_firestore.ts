@@ -16,8 +16,13 @@ const auth = getAuth(app);
 
 export { auth };
 
-export const getErrorMessage = (error) => {
-    const errorMessages = {
+export type Error = {
+    code: string;
+    message: string
+}
+
+export const getErrorMessage = (error: Error) => {
+    const errorMessages: Record<string, string> = {
         "auth/user-not-found": "Пользователь с таким email не найден",
         "auth/invalid-email": "Неверный формат email",
         "auth/missing-email": "Введите email",
