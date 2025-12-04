@@ -1,15 +1,21 @@
 import { TextField, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useState } from "react";
+import { FC, useState } from "react";
 
-const PasswordTextField = ({ onChange, value, size = "medium" }) => {
+interface Props {
+    value: string;
+    size: "small" | "medium";
+    onChange: () => void;
+}
+
+const PasswordTextField: FC<Props> = ({ onChange, value, size = "medium" }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleMouseDownPassword = (event) => {
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
 

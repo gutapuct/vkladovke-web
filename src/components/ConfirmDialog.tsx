@@ -1,6 +1,18 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
+import { FC } from "react";
 
-const ConfirmDialog = ({
+interface Props {
+    open: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title?: string;
+    message?: string;
+    confirmText?: string;
+    cancelText?: string;
+    confirmColor?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
+}
+
+const ConfirmDialog: FC<Props> = ({
     open,
     onClose,
     onConfirm,

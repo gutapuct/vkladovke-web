@@ -1,7 +1,8 @@
 import { Backdrop, CircularProgress, Typography, Fade } from "@mui/material";
 import { useLoading } from "../hooks/LoadingContext";
+import { FC } from "react";
 
-const LoadingSpinner = () => {
+const LoadingSpinner: FC = () => {
     const { showSpinner } = useLoading();
 
     if (!showSpinner) return null;

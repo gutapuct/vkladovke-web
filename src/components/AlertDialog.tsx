@@ -5,9 +5,20 @@ import {
     Info as InfoIcon,
     Warning as WarningIcon,
 } from "@mui/icons-material";
-import React from "react";
+import React, { FC } from "react";
 
-const AlertDialog = ({
+interface Props {
+    open: boolean;
+    onClose: () => void;
+    title?: string;
+    message?: string;
+    type?: "success" | "error" | "warning" | "info";
+    confirmText?: string;
+    autoClose?: boolean;
+    autoCloseDelay?: number;
+}
+
+const AlertDialog: FC<Props> = ({
     open,
     onClose,
     title = "Информация",

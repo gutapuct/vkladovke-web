@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, FC } from "react";
 import {
     Box,
     AppBar,
@@ -7,7 +7,7 @@ import {
     Typography,
     Drawer,
     List,
-    ListItem,
+    ListItemButton,
     ListItemIcon,
     ListItemText,
     BottomNavigation,
@@ -30,7 +30,15 @@ import AlertDialog from "./AlertDialog";
 import { useAlert } from "../hooks/useAlert";
 import { NavigationGuardContext } from "../contexts/NavigationGuardContext";
 
-const Layout = ({ children }) => {
+type FirebaseErrorLike = { code: string; message: string };
+const isFirebaseError = (e: unknown): e is FirebaseErrorLike =>
+    typeof e === "object" && e !== null && "code" in e && "message" in e;
+
+interface Props {
+    children: React.ReactNode;
+}
+
+const Layout: FC<Props> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const navigate = useNavigate();
@@ -40,7 +48,7 @@ const Layout = ({ children }) => {
     const { alertState, showError, hideAlert } = useAlert();
     const [navGuardOpen, setNavGuardOpen] = useState(false);
     const [shouldBlock, setShouldBlock] = useState(false);
-    const [pendingAction, setPendingAction] = useState(null);
+    const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
     const menuItems = [
         { text: "Списки", icon: <HomeIcon />, path: "/" },
@@ -52,16 +60,16 @@ const Layout = ({ children }) => {
         setMobileOpen(!mobileOpen);
     };
 
-    const confirmIfNeeded = useCallback((action) => {
+    const confirmIfNeeded = useCallback((action: () => void) => {
         if (shouldBlock) {
-            setPendingAction(() => action);
+            setPendingAction(action);
             setNavGuardOpen(true);
         } else {
             action && action();
         }
     }, [shouldBlock]);
 
-    const handleNavigation = (path) => {
+    const handleNavigation = (path: string) => {
         confirmIfNeeded(() => {
             navigate(path);
             setMobileOpen(false);
@@ -87,7 +95,13 @@ const Layout = ({ children }) => {
                 await logout();
                 setMobileOpen(false);
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
@@ -138,8 +152,7 @@ const Layout = ({ children }) => {
 
             <List sx={{ flex: 1, pt: 1 }}>
                 {menuItems.map((item) => (
-                    <ListItem
-                        button="true"
+                    <ListItemButton
                         key={item.text}
                         onClick={() => handleNavigation(item.path)}
                         selected={location.pathname === item.path}
@@ -181,15 +194,14 @@ const Layout = ({ children }) => {
                                 </Typography>
                             }
                         />
-                    </ListItem>
+                    </ListItemButton>
                 ))}
             </List>
 
             <Box sx={{ mt: "auto" }}>
                 <Divider />
                 <List>
-                    <ListItem
-                        button="true"
+                    <ListItemButton
                         onClick={handleOpenLogoutDialog}
                         sx={{
                             color: "error.main",
@@ -217,7 +229,7 @@ const Layout = ({ children }) => {
                                 </Typography>
                             }
                         />
-                    </ListItem>
+                    </ListItemButton>
                 </List>
             </Box>
         </Box>
@@ -366,7 +378,8 @@ const Layout = ({ children }) => {
                 onClose={hideAlert}
                 title={alertState.title}
                 message={alertState.message}
-                type={alertState.type}
+                // TODO: исправить это после изменения хука
+                type={alertState.type as "success" | "error" | "warning" | "info"}
             />
             <ConfirmDialog
                 open={navGuardOpen}
