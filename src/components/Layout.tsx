@@ -237,160 +237,160 @@ const Layout: FC<Props> = ({ children }) => {
 
     return (
         <NavigationGuardContext.Provider value={{ shouldBlock, setShouldBlock, confirmIfNeeded }}>
-        <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <AppBar
-                position="sticky"
-                sx={{
-                    bgcolor: "white",
-                    color: "text.primary",
-                    boxShadow: 2,
-                }}
-            >
-                <Toolbar sx={{ minHeight: 48, px: 2 }}>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2 }}
-                        size="large"
-                    >
-                        <MenuIcon />
-                    </IconButton>
+            <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+                <AppBar
+                    position="sticky"
+                    sx={{
+                        bgcolor: "white",
+                        color: "text.primary",
+                        boxShadow: 2,
+                    }}
+                >
+                    <Toolbar sx={{ minHeight: 48, px: 2 }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{ mr: 2 }}
+                            size="large"
+                        >
+                            <MenuIcon />
+                        </IconButton>
 
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                            flexGrow: 1,
-                        }}
-                    >
-                        <img
-                            src={`${process.env.PUBLIC_URL}/logo192.png`}
-                            alt="В Кладовке"
-                            style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 6,
-                                objectFit: "contain",
-                            }}
-                        />
-                        <Typography
-                            variant="h6"
-                            component="div"
+                        <Box
                             sx={{
-                                fontSize: "1.25rem",
-                                fontWeight: 600,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                                flexGrow: 1,
                             }}
                         >
-                            В Кладовке
-                        </Typography>
-                    </Box>
-                </Toolbar>
-            </AppBar>
+                            <img
+                                src={`${process.env.PUBLIC_URL}/logo192.png`}
+                                alt="В Кладовке"
+                                style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 6,
+                                    objectFit: "contain",
+                                }}
+                            />
+                            <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{
+                                    fontSize: "1.25rem",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                В Кладовке
+                            </Typography>
+                        </Box>
+                    </Toolbar>
+                </AppBar>
 
-            <Drawer
-                variant="temporary"
-                open={mobileOpen}
-                onClose={handleDrawerToggle}
-                ModalProps={{ keepMounted: true }}
-                sx={{
-                    "& .MuiDrawer-paper": {
+                <Drawer
+                    variant="temporary"
+                    open={mobileOpen}
+                    onClose={handleDrawerToggle}
+                    ModalProps={{ keepMounted: true }}
+                    sx={{
+                        "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
+                            width: 280,
+                            display: "flex",
+                            flexDirection: "column",
+                        },
+                    }}
+                >
+                    {drawer}
+                </Drawer>
+
+                <Box
+                    component="main"
+                    sx={{
+                        flex: 1,
+                        width: "100%",
+                        maxWidth: "100%",
                         boxSizing: "border-box",
-                        width: 280,
-                        display: "flex",
-                        flexDirection: "column",
-                    },
-                }}
-            >
-                {drawer}
-            </Drawer>
+                        pb: 8,
+                        background: "#f5f5f5",
+                        minHeight: "calc(100vh - 56px)",
+                    }}
+                >
+                    {children}
+                </Box>
 
-            <Box
-                component="main"
-                sx={{
-                    flex: 1,
-                    width: "100%",
-                    maxWidth: "100%",
-                    boxSizing: "border-box",
-                    pb: 8,
-                    background: "#f5f5f5",
-                    minHeight: "calc(100vh - 56px)",
-                }}
-            >
-                {children}
-            </Box>
-
-            <BottomNavigation
-                showLabels
-                value={location.pathname}
-                sx={{
-                    position: "fixed",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    bgcolor: "background.paper",
-                    borderTop: 1,
-                    borderColor: "divider",
-                    zIndex: 1000,
-                    height: 48,
-                }}
-            >
-                {menuItems.map((item) => (
-                    <BottomNavigationAction
-                        key={item.text}
-                        label={item.text}
-                        icon={item.icon}
-                        value={item.path}
-                        onClick={() => handleNavigation(item.path)}
-                        sx={{
-                            minWidth: "auto",
-                            px: 1,
-                            minHeight: 48,
-                            "& .MuiBottomNavigationAction-label": {
-                                fontSize: "0.75rem",
-                                mt: 0.5,
-                            },
-                            "&.Mui-selected": {
-                                color: "primary.main",
+                <BottomNavigation
+                    showLabels
+                    value={location.pathname}
+                    sx={{
+                        position: "fixed",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        bgcolor: "background.paper",
+                        borderTop: 1,
+                        borderColor: "divider",
+                        zIndex: 1000,
+                        height: 48,
+                    }}
+                >
+                    {menuItems.map((item) => (
+                        <BottomNavigationAction
+                            key={item.text}
+                            label={item.text}
+                            icon={item.icon}
+                            value={item.path}
+                            onClick={() => handleNavigation(item.path)}
+                            sx={{
+                                minWidth: "auto",
+                                px: 1,
+                                minHeight: 48,
                                 "& .MuiBottomNavigationAction-label": {
                                     fontSize: "0.75rem",
+                                    mt: 0.5,
                                 },
-                            },
-                        }}
-                    />
-                ))}
-            </BottomNavigation>
+                                "&.Mui-selected": {
+                                    color: "primary.main",
+                                    "& .MuiBottomNavigationAction-label": {
+                                        fontSize: "0.75rem",
+                                    },
+                                },
+                            }}
+                        />
+                    ))}
+                </BottomNavigation>
 
-            <ConfirmDialog
-                open={logoutDialogOpen}
-                onClose={handleCloseLogoutDialog}
-                onConfirm={handleConfirmLogout}
-                title="Выход из аккаунта"
-                message="Вы уверены, что хотите выйти из своего аккаунта?"
-                confirmText="Выйти"
-                cancelText="Отмена"
-            />
+                <ConfirmDialog
+                    open={logoutDialogOpen}
+                    onClose={handleCloseLogoutDialog}
+                    onConfirm={handleConfirmLogout}
+                    title="Выход из аккаунта"
+                    message="Вы уверены, что хотите выйти из своего аккаунта?"
+                    confirmText="Выйти"
+                    cancelText="Отмена"
+                />
 
-            <AlertDialog
-                open={alertState.open}
-                onClose={hideAlert}
-                title={alertState.title}
-                message={alertState.message}
-                // TODO: исправить это после изменения хука
-                type={alertState.type as "success" | "error" | "warning" | "info"}
-            />
-            <ConfirmDialog
-                open={navGuardOpen}
-                onClose={handleCancelNavigation}
-                onConfirm={handleConfirmNavigation}
-                title="Несохранённые изменения"
-                message="Все несохранённые изменения будут потеряны. Продолжить?"
-                confirmText="Выйти"
-                cancelText="Отмена"
-            />
-        </Box>
+                <AlertDialog
+                    open={alertState.open}
+                    onClose={hideAlert}
+                    title={alertState.title}
+                    message={alertState.message}
+                    // TODO: исправить это после изменения хука
+                    type={alertState.type as "success" | "error" | "warning" | "info"}
+                />
+                <ConfirmDialog
+                    open={navGuardOpen}
+                    onClose={handleCancelNavigation}
+                    onConfirm={handleConfirmNavigation}
+                    title="Несохранённые изменения"
+                    message="Все несохранённые изменения будут потеряны. Продолжить?"
+                    confirmText="Выйти"
+                    cancelText="Отмена"
+                />
+            </Box>
         </NavigationGuardContext.Provider>
     );
 };

@@ -19,15 +19,15 @@ interface Props {
 }
 
 const AlertDialog: FC<Props> = ({
-    open,
-    onClose,
-    title = "Информация",
-    message = "Операция выполнена успешно",
-    type = "success",
-    confirmText = "OK",
-    autoClose = false,
-    autoCloseDelay = 10000,
-}) => {
+                                    open,
+                                    onClose,
+                                    title = "Информация",
+                                    message = "Операция выполнена успешно",
+                                    type = "success",
+                                    confirmText = "OK",
+                                    autoClose = false,
+                                    autoCloseDelay = 10000,
+                                }) => {
     React.useEffect(() => {
         if (open && autoClose) {
             const timer = setTimeout(() => {

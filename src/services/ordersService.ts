@@ -51,7 +51,8 @@ interface OrderItem {
     comment: string;
 }
 
-interface CreateOrderData extends Omit<Order, 'id'> { }
+interface CreateOrderData extends Omit<Order, 'id'> {
+}
 
 export const ordersService: OrdersService = {
     // Получение всех списков группы
@@ -212,7 +213,7 @@ export const ordersService: OrdersService = {
                 throw new Error("Список не найден");
             }
 
-            const orderData= orderSnap.data() as Order;
+            const orderData = orderSnap.data() as Order;
 
             const updatedItems = orderData.items.map((item) =>
                 item.productId === productId

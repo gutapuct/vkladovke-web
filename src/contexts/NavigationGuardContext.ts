@@ -8,7 +8,8 @@ export interface NavigationGuardContextValue {
 
 export const NavigationGuardContext = createContext<NavigationGuardContextValue>({
     shouldBlock: false,
-    setShouldBlock: () => {},
+    setShouldBlock: () => {
+    },
     confirmIfNeeded: (action: () => void) => action && action(),
 });
 

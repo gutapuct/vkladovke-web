@@ -13,15 +13,15 @@ interface Props {
 }
 
 const ConfirmDialog: FC<Props> = ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    message,
-    confirmText = "Подтвердить",
-    cancelText = "Отмена",
-    confirmColor = "primary",
-}) => {
+                                      open,
+                                      onClose,
+                                      onConfirm,
+                                      title,
+                                      message,
+                                      confirmText = "Подтвердить",
+                                      cancelText = "Отмена",
+                                      confirmColor = "primary",
+                                  }) => {
     return (
         <Dialog
             open={open}
