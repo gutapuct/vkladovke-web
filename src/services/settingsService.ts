@@ -6,9 +6,31 @@ import {
     FIREBASE_DOCUMENT_CONSTANTS,
     FIREBASE_DOCUMENT_PRODUCTS,
 } from "../utils/constants";
+import products from "../pages/Settings/Products";
 
-export const settingsService = {
-    getSettings: async () => {
+interface SettingsService {
+    getSettings: () => Promise<any>;
+    getProducts: () => Promise<Product[]>;
+    addProduct: (product: Product) => Promise<Product>;
+    updateProduct: (product: Product) => Promise<void>;
+    deleteProduct: (id: string) => Promise<void>;
+}
+
+interface Product {
+    id: string;
+    name: string;
+    categoryId: string;
+    unitId: string;
+    isDeleted: boolean;
+}
+
+interface Settings {
+    units: Record<string, string>;
+    categories: Record<string, string>;
+}
+
+export const settingsService: SettingsService = {
+    getSettings: async (): Promise<Settings> => {
         const settingsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_CONSTANTS);
         const settingsSnap = await getDoc(settingsRef);
 
@@ -16,28 +38,31 @@ export const settingsService = {
             throw new Error("Настройки не найдены");
         }
 
-        return settingsSnap.data();
+        return settingsSnap.data() as Settings;
     },
 
-    getProducts: async () => {
+    getProducts: async (): Promise<Product[]> => {
         const productsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_PRODUCTS);
         const productsSnap = await getDoc(productsRef);
 
-        return productsSnap.data().items;
+        if (!productsSnap.exists())
+            return [];
+
+        return productsSnap.data().items as Product[];
     },
 
-    addProduct: async (product) => {
-        const dbProducts = await settingsService.getProducts();
+    addProduct: async (product: Product): Promise<Product> => {
+        const dbProducts: Product[] = await settingsService.getProducts();
 
-        const nameToLowerCase = product.name.trim().toLowerCase();
+        const nameToLowerCase: string = product.name.trim().toLowerCase();
 
-        if (dbProducts.filter((x) => x.name.trim().toLowerCase() === nameToLowerCase && x.isDeleted === false).length > 0) {
+        if (dbProducts.filter((x) => x.name.trim().toLowerCase() === nameToLowerCase && !x.isDeleted).length > 0) {
             throw new Error("Продукт с таким наименованием уже существует");
         }
 
         const productsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_PRODUCTS);
 
-        const newProduct = {
+        const newProduct: Product = {
             ...product,
             id: newGuid(),
             isDeleted: false,
@@ -50,13 +75,18 @@ export const settingsService = {
         return newProduct;
     },
 
-    updateProduct: async (product) => {
+    updateProduct: async (product: Product): Promise<void> => {
         const productsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_PRODUCTS);
         const productsSnap = await getDoc(productsRef);
 
-        const currentData = productsSnap.data();
+        if (!productsSnap.exists()) {
+            return;
+        }
 
-        const updatedItems = currentData.items.map((item) =>
+        const currentData = productsSnap.data();
+        const items: Product[] = currentData.items;
+
+        const updatedItems = items.map((item) =>
             item.id === product.id
                 ? {
                     ...item,
@@ -70,16 +100,20 @@ export const settingsService = {
         await updateDoc(productsRef, {
             items: updatedItems,
         });
-
-        return product;
     },
 
-    deleteProduct: async (id) => {
+    deleteProduct: async (id: string): Promise<void> => {
         const productsRef = doc(db, FIREBASE_COLLECTION_SETTINGS, FIREBASE_DOCUMENT_PRODUCTS);
         const productsSnap = await getDoc(productsRef);
 
+        if (!productsSnap.exists()) {
+            return;
+        }
+
         const currentData = productsSnap.data();
-        const updatedItems = currentData.items.map((item) =>
+        const items: Product[] = currentData.items;
+
+        const updatedItems = items.map((item) =>
             item.id === id
                 ? {
                     ...item,

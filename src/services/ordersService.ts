@@ -9,6 +9,8 @@ import {
     query,
     where,
     orderBy,
+    Timestamp,
+    FieldValue,
     serverTimestamp,
 } from "firebase/firestore";
 import { getTodayString } from "../utils/datetimeHelper";
@@ -16,9 +18,44 @@ import { db } from "../utils/firebase_firestore";
 import { newGuid } from "../utils/guidHelper";
 import { FIREBASE_COLLECTION_ORDERS } from "../utils/constants";
 
-export const ordersService = {
+interface OrdersService {
+    getOrders: (groupId: string) => Promise<Order[]>;
+    getActiveOrders: (groupId: string) => Promise<Order[]>;
+    getCompletedOrders: (groupId: string) => Promise<Order[]>;
+    getOrder: (orderId: string) => Promise<Order>;
+    createOrder: (orderData: CreateOrderData) => Promise<Order>;
+    updateOrder: (orderId: string, orderData: Order) => Promise<void>;
+    completeOrder: (orderId: string, complete: boolean) => Promise<void>;
+    completeOrderItem: (orderId: string, productId: string, complete: boolean) => Promise<void>;
+    deleteOrder: (orderId: string) => Promise<void>;
+    updateOrderItem: (orderId: string, productId: string, quantity: number, buyOnlyByAction: boolean) => Promise<void>;
+    removeItemFromOrder: (orderId: string, productId: string) => Promise<void>;
+}
+
+interface Order {
+    id: string;
+    groupId: string;
+    title: string;
+    comment: string;
+    createdAt: Timestamp | FieldValue;
+    isCompleted: boolean;
+    completedAt: Timestamp | FieldValue | null;
+    items: OrderItem[];
+}
+
+interface OrderItem {
+    productId: string;
+    quantity: number;
+    buyOnlyByAction: boolean;
+    isCompleted: boolean;
+    comment: string;
+}
+
+interface CreateOrderData extends Omit<Order, 'id'> { }
+
+export const ordersService: OrdersService = {
     // Получение всех списков группы
-    getOrders: async (groupId) => {
+    getOrders: async (groupId: string): Promise<Order[]> => {
         try {
             const q = query(
                 collection(db, FIREBASE_COLLECTION_ORDERS),
@@ -27,13 +64,11 @@ export const ordersService = {
             );
 
             const querySnapshot = await getDocs(q);
-            const orders = [];
+            const orders: Order[] = [];
 
             querySnapshot.forEach((doc) => {
-                orders.push({
-                    id: doc.id,
-                    ...doc.data(),
-                });
+                const order = doc.data() as Order;
+                orders.push(order);
             });
 
             return orders;
@@ -44,7 +79,7 @@ export const ordersService = {
     },
 
     // Получение незавершенных списков группы
-    getActiveOrders: async (groupId) => {
+    getActiveOrders: async (groupId: string): Promise<Order[]> => {
         try {
             const q = query(
                 collection(db, FIREBASE_COLLECTION_ORDERS),
@@ -54,13 +89,11 @@ export const ordersService = {
             );
 
             const querySnapshot = await getDocs(q);
-            const orders = [];
+            const orders: Order[] = [];
 
             querySnapshot.forEach((doc) => {
-                orders.push({
-                    id: doc.id,
-                    ...doc.data(),
-                });
+                const order = doc.data() as Order;
+                orders.push(order);
             });
 
             return orders;
@@ -71,7 +104,7 @@ export const ordersService = {
     },
 
     // Получение завершенных списков группы
-    getCompletedOrders: async (groupId) => {
+    getCompletedOrders: async (groupId: string): Promise<Order[]> => {
         try {
             const q = query(
                 collection(db, FIREBASE_COLLECTION_ORDERS),
@@ -81,13 +114,11 @@ export const ordersService = {
             );
 
             const querySnapshot = await getDocs(q);
-            const orders = [];
+            const orders: Order[] = [];
 
             querySnapshot.forEach((doc) => {
-                orders.push({
-                    id: doc.id,
-                    ...doc.data(),
-                });
+                const order = doc.data() as Order;
+                orders.push(order);
             });
 
             return orders;
@@ -98,16 +129,13 @@ export const ordersService = {
     },
 
     // Получение конкретного списка
-    getOrder: async (orderId) => {
+    getOrder: async (orderId: string): Promise<Order> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
 
             if (orderSnap.exists()) {
-                return {
-                    id: orderSnap.id,
-                    ...orderSnap.data(),
-                };
+                return orderSnap.data() as Order;
             }
 
             throw new Error("Список не найден");
@@ -118,12 +146,12 @@ export const ordersService = {
     },
 
     // Создание нового списка
-    createOrder: async (orderData) => {
+    createOrder: async (orderData: CreateOrderData): Promise<Order> => {
         try {
             const orderId = newGuid();
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
 
-            const order = {
+            const order: Order = {
                 id: orderId,
                 groupId: orderData.groupId,
                 title: orderData.title || `Список от ${getTodayString()}`,
@@ -143,7 +171,7 @@ export const ordersService = {
     },
 
     // Обновление списка
-    updateOrder: async (orderId, orderData) => {
+    updateOrder: async (orderId: string, orderData: Order): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await updateDoc(orderRef, {
@@ -161,7 +189,7 @@ export const ordersService = {
     },
 
     // Завершение списка
-    completeOrder: async (orderId, complete) => {
+    completeOrder: async (orderId: string, complete: boolean): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await updateDoc(orderRef, {
@@ -175,7 +203,7 @@ export const ordersService = {
     },
 
     // Отметка товара как выполненного
-    completeOrderItem: async (orderId, productId, complete) => {
+    completeOrderItem: async (orderId: string, productId: string, complete: boolean): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
@@ -184,7 +212,8 @@ export const ordersService = {
                 throw new Error("Список не найден");
             }
 
-            const orderData = orderSnap.data();
+            const orderData= orderSnap.data() as Order;
+
             const updatedItems = orderData.items.map((item) =>
                 item.productId === productId
                     ? {
@@ -202,7 +231,7 @@ export const ordersService = {
     },
 
     // Удаление списка
-    deleteOrder: async (orderId) => {
+    deleteOrder: async (orderId: string): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await deleteDoc(orderRef);
@@ -213,7 +242,7 @@ export const ordersService = {
     },
 
     // Обновление количества товара
-    updateOrderItem: async (orderId, productId, quantity, buyOnlyByAction) => {
+    updateOrderItem: async (orderId: string, productId: string, quantity: number, buyOnlyByAction: boolean): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
@@ -222,8 +251,8 @@ export const ordersService = {
                 throw new Error("Список не найден");
             }
 
-            const orderData = orderSnap.data();
-            const updatedItems = orderData.items.map((item) =>
+            const orderData = orderSnap.data() as Order;
+            const updatedItems: OrderItem[] = orderData.items.map((item) =>
                 item.productId === productId ? { ...item, quantity, buyOnlyByAction } : item
             );
 
@@ -235,7 +264,7 @@ export const ordersService = {
     },
 
     // Удаление товара из списка
-    removeItemFromOrder: async (orderId, productId) => {
+    removeItemFromOrder: async (orderId: string, productId: string): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             const orderSnap = await getDoc(orderRef);
@@ -244,8 +273,8 @@ export const ordersService = {
                 throw new Error("Список не найден");
             }
 
-            const orderData = orderSnap.data();
-            const updatedItems = orderData.items.filter((item) => item.productId !== productId);
+            const orderData = orderSnap.data() as Order;
+            const updatedItems: OrderItem[] = orderData.items.filter((item) => item.productId !== productId);
 
             await updateDoc(orderRef, { items: updatedItems });
         } catch (error) {
