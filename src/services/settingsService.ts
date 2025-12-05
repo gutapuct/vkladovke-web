@@ -6,7 +6,6 @@ import {
     FIREBASE_DOCUMENT_CONSTANTS,
     FIREBASE_DOCUMENT_PRODUCTS,
 } from "../utils/constants";
-import products from "../pages/Settings/Products";
 
 interface SettingsService {
     getSettings: () => Promise<any>;
@@ -16,7 +15,7 @@ interface SettingsService {
     deleteProduct: (id: string) => Promise<void>;
 }
 
-interface Product {
+export interface Product {
     id: string;
     name: string;
     categoryId: string;
