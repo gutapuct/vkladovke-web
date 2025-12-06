@@ -1,15 +1,27 @@
 import { useState, useCallback } from "react";
 
+interface Alert {
+    open: boolean;
+    title: string;
+    message: string;
+    type: "info" | "success" | "error" | "warning";
+    autoClose: boolean;
+    onClose: (() => void) | null;
+}
+
+interface ShowAlert extends Omit<Alert, "open"> {}
+
 export const useAlert = () => {
-    const [alertState, setAlertState] = useState({
+    const [alertState, setAlertState] = useState<Alert>({
         open: false,
         title: "",
         message: "",
         type: "info",
         onClose: null,
+        autoClose: false,
     });
 
-    const showAlert = useCallback(({ title, message, type = "info", autoClose = false, onClose = null }) => {
+    const showAlert = useCallback(({ title, message, type = "info", autoClose, onClose }: ShowAlert) => {
         setAlertState({
             open: true,
             title,
@@ -29,36 +41,35 @@ export const useAlert = () => {
     }, [alertState]);
 
     const showError = useCallback(
-        (message, title = "Ошибка", onClose = null) => {
-            showAlert({ title, message, type: "error", onClose });
+        (message: string, title = "Ошибка", onClose: (() => void) | null = null) => {
+            showAlert({ title, message, type: "error", autoClose: false, onClose: onClose });
         },
         [showAlert]
     );
 
     const showSuccess = useCallback(
-        (message, title = "Успешно", onClose = null) => {
+        (message: string, title = "Успешно", onClose: (() => void) | null = null) => {
             showAlert({ title, message, type: "success", autoClose: true, onClose });
         },
         [showAlert]
     );
 
     const showInfo = useCallback(
-        (message, title = "Информация", onClose = null) => {
+        (message: string, title = "Информация", onClose = null) => {
             showAlert({ title, message, type: "info", autoClose: true, onClose });
         },
         [showAlert]
     );
 
     const showWarning = useCallback(
-        (message, title = "Внимание", onClose = null) => {
-            showAlert({ title, message, type: "warning", onClose });
+        (message: string, title = "Внимание", onClose = null) => {
+            showAlert({ title, message, type: "warning", autoClose: false, onClose });
         },
         [showAlert]
     );
 
     return {
         alertState,
-        showAlert,
         hideAlert,
         showError,
         showSuccess,

@@ -1,7 +1,7 @@
 import { useState, useLayoutEffect } from "react";
 
-export const useVisualViewportHeight = () => {
-    const [height, setHeight] = useState(undefined);
+export const useVisualViewportHeight = (): number | undefined => {
+    const [height, setHeight] = useState<number | undefined>(undefined);
 
     useLayoutEffect(() => {
         const updateHeight = () => {
@@ -17,7 +17,7 @@ export const useVisualViewportHeight = () => {
 
         window.visualViewport?.addEventListener("resize", updateHeight);
 
-        const timeout = setTimeout(updateHeight, 300);
+        const timeout: NodeJS.Timeout = setTimeout(updateHeight, 300);
 
         return () => {
             clearTimeout(timeout);

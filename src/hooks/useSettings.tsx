@@ -1,4 +1,4 @@
-import { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import { settingsService } from "../services/settingsService";
 import { DEFAULT_UNIT, NO_NAME } from "../utils/constants";
 import { Product } from "../services/settingsService";

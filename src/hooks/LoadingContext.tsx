@@ -1,6 +1,19 @@
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, FC } from "react";
 
-const LoadingContext = createContext();
+const LoadingContext = createContext<LoadingContextType | null>(null);
+
+interface Props {
+    children: React.ReactNode;
+}
+
+interface LoadingContextType {
+    loading: boolean;
+    showSpinner: boolean;
+    loadingCount: number;
+    startLoading: () => void;
+    stopLoading: () => void;
+    withLoading: <T>(asyncFunction: () => Promise<T>) => Promise<T>;
+}
 
 export const useLoading = () => {
     const context = useContext(LoadingContext);
@@ -10,15 +23,15 @@ export const useLoading = () => {
     return context;
 };
 
-export const LoadingProvider = ({ children }) => {
+export const LoadingProvider: FC<Props> = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [loadingCount, setLoadingCount] = useState(0);
     const [showSpinner, setShowSpinner] = useState(false);
-    const timeoutRef = useRef(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const startLoading = useCallback(() => {
-        setLoadingCount((prev) => {
-            const newCount = prev + 1;
+        setLoadingCount((prev: number): number => {
+            const newCount: number = prev + 1;
             setLoading(true);
 
             if (timeoutRef.current) {
@@ -36,7 +49,7 @@ export const LoadingProvider = ({ children }) => {
 
     const stopLoading = useCallback(() => {
         setLoadingCount((prev) => {
-            const newCount = prev - 1;
+            const newCount: number = prev - 1;
 
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
@@ -54,11 +67,11 @@ export const LoadingProvider = ({ children }) => {
     }, []);
 
     const withLoading = useCallback(
-        async (asyncFunction) => {
+        async <T, >(asyncFunction: () => Promise<T>): Promise<T> => {
             startLoading();
+
             try {
-                const result = await asyncFunction();
-                return result;
+                return await asyncFunction();
             } finally {
                 stopLoading();
             }
@@ -66,7 +79,7 @@ export const LoadingProvider = ({ children }) => {
         [startLoading, stopLoading]
     );
 
-    const value = {
+    const value: LoadingContextType = {
         loading,
         showSpinner,
         loadingCount,

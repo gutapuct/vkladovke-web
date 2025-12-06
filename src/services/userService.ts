@@ -3,7 +3,7 @@ import { db } from "../utils/firebase_firestore";
 import { newGuid } from "../utils/guidHelper";
 import { FIREBASE_COLLECTION_USERS, FIREBASE_DOCUMENT_INVITATION_PART } from "../utils/constants";
 
-interface User {
+export interface User {
     displayName: string;
     email: string;
     groupId: string;
