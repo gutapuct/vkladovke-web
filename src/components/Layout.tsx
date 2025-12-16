@@ -23,16 +23,12 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { getErrorMessage } from "../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../utils/firebase_firestore";
 import ConfirmDialog from "./ConfirmDialog";
 import { useLoading } from "../hooks/LoadingContext";
 import AlertDialog from "./AlertDialog";
 import { useAlert } from "../hooks/useAlert";
 import { NavigationGuardContext } from "../contexts/NavigationGuardContext";
-
-type FirebaseErrorLike = { code: string; message: string };
-const isFirebaseError = (e: unknown): e is FirebaseErrorLike =>
-    typeof e === "object" && e !== null && "code" in e && "message" in e;
 
 interface Props {
     children: React.ReactNode;

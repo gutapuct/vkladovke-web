@@ -1,12 +1,11 @@
-import firebase from "firebase/compat/app";
-import Timestamp = firebase.firestore.Timestamp;
+import { Timestamp, type FieldValue } from "firebase/firestore";
 
 export const getNow = () => new Date();
 export const getNowString = () => new Date().toLocaleString();
 export const getTodayString = () => new Date().toLocaleDateString();
 
-export const formatFirebaseTimestamp = (timestamp: Timestamp, options: Intl.DateTimeFormatOptions = {}) => {
-    if (!timestamp) return "Не указано";
+export const formatFirebaseTimestamp = (timestamp: Timestamp | FieldValue | null | undefined, options: Intl.DateTimeFormatOptions = {}) => {
+    if (!timestamp || !(timestamp instanceof Timestamp)) return "Не указано";
 
     try {
         const date = timestamp.toDate();
@@ -27,7 +26,7 @@ export const formatFirebaseTimestamp = (timestamp: Timestamp, options: Intl.Date
 };
 
 // Дополнительные варианты форматирования
-export const dateFormats = {
+export const dateFormats: Record<string, Intl.DateTimeFormatOptions> = {
     short: { year: "numeric", month: "2-digit", day: "2-digit" },
     medium: {
         year: "numeric",

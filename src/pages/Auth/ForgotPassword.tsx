@@ -1,52 +1,45 @@
 import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
-import { useEffect, useState } from "react";
+import { FC, MouseEventHandler, useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { getErrorMessage } from "../../utils/firebase_firestore";
-import PasswordTextField from "../../components/PasswordTextField";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
-import GoogleLogin from "./GoogleLogin";
 import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
-const Login = () => {
+const ForgotPassword: FC = () => {
     const navigate = useNavigate();
-    const { login, currentUser } = useAuth();
-    const { alertState, showError, hideAlert } = useAlert();
+    const { alertState, showInfo, showError, hideAlert } = useAlert();
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
+    const [email, setEmail] = useState("");
 
+    const { resetPassword } = useAuth();
     const { withLoading } = useLoading();
 
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit: MouseEventHandler<HTMLButtonElement> = async (e): Promise<void> => {
         e.preventDefault();
+
         await withLoading(async () => {
             try {
-                await login(formData.email, formData.password);
-                navigate("/");
+                await resetPassword(email);
+                showInfo(`На указанный email адрес (${email}) выслано письмо для сброса пароля`);
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    useEffect(() => {
-        if (currentUser) {
-            navigate("/");
-        }
-    }, [currentUser, navigate]);
+    const closeModal = (): void => {
+        hideAlert();
+        navigate("/login");
+    };
 
     return (
         <>
@@ -83,12 +76,13 @@ const Login = () => {
                         component="h1"
                         variant="h4"
                         sx={{
+                            textAlign: "center",
                             fontWeight: 600,
                             mb: 3,
                             fontSize: "1.75rem",
                         }}
                     >
-                        Вход
+                        Восстановление пароля
                     </Typography>
                     <Box component="form" noValidate sx={{ width: "100%" }}>
                         <TextField
@@ -98,8 +92,8 @@ const Login = () => {
                             label="Эл.почта"
                             name="email"
                             autoComplete="email"
-                            onChange={handleInputChange}
-                            value={formData.email}
+                            onChange={(event) => setEmail(event.target.value)}
+                            value={email}
                             sx={{ mb: 3 }}
                             size="medium"
                             slotProps={{
@@ -108,16 +102,14 @@ const Login = () => {
                                 },
                             }}
                         />
-                        <PasswordTextField onChange={handleInputChange} value={formData.password} size="medium" />
 
                         <Button
-                            disabled={!formData.email || !formData.password}
+                            disabled={!email}
                             type="submit"
                             fullWidth
                             variant="contained"
                             sx={{
                                 mt: 3,
-                                mb: 2,
                                 py: 1.5,
                                 fontSize: "1rem",
                                 borderRadius: 2,
@@ -125,45 +117,20 @@ const Login = () => {
                             onClick={handleSubmit}
                             size="large"
                         >
-                            Войти
+                            Сбросить пароль
                         </Button>
 
-                        <GoogleLogin />
-
-                        <Box
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="space-between"
-                            alignItems="stretch"
-                            width="100%"
-                            mt={3}
-                            gap={2}
-                        >
+                        <Box textAlign="center" sx={{ mt: 3 }}>
                             <Link
                                 variant="body2"
-                                onClick={() => navigate("/forgot-password")}
+                                onClick={() => navigate("/login")}
                                 sx={{
                                     cursor: "pointer",
-                                    textAlign: "center",
                                     fontSize: "1rem",
                                     fontWeight: 500,
-                                    py: 1,
                                 }}
                             >
-                                Забыли пароль?
-                            </Link>
-                            <Link
-                                variant="body2"
-                                onClick={() => navigate("/register")}
-                                sx={{
-                                    cursor: "pointer",
-                                    textAlign: "center",
-                                    fontSize: "1rem",
-                                    fontWeight: 500,
-                                    py: 1,
-                                }}
-                            >
-                                Нет аккаунта? Зарегистрироваться
+                                Назад к входу
                             </Link>
                         </Box>
                     </Box>
@@ -172,7 +139,7 @@ const Login = () => {
 
             <AlertDialog
                 open={alertState.open}
-                onClose={hideAlert}
+                onClose={closeModal}
                 title={alertState.title}
                 message={alertState.message}
                 type={alertState.type}
@@ -181,4 +148,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default ForgotPassword;

@@ -43,3 +43,7 @@ export const getErrorMessage = (error: Error) => {
 };
 
 export const db = getFirestore(app);
+
+type FirebaseErrorLike = { code: string; message: string };
+export const isFirebaseError = (e: unknown): e is FirebaseErrorLike =>
+    typeof e === "object" && e !== null && "code" in e && "message" in e;

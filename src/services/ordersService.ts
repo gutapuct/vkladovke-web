@@ -32,7 +32,7 @@ interface OrdersService {
     removeItemFromOrder: (orderId: string, productId: string) => Promise<void>;
 }
 
-interface Order {
+export interface Order {
     id: string;
     groupId: string;
     title: string;

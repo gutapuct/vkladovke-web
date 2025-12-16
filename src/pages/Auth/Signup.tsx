@@ -1,8 +1,8 @@
 import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
-import { useState } from "react";
+import React, { FC, MouseEventHandler, useState } from "react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import PasswordTextField from "../../components/PasswordTextField";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleLogin from "./GoogleLogin";
@@ -10,19 +10,26 @@ import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
-const Signup = () => {
+interface IFormData {
+    email: string;
+    password: string;
+}
+
+const defaultFormData: IFormData = {
+    email: "",
+    password: "",
+};
+
+const Signup: FC = () => {
     const navigate = useNavigate();
     const { alertState, showError, showInfo, hideAlert } = useAlert();
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
+    const [formData, setFormData] = useState<IFormData>(defaultFormData);
 
     const { signup, emailVerification } = useAuth();
     const { withLoading } = useLoading();
 
-    const handleInputChange = (event) => {
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = event.target;
         setFormData({
             ...formData,
@@ -30,14 +37,14 @@ const Signup = () => {
         });
     };
 
-    const handleCloseModal = () => {
+    const handleCloseModal = (): void => {
         hideAlert();
         if (alertState.type === "info") {
             navigate("/login");
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit: MouseEventHandler<HTMLButtonElement> = async (e): Promise<void> => {
         e.preventDefault();
 
         await withLoading(async () => {
@@ -50,7 +57,13 @@ const Signup = () => {
                     "Подтвердите регистрацию"
                 );
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };

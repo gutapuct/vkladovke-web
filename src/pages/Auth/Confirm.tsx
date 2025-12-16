@@ -1,38 +1,54 @@
-import { Avatar, Box, Button, Container, TextField, Typography, Link } from "@mui/material";
-import { useState } from "react";
+import { Avatar, Box, Button, Container, Typography, Link } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
-import { getErrorMessage } from "../../utils/firebase_firestore";
+import { auth, getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
+import React, { FC, MouseEventHandler } from "react";
 
-const ForgotPassword = () => {
-    const navigate = useNavigate();
-    const { alertState, showInfo, showError, hideAlert } = useAlert();
-
-    const [email, setEmail] = useState("");
-
-    const { resetPassword } = useAuth();
+const Confirm: FC= () => {
+    const { currentUser, logout, emailVerification } = useAuth();
     const { withLoading } = useLoading();
+    const { alertState, showError, showInfo, hideAlert } = useAlert();
+    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit: MouseEventHandler<HTMLButtonElement> = async (e): Promise<void> => {
         e.preventDefault();
-
         await withLoading(async () => {
             try {
-                await resetPassword(email);
-                showInfo(`На указанный email адрес (${email}) выслано письмо для сброса пароля`);
+                await emailVerification(currentUser.auth.currentUser);
+                showInfo(
+                    "На ваш email адрес выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.",
+                    "Подтвердите регистрацию"
+                );
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const closeModal = () => {
+    const handleCloseModal = async (): Promise<void> => {
         hideAlert();
-        navigate("/login");
+        await logout();
+        if (alertState.type === "info") {
+            navigate("/login");
+        }
+    };
+
+    const handleBack = async (): Promise<void> => {
+        await withLoading(async () => {
+            await logout(auth);
+            hideAlert();
+            navigate("/login");
+        });
     };
 
     return (
@@ -43,7 +59,7 @@ const ForgotPassword = () => {
                 sx={{
                     px: 3,
                     pb: 3,
-                    minHeight: "100vh",
+                    height: "100vh",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
@@ -76,34 +92,38 @@ const ForgotPassword = () => {
                             fontSize: "1.75rem",
                         }}
                     >
-                        Восстановление пароля
+                        Подтвердите email
                     </Typography>
                     <Box component="form" noValidate sx={{ width: "100%" }}>
-                        <TextField
-                            required
-                            fullWidth
-                            id="email"
-                            label="Эл.почта"
-                            name="email"
-                            autoComplete="email"
-                            onChange={(event) => setEmail(event.target.value)}
-                            value={email}
-                            sx={{ mb: 3 }}
-                            size="medium"
-                            slotProps={{
-                                input: {
-                                    sx: { fontSize: "16px" },
-                                },
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                textAlign: "center",
+                                lineHeight: 1.6,
+                                mb: 3,
+                                fontSize: "1rem",
                             }}
-                        />
+                        >
+                            На ваш email адрес <strong>{currentUser.email}</strong> ранее было выслано письмо с
+                            подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.
+                        </Typography>
+                        <Typography
+                            sx={{
+                                textAlign: "center",
+                                color: "text.secondary",
+                                mb: 3,
+                                fontSize: "0.95rem",
+                            }}
+                        >
+                            Для повторной отправки письма, воспользуйтесь кнопкой ниже
+                        </Typography>
 
                         <Button
-                            disabled={!email}
                             type="submit"
                             fullWidth
                             variant="contained"
                             sx={{
-                                mt: 3,
+                                mb: 2,
                                 py: 1.5,
                                 fontSize: "1rem",
                                 borderRadius: 2,
@@ -111,13 +131,13 @@ const ForgotPassword = () => {
                             onClick={handleSubmit}
                             size="large"
                         >
-                            Сбросить пароль
+                            Отправить письмо с подтверждением
                         </Button>
 
-                        <Box textAlign="center" sx={{ mt: 3 }}>
+                        <Box textAlign="center">
                             <Link
                                 variant="body2"
-                                onClick={() => navigate("/login")}
+                                onClick={handleBack}
                                 sx={{
                                     cursor: "pointer",
                                     fontSize: "1rem",
@@ -133,7 +153,7 @@ const ForgotPassword = () => {
 
             <AlertDialog
                 open={alertState.open}
-                onClose={closeModal}
+                onClose={handleCloseModal}
                 title={alertState.title}
                 message={alertState.message}
                 type={alertState.type}
@@ -142,4 +162,4 @@ const ForgotPassword = () => {
     );
 };
 
-export default ForgotPassword;
+export default Confirm;

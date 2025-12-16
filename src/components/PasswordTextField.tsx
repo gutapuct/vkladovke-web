@@ -1,11 +1,11 @@
 import { TextField, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { FC, useState } from "react";
+import { ChangeEvent, FC, useState } from "react";
 
 interface Props {
     value: string;
     size: "small" | "medium";
-    onChange: () => void;
+    onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 const PasswordTextField: FC<Props> = ({ onChange, value, size = "medium" }) => {

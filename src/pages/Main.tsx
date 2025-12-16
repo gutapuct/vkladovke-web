@@ -1,37 +1,43 @@
 import { useNavigate } from "react-router-dom";
-import { ordersService } from "../services/ordersService";
+import { Order, ordersService } from "../services/ordersService";
 import { useAuth } from "../hooks/useAuth";
 import { Box, Button, Card, CardContent, Typography, Chip, Fab, CircularProgress } from "@mui/material";
 import { Add as AddIcon, ShoppingCart as CartIcon } from "@mui/icons-material";
-import { useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import AlertDialog from "../components/AlertDialog";
 import { useAlert } from "../hooks/useAlert";
 import { useLoading } from "../hooks/LoadingContext";
-import { getErrorMessage } from "../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../utils/firebase_firestore";
 import { formatFirebaseTimestamp, dateFormats } from "../utils/datetimeHelper";
 
-const Main = () => {
+const Main: FC = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { alertState, showError, hideAlert } = useAlert();
     const { withLoading, loading } = useLoading();
-    const [orders, setOrders] = useState([]);
+    const [orders, setOrders] = useState<Order[]>([]);
 
-    const handleCreateOrder = () => {
+    const handleCreateOrder = (): void => {
         navigate("/create-order");
     };
 
-    const handleViewOrder = (orderId) => {
+    const handleViewOrder = (orderId: string): void => {
         navigate(`/order-details/${orderId}`);
     };
 
-    const catchOrders = useCallback(async () => {
+    const catchOrders = useCallback(async (): Promise<void> => {
         await withLoading(async () => {
             try {
-                const response = await ordersService.getActiveOrders(currentUser.groupId);
+                const response: Order[] = await ordersService.getActiveOrders(currentUser.groupId);
                 setOrders(response);
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     }, [currentUser, withLoading, showError]);
