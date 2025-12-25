@@ -24,8 +24,12 @@ interface SettingsProviderValue {
     sortCategoryEntries: (categoriesEntries: string[][]) => string[][];
 }
 
-export const useSettings = () => {
-    return useContext(SettingsContext);
+export const useSettings = (): SettingsProviderValue => {
+    const ctx = useContext(SettingsContext);
+    if (!ctx) {
+        throw new Error("useSettings must be used within SettingsProvider");
+    }
+    return ctx;
 };
 
 export const sortCategories = (groupedItems: Record<string, string>): string[][] => {

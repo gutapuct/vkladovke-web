@@ -1,13 +1,13 @@
-import { useState } from "react";
+import React, { FC, useState } from "react";
 import { Box, Tab, Tabs, AppBar, Toolbar, Typography } from "@mui/material";
 import Profile from "./Profile";
 import Products from "./Products";
 import Users from "./Users";
 
-const Settings = () => {
+const Settings: FC = () => {
     const [activeTab, setActiveTab] = useState(0);
 
-    const handleTabChange = (event, newValue) => {
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number): void => {
         setActiveTab(newValue);
     };
 

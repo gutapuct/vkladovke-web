@@ -9,7 +9,7 @@ export interface User {
     groupId: string;
 }
 
-interface Invitation {
+export interface Invitation {
     email: string;
     name: string;
     groupId: string;

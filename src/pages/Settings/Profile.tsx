@@ -1,15 +1,15 @@
 import { Box, Button, IconButton, TextField, Typography, Card, CardContent } from "@mui/material";
 import { Edit as EditIcon, Save as SaveIcon, ExitToApp as LogoutIcon } from "@mui/icons-material";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/userService";
 import { useLoading } from "../../hooks/LoadingContext";
-import { getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
-const Profile = () => {
+const Profile: FC = () => {
     const [canChangeName, setCanChangeName] = useState(false);
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const { currentUser, changeDisplayName, logout } = useAuth();
@@ -17,40 +17,52 @@ const Profile = () => {
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
 
-    const openEditName = () => {
+    const openEditName = (): void => {
         setTempName(currentUser.displayName || currentUser.email);
         setCanChangeName(true);
     };
 
-    const closeEditName = () => {
+    const closeEditName = (): void => {
         setTempName("");
         setCanChangeName(false);
     };
 
-    const handleChangeDisplayName = async () => {
+    const handleChangeDisplayName = async (): Promise<void> => {
         await withLoading(async () => {
             try {
                 await userService.updateUser(currentUser.email, { displayName: tempName });
                 changeDisplayName(tempName);
                 closeEditName();
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleConfirmLogout = async () => {
+    const handleConfirmLogout = async (): Promise<void> => {
         await withLoading(async () => {
             try {
                 await logout();
                 setLogoutDialogOpen(false);
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleOpenLogoutDialog = () => {
+    const handleOpenLogoutDialog = (): void => {
         setLogoutDialogOpen(true);
     };
 

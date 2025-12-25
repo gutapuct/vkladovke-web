@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
-import { userService } from "../../services/userService";
+import { FC, useCallback, useEffect, useState } from "react";
+import { Invitation, userService } from "../../services/userService";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { Box, Button, TextField, Typography, Card, CardContent, Chip } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import { getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
-const Users = () => {
+const Users: FC = () => {
     const { currentUser } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
-    const [invitation, setInvitation] = useState({});
+    const [invitation, setInvitation] = useState<Invitation | null>();
     const [emailToInvite, setEmailToInvite] = useState("");
 
     const catchInvitation = useCallback(async () => {
@@ -22,7 +22,7 @@ const Users = () => {
     }, [currentUser]);
 
     useEffect(() => {
-        catchInvitation();
+        void catchInvitation();
     }, [catchInvitation]);
 
     const sendInvitation = async () => {
@@ -33,31 +33,49 @@ const Users = () => {
                 showSuccess("Приглашение отправлено!");
             });
         } catch (error) {
-            showError(getErrorMessage(error));
+            if (isFirebaseError(error)) {
+                showError(getErrorMessage(error));
+            } else if (error instanceof Error) {
+                showError(error.message);
+            } else {
+                showError(String(error));
+            }
         }
     };
 
-    const applyInvitation = async () => {
+    const applyInvitation = async (): Promise<void> => {
         try {
-            await withLoading(async () => {
+            await withLoading(async (): Promise<void> => {
                 await userService.applyInvitation(currentUser);
-                setInvitation({});
+                setInvitation(null);
                 showSuccess("Приглашение принято!");
             });
         } catch (error) {
-            showError(getErrorMessage(error));
+            if (isFirebaseError(error)) {
+                showError(getErrorMessage(error));
+            } else if (error instanceof Error) {
+                showError(error.message);
+            } else {
+                showError(String(error));
+            }
         }
     };
 
-    const declineInvitation = async () => {
+    const declineInvitation = async (): Promise<void> => {
         try {
-            await withLoading(async () => {
+            await withLoading(async (): Promise<void> => {
                 await userService.cancelInvitation(currentUser);
-                setInvitation({});
+                setInvitation(null);
                 showSuccess("Приглашение отклонено!");
             });
         } catch (error) {
-            showError(getErrorMessage(error));
+            if (isFirebaseError(error)) {
+                showError(getErrorMessage(error));
+            } else if (error instanceof Error) {
+                showError(error.message);
+            } else {
+                showError(String(error));
+            }
         }
     };
 

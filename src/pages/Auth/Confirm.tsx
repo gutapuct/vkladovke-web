@@ -8,7 +8,7 @@ import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import React, { FC, MouseEventHandler } from "react";
 
-const Confirm: FC= () => {
+const Confirm: FC = () => {
     const { currentUser, logout, emailVerification } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, showInfo, hideAlert } = useAlert();

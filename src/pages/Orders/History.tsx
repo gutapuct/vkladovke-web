@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, FC } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Box,
@@ -16,51 +16,58 @@ import {
     Fab,
 } from "@mui/material";
 import { ArrowBack, Add as AddIcon, Visibility as ViewIcon, ShoppingBag as BagIcon } from "@mui/icons-material";
-import { ordersService } from "../../services/ordersService";
+import { Order, ordersService } from "../../services/ordersService";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
 import AlertDialog from "../../components/AlertDialog";
 import { useSettings } from "../../hooks/useSettings";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 
-const History = () => {
+const History: FC = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
     const { getProductInfo, getProductNameById } = useSettings();
 
-    const [completedOrders, setCompletedOrders] = useState([]);
+    const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
 
     const loadCompletedOrders = useCallback(async () => {
         await withLoading(async () => {
             try {
-                const orders = await ordersService.getCompletedOrders(currentUser.groupId);
+                const orders: Order[] = await ordersService.getCompletedOrders(currentUser.groupId);
                 setCompletedOrders(orders);
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     }, [currentUser.groupId, withLoading, showError]);
 
     useEffect(() => {
-        loadCompletedOrders();
+        void loadCompletedOrders();
     }, [loadCompletedOrders]);
 
-    const handleViewOrder = (orderId) => {
+    const handleViewOrder = (orderId: string): void => {
         navigate(`/order-details/${orderId}`);
     };
 
-    const handleCreateNewOrder = () => {
+    const handleCreateNewOrder = (): void => {
         navigate("/create-order");
     };
 
-    const handleBackToActive = () => {
+    const handleBackToActive = (): void => {
         navigate("/");
     };
 
-    const getOrderStats = (order) => {
+    const getOrderStats = (order: Order): { totalItems: number; completedItems: number } => {
         const totalItems = order.items?.length || 0;
         const completedItems = order.items?.filter((item) => item.isCompleted).length || 0;
         return { totalItems, completedItems };
@@ -73,7 +80,7 @@ const History = () => {
                     <IconButton edge="start" onClick={handleBackToActive} sx={{ mr: 2 }} size="large">
                         <ArrowBack />
                     </IconButton>
-                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         История списков
                     </Typography>
                 </Toolbar>
@@ -92,9 +99,9 @@ const History = () => {
                                 label={`Последний: ${
                                     completedOrders.length > 0
                                         ? formatFirebaseTimestamp(completedOrders[0].createdAt, {
-                                              day: "numeric",
-                                              month: "short",
-                                          })
+                                            day: "numeric",
+                                            month: "short",
+                                        })
                                         : "нет"
                                 }`}
                                 variant="outlined"
