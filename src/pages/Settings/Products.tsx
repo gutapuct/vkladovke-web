@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, FC } from "react";
 import {
     Box,
     TextField,
@@ -31,16 +31,16 @@ import {
     ExpandLess,
     ExpandMore,
 } from "@mui/icons-material";
-import { settingsService } from "../../services/settingsService";
+import { INewProduct, Product, settingsService } from "../../services/settingsService";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useSettings } from "../../hooks/useSettings";
-import { getErrorMessage } from "../../utils/firebase_firestore";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import { useVisualViewportHeight } from "../../hooks/useVisualViewportHeight";
 
-const Products = () => {
+const Products: FC = () => {
     const height = useVisualViewportHeight();
     const { withLoading } = useLoading();
     const {
@@ -59,24 +59,24 @@ const Products = () => {
 
     const [isModalAddProductOpen, setIsModalAddProductOpen] = useState(false);
     const [removeProductDialogOpen, setRemoveProductDialogOpen] = useState(false);
-    const [productToRemove, setProductToRemove] = useState({});
-    const [productToEdit, setProductToEdit] = useState({});
-    const [expandedCategories, setExpandedCategories] = useState(new Set());
+    const [productToRemove, setProductToRemove] = useState<Product | undefined>(undefined);
+    const [productToEdit, setProductToEdit] = useState<Product | undefined>(undefined);
+    const [expandedCategories, setExpandedCategories] = useState(new Set<string>());
 
-    const defaultNewProduct = { name: "", categoryId: "", unitId: "" };
+    const defaultNewProduct: INewProduct = { name: "", categoryId: "", unitId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
-    const toggleAddProduct = () => setIsModalAddProductOpen(!isModalAddProductOpen);
+    const toggleAddProduct = (): void => setIsModalAddProductOpen(!isModalAddProductOpen);
 
-    const isAnyDialogOpen = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
+    const isAnyDialogOpen: boolean = isModalAddProductOpen || removeProductDialogOpen || alertState.open;
 
     // Сортируем категории: по алфавиту, но "Другое" в конце
-    const sortedCategoriesEntries = useMemo(() => {
+    const sortedCategoriesEntries = useMemo((): [string, string][] => {
         return sortCategoryEntries(Object.entries(categories));
     }, [categories, sortCategoryEntries]);
 
     // Группировка продуктов по категориям
-    const groupedProducts = activeProducts.reduce((acc, product) => {
+    const groupedProducts: Record<string, Product[]> = activeProducts.reduce((acc: Record<string, Product[]>, product) => {
         const { category } = getProductInfo(product.id);
         if (!acc[category]) {
             acc[category] = [];
@@ -93,7 +93,7 @@ const Products = () => {
         products.sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    const handleToggleCategory = (category) => {
+    const handleToggleCategory = (category: string): void => {
         setExpandedCategories((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(category)) {
@@ -105,7 +105,7 @@ const Products = () => {
         });
     };
 
-    const isCategoryExpanded = (category) => {
+    const isCategoryExpanded = (category: string): boolean => {
         return expandedCategories.has(category);
     };
 
@@ -116,14 +116,20 @@ const Products = () => {
 
                 addProductToContext(response);
                 setNewProduct({ ...defaultNewProduct });
-                toggleAddProduct(false);
+                toggleAddProduct();
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleOpenRemoveProductDialog = (product) => {
+    const handleOpenRemoveProductDialog = (product: Product): void => {
         setProductToRemove(product);
         setRemoveProductDialogOpen(true);
     };
@@ -131,30 +137,50 @@ const Products = () => {
     const handleCloseRemoveProductDialog = () => setRemoveProductDialogOpen(false);
 
     const handleDeleteProduct = async () => {
+        if (!productToRemove) {
+            return;
+        }
+
         await withLoading(async () => {
             try {
                 await settingsService.deleteProduct(productToRemove.id);
                 removeProductFromContext(productToRemove.id);
                 handleCloseRemoveProductDialog();
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleEditProduct = (product) => {
+    const handleEditProduct = (product: Product): void => {
         setProductToEdit({ ...product });
     };
 
     const handleSaveProductToEdit = async () => {
+        if (!productToEdit) {
+            return;
+        }
+
         await withLoading(async () => {
             try {
                 await settingsService.updateProduct(productToEdit);
 
                 updateProductInContext(productToEdit);
-                setProductToEdit({});
+                setProductToEdit(undefined);
             } catch (error) {
-                showError(getErrorMessage(error));
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
@@ -171,7 +197,6 @@ const Products = () => {
                             <Card key={category} variant="outlined" sx={{ borderRadius: 3 }}>
                                 <CardContent sx={{ p: 0 }}>
                                     <ListItem
-                                        button="true"
                                         onClick={() => handleToggleCategory(category)}
                                         sx={{
                                             backgroundColor: "grey.50",
@@ -241,23 +266,16 @@ const Products = () => {
                                                                             onChange={(e) =>
                                                                                 setProductToEdit({
                                                                                     ...productToEdit,
-                                                                                    categoryId: parseInt(
-                                                                                        e.target.value
-                                                                                    ),
+                                                                                    categoryId: e.target.value,
                                                                                 })
                                                                             }
                                                                             label="Категория"
                                                                         >
-                                                                            {sortedCategoriesEntries.map(
-                                                                                ([id, name]) => (
-                                                                                    <MenuItem
-                                                                                        key={id}
-                                                                                        value={parseInt(id)}
-                                                                                    >
-                                                                                        {name}
-                                                                                    </MenuItem>
-                                                                                )
-                                                                            )}
+                                                                            {sortedCategoriesEntries.map(([id, name]) => (
+                                                                                <MenuItem key={id} value={id}>
+                                                                                    {name}
+                                                                                </MenuItem>
+                                                                            ))}
                                                                         </Select>
                                                                     </FormControl>
                                                                     <FormControl fullWidth size="medium">
@@ -267,13 +285,13 @@ const Products = () => {
                                                                             onChange={(e) =>
                                                                                 setProductToEdit({
                                                                                     ...productToEdit,
-                                                                                    unitId: parseInt(e.target.value),
+                                                                                    unitId: e.target.value,
                                                                                 })
                                                                             }
                                                                             label="Единица измерения"
                                                                         >
                                                                             {Object.entries(units).map(([id, name]) => (
-                                                                                <MenuItem key={id} value={parseInt(id)}>
+                                                                                <MenuItem key={id} value={id}>
                                                                                     {name}
                                                                                 </MenuItem>
                                                                             ))}
@@ -513,7 +531,7 @@ const Products = () => {
                 onClose={handleCloseRemoveProductDialog}
                 onConfirm={handleDeleteProduct}
                 title="Удалить товар"
-                message={`Вы уверены, что хотите удалить товар "${productToRemove.name}"?`}
+                message={`Вы уверены, что хотите удалить товар "${productToRemove?.name}"?`}
                 confirmText="Удалить"
                 cancelText="Отмена"
             />

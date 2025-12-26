@@ -6,11 +6,12 @@ import {
     FIREBASE_DOCUMENT_CONSTANTS,
     FIREBASE_DOCUMENT_PRODUCTS,
 } from "../utils/constants";
+import { Order } from "./ordersService";
 
 interface SettingsService {
     getSettings: () => Promise<any>;
     getProducts: () => Promise<Product[]>;
-    addProduct: (product: Product) => Promise<Product>;
+    addProduct: (product: INewProduct) => Promise<Product>;
     updateProduct: (product: Product) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
 }
@@ -21,6 +22,9 @@ export interface Product {
     categoryId: string;
     unitId: string;
     isDeleted: boolean;
+}
+
+export interface INewProduct extends Omit<Product, 'id' | 'isDeleted'> {
 }
 
 interface Settings {
@@ -50,7 +54,7 @@ export const settingsService: SettingsService = {
         return productsSnap.data().items as Product[];
     },
 
-    addProduct: async (product: Product): Promise<Product> => {
+    addProduct: async (product: INewProduct): Promise<Product> => {
         const dbProducts: Product[] = await settingsService.getProducts();
 
         const nameToLowerCase: string = product.name.trim().toLowerCase();
