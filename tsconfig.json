@@ -18,7 +18,11 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": [
     "src"

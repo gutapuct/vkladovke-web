@@ -11,9 +11,10 @@ import Layout from "./components/Layout";
 import LoadingSpinner from "./components/LoadingSpinner";
 import OrderDetails from "./pages/Orders/OrderDetails";
 import CreateOrder from "./pages/Orders/CreateOrder";
+import { FC, JSX } from "react";
 
-const AppContent = () => {
-    const PrivateRoute = ({ element }) => {
+const AppContent: FC = () => {
+    const PrivateRoute = ({ element }: { element: JSX.Element }): JSX.Element => {
         const { currentUser } = useAuth();
 
         if (!currentUser) {
@@ -27,7 +28,7 @@ const AppContent = () => {
         return <Layout>{element}</Layout>;
     };
 
-    const NoAccessRoute = ({ element }) => {
+    const NoAccessRoute = ({ element }: { element: JSX.Element }): JSX.Element => {
         const { currentUser } = useAuth();
 
         if (!currentUser) {
