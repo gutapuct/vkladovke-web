@@ -6,7 +6,6 @@ import {
     FIREBASE_DOCUMENT_CONSTANTS,
     FIREBASE_DOCUMENT_PRODUCTS,
 } from "../utils/constants";
-import { Order } from "./ordersService";
 
 interface SettingsService {
     getSettings: () => Promise<any>;

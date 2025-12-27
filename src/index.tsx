@@ -7,7 +7,9 @@ import { AuthProvider } from "./hooks/useAuth";
 import { SettingsProvider } from "./hooks/useSettings";
 import { LoadingProvider } from "./hooks/LoadingContext";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const container = document.getElementById("root");
+if (!container) throw new Error("Root container element with id 'root' not found");
+const root = ReactDOM.createRoot(container);
 root.render(
     <React.StrictMode>
         <HashRouter>
