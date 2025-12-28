@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, FC } from "react";
 import {
     Box,
     Typography,
@@ -19,18 +19,30 @@ import {
     MoreVert as MoreIcon,
     WarningAmber as WarningIcon,
 } from "@mui/icons-material";
+import { Order, OrderItem as IOrderItem } from "../../services/ordersService";
 
-const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameById, getProductInfo }) => {
+interface Props {
+    item: IOrderItem;
+    order: Order;
+    onEdit: (item: IOrderItem) => void;
+    onDelete: (item: IOrderItem) => void;
+    onComplete: (productId: string, complete: boolean) => void;
+    getProductNameById: (productId: string) => string;
+    getProductInfo: (productId: string) => { unit: string };
+}
+
+const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getProductNameById, getProductInfo }) => {
     const [showActions, setShowActions] = useState(false);
     const [showComment, setShowComment] = useState(false);
-    const commentTimerRef = useRef(null);
+    const commentTimerRef = useRef<NodeJS.Timeout | null>(null);
     const { unit } = getProductInfo(item.productId);
+
     const isCompleted = item.isCompleted;
 
     // Фон для акционных товаров
     const backgroundColor = item.buyOnlyByAction && !isCompleted ? '#ffebee' : 'white';
 
-    const handleAction = (action) => {
+    const handleAction = (action: "edit" | "delete" | "complete"): void => {
         setShowActions(false);
         switch (action) {
             case "edit":
@@ -47,10 +59,15 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
         }
     };
 
-    const handleShowComment = () => {
+    const handleShowComment = (): void => {
         if (!item.comment?.trim()) return;
+
         setShowComment(true);
-        if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+
+        if (commentTimerRef.current) {
+            clearTimeout(commentTimerRef.current);
+        }
+
         commentTimerRef.current = setTimeout(() => setShowComment(false), 3000);
     };
 
@@ -168,7 +185,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                     </Typography>
 
                     <List>
-                        <ListItem button="true" onClick={() => handleAction("edit")} sx={{ borderRadius: 2, mb: 1 }}>
+                        <ListItem onClick={() => handleAction("edit")} sx={{ borderRadius: 2, mb: 1 }}>
                             <ListItemIcon>
                                 <EditIcon color="primary" />
                             </ListItemIcon>
@@ -176,7 +193,6 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                         </ListItem>
 
                         <ListItem
-                            button="true"
                             onClick={() => handleAction("complete")}
                             sx={{
                                 borderRadius: 2,
@@ -207,7 +223,7 @@ const OrderItem = ({ item, order, onEdit, onDelete, onComplete, getProductNameBy
                             />
                         </ListItem>
 
-                        <ListItem button="true" onClick={() => handleAction("delete")} sx={{ borderRadius: 2 }}>
+                        <ListItem onClick={() => handleAction("delete")} sx={{ borderRadius: 2 }}>
                             <ListItemIcon>
                                 <DeleteIcon color="error" />
                             </ListItemIcon>

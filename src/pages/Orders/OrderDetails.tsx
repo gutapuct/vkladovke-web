@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, FC } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     Box,
@@ -34,7 +34,7 @@ import {
     Edit as EditIcon,
     ContentCopy as CopyIcon,
 } from "@mui/icons-material";
-import { ordersService } from "../../services/ordersService";
+import { Order, OrderItem as IOrderItem, ordersService } from "../../services/ordersService";
 import { formatFirebaseTimestamp } from "../../utils/datetimeHelper";
 import { useSettings } from "../../hooks/useSettings";
 import { useLoading } from "../../hooks/LoadingContext";
@@ -42,11 +42,12 @@ import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import OrderItem from "./OrderItem";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 
-const OrderDetails = () => {
-    const { orderId } = useParams();
+const OrderDetails: FC = () => {
+    const { orderId } = useParams<{ orderId: string }>();
     const navigate = useNavigate();
-    const [order, setOrder] = useState(null);
+    const [order, setOrder] = useState<Order | null>(null);
     const { getProductNameById, getProductInfo, sortCategories } = useSettings();
     const { withLoading } = useLoading();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
@@ -54,20 +55,28 @@ const OrderDetails = () => {
     const [editItemDialogOpen, setEditItemDialogOpen] = useState(false);
     const [deleteOrderOpen, setDeleteOrderOpen] = useState(false);
     const [deleteItemOpen, setDeleteItemOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState(null);
-    const [editingItem, setEditingItem] = useState(null);
+    const [itemToDelete, setItemToDelete] = useState<IOrderItem | null>(null);
+    const [editingItem, setEditingItem] = useState<IOrderItem | null>(null);
     const [copyOrderOpen, setCopyOrderOpen] = useState(false);
 
-    const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set());
-    const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set());
+    const [expandedPendingCategories, setExpandedPendingCategories] = useState(new Set<string>());
+    const [expandedCompletedCategories, setExpandedCompletedCategories] = useState(new Set<string>());
 
     const loadOrder = useCallback(async () => {
+        if (!orderId) return;
+
         await withLoading(async () => {
             try {
                 const orderData = await ordersService.getOrder(orderId);
                 setOrder(orderData);
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     }, [orderId, withLoading, showError]);
@@ -79,7 +88,7 @@ const OrderDetails = () => {
     }, [orderId, loadOrder]);
 
     const pendingItems = order?.items?.filter((item) => !item.isCompleted) || [];
-    const groupedPendingItems = pendingItems.reduce((acc, item) => {
+    const groupedPendingItems: Record<string, IOrderItem[]> = pendingItems.reduce((acc: Record<string, IOrderItem[]>, item) => {
         const { category } = getProductInfo(item.productId);
         if (!acc[category]) {
             acc[category] = [];
@@ -89,7 +98,7 @@ const OrderDetails = () => {
     }, {});
 
     const completedItems = order?.items?.filter((item) => item.isCompleted) || [];
-    const groupedCompletedItems = completedItems.reduce((acc, item) => {
+    const groupedCompletedItems: Record<string, IOrderItem[]> = completedItems.reduce((acc: Record<string, IOrderItem[]>, item) => {
         const { category } = getProductInfo(item.productId);
         if (!acc[category]) {
             acc[category] = [];
@@ -111,8 +120,8 @@ const OrderDetails = () => {
         items.sort((a, b) => getProductNameById(a.productId).localeCompare(getProductNameById(b.productId)));
     });
 
-    const handleCompleteItem = async (productId, complete = true) => {
-        if (order.isCompleted) return;
+    const handleCompleteItem = async (productId: string, complete = true) => {
+        if (!order || order.isCompleted || !orderId) return;
 
         await withLoading(async () => {
             try {
@@ -125,12 +134,18 @@ const OrderDetails = () => {
                     })),
                 });
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleEditItem = (item) => {
+    const handleEditItem = (item: IOrderItem) => {
         setEditingItem({ ...item });
         setEditItemDialogOpen(true);
     };
@@ -140,6 +155,8 @@ const OrderDetails = () => {
             showError("Введите корректное количество");
             return;
         }
+
+        if (!order || !orderId) return;
 
         await withLoading(async () => {
             try {
@@ -163,18 +180,24 @@ const OrderDetails = () => {
                     })),
                 });
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleOpenDeleteItem = (item) => {
+    const handleOpenDeleteItem = (item: IOrderItem) => {
         setItemToDelete(item);
         setDeleteItemOpen(true);
     };
 
     const handleRemoveItem = async () => {
-        if (!itemToDelete) return;
+        if (!itemToDelete || !orderId || !order) return;
 
         await withLoading(async () => {
             try {
@@ -186,7 +209,13 @@ const OrderDetails = () => {
                     items: order.items.filter((item) => item.productId !== itemToDelete.productId),
                 });
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
@@ -200,6 +229,8 @@ const OrderDetails = () => {
     };
 
     const handleCompleteOrder = async (complete = true) => {
+        if (!orderId) return;
+
         await withLoading(async () => {
             try {
                 await ordersService.completeOrder(orderId, complete);
@@ -208,27 +239,41 @@ const OrderDetails = () => {
                 showSuccess(
                     `Список ${complete ? "завершен" : "возобновлен"}`,
                     "Успешно",
-                    complete ? navigate("/") : loadOrder
+                    complete ? () => navigate("/") : loadOrder
                 );
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
     const handleDeleteOrder = async () => {
+        if (!orderId) return;
+
         await withLoading(async () => {
             try {
                 await ordersService.deleteOrder(orderId);
                 setDeleteOrderOpen(false);
-                showSuccess("Список успешно удален", "Успешно", navigate("/"));
+                showSuccess("Список успешно удален", "Успешно", () => navigate("/"));
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
 
-    const handleTogglePendingCategory = (category) => {
+    const handleTogglePendingCategory = (category: string) => {
         setExpandedPendingCategories((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(category)) {
@@ -240,7 +285,7 @@ const OrderDetails = () => {
         });
     };
 
-    const handleToggleCompletedCategory = (category) => {
+    const handleToggleCompletedCategory = (category: string) => {
         setExpandedCompletedCategories((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(category)) {
@@ -276,11 +321,11 @@ const OrderDetails = () => {
         setCopyOrderOpen(true);
     };
 
-    const isPendingCategoryExpanded = (category) => {
+    const isPendingCategoryExpanded = (category: string) => {
         return expandedPendingCategories.has(category);
     };
 
-    const isCompletedCategoryExpanded = (category) => {
+    const isCompletedCategoryExpanded = (category: string) => {
         return expandedCompletedCategories.has(category);
     };
 
@@ -306,7 +351,7 @@ const OrderDetails = () => {
                     >
                         <ArrowBack/>
                     </IconButton>
-                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {order.title}
                     </Typography>
                     <IconButton
@@ -383,7 +428,6 @@ const OrderDetails = () => {
                                 {sortedPendingCategories.map(([category, items]) => (
                                     <Box key={category}>
                                         <ListItem
-                                            button="true"
                                             onClick={() => handleTogglePendingCategory(category)}
                                             sx={{
                                                 backgroundColor: '#e3f2fd',
@@ -471,7 +515,6 @@ const OrderDetails = () => {
                                 {sortedCompletedCategories.map(([category, items]) => (
                                     <Box key={category}>
                                         <ListItem
-                                            button="true"
                                             onClick={() => handleToggleCompletedCategory(category)}
                                             sx={{
                                                 backgroundColor: '#e3f2fd',
