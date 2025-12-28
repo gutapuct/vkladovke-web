@@ -20,7 +20,7 @@ interface SettingsProviderValue {
     addProductToContext: (newProduct: Product) => void;
     removeProductFromContext: (id: string) => void;
     updateProductInContext: (product: Product) => void;
-    sortCategories: (groupedItems: Record<string, Product[]>) => [string, Product[]][];
+    sortCategories: <T>(groupedItems: Record<string, T[]>) => [string, T[]][];
     sortCategoryEntries: (categoriesEntries: [string, string][]) => [string, string][];
 }
 
@@ -32,7 +32,7 @@ export const useSettings = (): SettingsProviderValue => {
     return ctx;
 };
 
-export const sortCategories = (groupedItems: Record<string, Product[]>): [string, Product[]][] => {
+export const sortCategories = <T,>(groupedItems: Record<string, T[]>): [string, T[]][] => {
     return Object.entries(groupedItems).sort(([categoryA], [categoryB]) => {
         const nameA: string = categoryA.toLowerCase();
         const nameB: string = categoryB.toLowerCase();

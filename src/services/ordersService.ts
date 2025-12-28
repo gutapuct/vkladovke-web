@@ -24,7 +24,7 @@ interface OrdersService {
     getCompletedOrders: (groupId: string) => Promise<Order[]>;
     getOrder: (orderId: string) => Promise<Order>;
     createOrder: (orderData: CreateOrderData) => Promise<Order>;
-    updateOrder: (orderId: string, orderData: Order) => Promise<void>;
+    updateOrder: (orderId: string, orderData: UpdateOrderData) => Promise<void>;
     completeOrder: (orderId: string, complete: boolean) => Promise<void>;
     completeOrderItem: (orderId: string, productId: string, complete: boolean) => Promise<void>;
     deleteOrder: (orderId: string) => Promise<void>;
@@ -43,7 +43,7 @@ export interface Order {
     items: OrderItem[];
 }
 
-interface OrderItem {
+export interface OrderItem {
     productId: string;
     quantity: number;
     buyOnlyByAction: boolean;
@@ -51,7 +51,10 @@ interface OrderItem {
     comment: string;
 }
 
-interface CreateOrderData extends Omit<Order, 'id'> {
+export interface CreateOrderData extends Omit<Order, 'id' | 'createdAt' | 'completedAt' | 'isCompleted'> {
+}
+
+export interface UpdateOrderData extends Omit<Order, 'id' | 'createdAt' | 'completedAt' | 'isCompleted' | 'groupId'> {
 }
 
 export const ordersService: OrdersService = {
@@ -172,7 +175,7 @@ export const ordersService: OrdersService = {
     },
 
     // Обновление списка
-    updateOrder: async (orderId: string, orderData: Order): Promise<void> => {
+    updateOrder: async (orderId: string, orderData: UpdateOrderData): Promise<void> => {
         try {
             const orderRef = doc(db, FIREBASE_COLLECTION_ORDERS, orderId);
             await updateDoc(orderRef, {

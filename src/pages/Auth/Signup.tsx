@@ -10,12 +10,12 @@ import { useLoading } from "../../hooks/LoadingContext";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
-interface IFormData {
+interface FormData {
     email: string;
     password: string;
 }
 
-const defaultFormData: IFormData = {
+const defaultFormData: FormData = {
     email: "",
     password: "",
 };
@@ -24,7 +24,7 @@ const Signup: FC = () => {
     const navigate = useNavigate();
     const { alertState, showError, showInfo, hideAlert } = useAlert();
 
-    const [formData, setFormData] = useState<IFormData>(defaultFormData);
+    const [formData, setFormData] = useState<FormData>(defaultFormData);
 
     const { signup, emailVerification } = useAuth();
     const { withLoading } = useLoading();

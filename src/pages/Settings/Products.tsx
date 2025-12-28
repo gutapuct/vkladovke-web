@@ -31,7 +31,7 @@ import {
     ExpandLess,
     ExpandMore,
 } from "@mui/icons-material";
-import { INewProduct, Product, settingsService } from "../../services/settingsService";
+import { NewProduct, Product, settingsService } from "../../services/settingsService";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useSettings } from "../../hooks/useSettings";
 import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
@@ -63,7 +63,7 @@ const Products: FC = () => {
     const [productToEdit, setProductToEdit] = useState<Product | undefined>(undefined);
     const [expandedCategories, setExpandedCategories] = useState(new Set<string>());
 
-    const defaultNewProduct: INewProduct = { name: "", categoryId: "", unitId: "" };
+    const defaultNewProduct: NewProduct = { name: "", categoryId: "", unitId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
     const toggleAddProduct = (): void => setIsModalAddProductOpen(!isModalAddProductOpen);

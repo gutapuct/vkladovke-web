@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, FC } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
     Box,
@@ -29,17 +29,21 @@ import {
     ExpandMore,
     InsertCommentSharp as CommentIcon,
 } from "@mui/icons-material";
-import { ordersService } from "../../services/ordersService";
+import { Order, OrderItem, ordersService } from "../../services/ordersService";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { useAlert } from "../../hooks/useAlert";
 import AlertDialog from "../../components/AlertDialog";
 import { useNavigationGuard } from "../../contexts/NavigationGuardContext";
+import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 
-const CreateOrder = () => {
+interface ShortOrderData extends Omit<Order, 'id' | 'createdAt' | 'completedAt' | 'isCompleted' | 'groupId'>{
+}
+
+const CreateOrder: FC = () => {
     const navigate = useNavigate();
-    const { orderId } = useParams();
+    const { orderId } = useParams<{ orderId: string }>();
     const location = useLocation();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
@@ -47,23 +51,23 @@ const CreateOrder = () => {
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [expandedCategories, setExpandedCategories] = useState(new Set());
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set<string>());
     const [isEditing, setIsEditing] = useState(false);
     const { shouldBlock, setShouldBlock, confirmIfNeeded } = useNavigationGuard();
 
-    const [initialOrderData, setInitialOrderData] = useState(null);
+    const [initialOrderData, setInitialOrderData] = useState<ShortOrderData | null>(null);
 
-    const [orderData, setOrderData] = useState({
+    const [orderData, setOrderData] = useState<ShortOrderData>({
         title: "",
         comment: "",
         items: [],
     });
 
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
-    const [commentDialogProductId, setCommentDialogProductId] = useState(null);
+    const [commentDialogProductId, setCommentDialogProductId] = useState<string | null>(null);
     const [commentInput, setCommentInput] = useState("");
 
-    const openCommentDialog = (productId) => {
+    const openCommentDialog = (productId: string): void => {
         const item = orderData.items.find(i => i.productId === productId);
         setCommentDialogProductId(productId);
         setCommentInput(item?.comment || "");
@@ -78,6 +82,7 @@ const CreateOrder = () => {
 
     const saveComment = () => {
         if (!commentDialogProductId) return;
+
         setOrderData((prev) => ({
             ...prev,
             items: prev.items.map((item) =>
@@ -88,7 +93,7 @@ const CreateOrder = () => {
     };
 
     const initializeNewOrder = useCallback(() => {
-        const next = {
+        const next: ShortOrderData = {
             title: "",
             comment: "",
             items: activeProducts.map(product => ({
@@ -96,18 +101,20 @@ const CreateOrder = () => {
                 quantity: 0,
                 buyOnlyByAction: false,
                 comment: "",
+                isCompleted: false,
             })),
         };
         setOrderData(next);
         setInitialOrderData(next);
     }, [activeProducts]);
 
-    const initializeCopiedOrder = useCallback((copiedOrder) => {
+    const initializeCopiedOrder = useCallback((copiedOrder: ShortOrderData) => {
         const baseItems = activeProducts.map(product => ({
             productId: product.id,
             quantity: 0,
             buyOnlyByAction: false,
             comment: "",
+            isCompleted: false,
         }));
 
         const mergedItems = baseItems.map(baseItem => {
@@ -125,6 +132,7 @@ const CreateOrder = () => {
     }, [activeProducts]);
 
     const loadOrderForEdit = useCallback(async () => {
+        if (!orderId) return;
         await withLoading(async () => {
             try {
                 const order = await ordersService.getOrder(orderId);
@@ -149,8 +157,13 @@ const CreateOrder = () => {
                 setOrderData(next);
                 setInitialOrderData(next);
             } catch (error) {
-                showError(error.message);
-                navigate(-1);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error), 'Ошибка', () => navigate(-1));
+                } else if (error instanceof Error) {
+                    showError(error.message, 'Ошибка', () => navigate(-1));
+                } else {
+                    showError(String(error), 'Ошибка', () => navigate(-1));
+                }
             }
         });
     }, [activeProducts, navigate, orderId, showError, withLoading]);
@@ -163,21 +176,21 @@ const CreateOrder = () => {
             initializeCopiedOrder(copiedOrder);
         } else if (orderId) {
             // Редактируем список
-            loadOrderForEdit();
+            void loadOrderForEdit();
         } else {
             // Новый список
             initializeNewOrder();
         }
     }, [orderId, activeProducts, initializeNewOrder, loadOrderForEdit, location.state, initializeCopiedOrder]);
 
-    const normalized = (data) => ({
+    const normalized = (data: ShortOrderData) => ({
         title: data.title?.trim() || "",
         comment: data.comment?.trim() || "",
         items: data.items
             .map(i => ({
                 productId: i.productId,
                 quantity: i.quantity || 0,
-                buyOnlyByAction: !!i.buyOnlyByAction,
+                buyOnlyByAction: i.buyOnlyByAction,
                 comment: (i.comment || "").trim(),
             }))
             .sort((a, b) => (a.productId > b.productId ? 1 : -1)),
@@ -197,7 +210,7 @@ const CreateOrder = () => {
     }, [hasUnsavedChanges, setShouldBlock]);
 
     useEffect(() => {
-        const handleBeforeUnload = (e) => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
             if (!shouldBlock) return;
             e.preventDefault();
             e.returnValue = "";
@@ -218,7 +231,7 @@ const CreateOrder = () => {
     });
 
     // Группируем отфильтрованные товары по категориям
-    const groupedItems = filteredItems.reduce((acc, item) => {
+    const groupedItems: Record<string, OrderItem[]> = filteredItems.reduce((acc: Record<string, OrderItem[]>, item) => {
         const { category } = getProductInfo(item.productId);
         if (!acc[category]) {
             acc[category] = [];
@@ -235,7 +248,7 @@ const CreateOrder = () => {
         items.sort((a, b) => getProductNameById(a.productId).localeCompare(getProductNameById(b.productId)));
     });
 
-    const handleToggleCategory = (category) => {
+    const handleToggleCategory = (category: string) => {
         setExpandedCategories((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(category)) {
@@ -247,16 +260,16 @@ const CreateOrder = () => {
         });
     };
 
-    const isCategoryExpanded = (category) => {
+    const isCategoryExpanded = (category: string): boolean => {
         return expandedCategories.has(category);
     };
 
     // Функция для подсчета товаров с quantity > 0 в категории
-    const getItemsWithQuantityCount = (categoryItems) => {
+    const getItemsWithQuantityCount = (categoryItems: OrderItem[]): number => {
         return categoryItems.filter(item => item.quantity > 0).length;
     };
 
-    const handleQuantityChange = (productId, newQuantity) => {
+    const handleQuantityChange = (productId: string, newQuantity: number): void => {
         setOrderData((prev) => ({
             ...prev,
             items: prev.items.map((item) =>
@@ -267,7 +280,7 @@ const CreateOrder = () => {
         }));
     };
 
-    const handleToggleBuyOnlyByAction = (productId) => {
+    const handleToggleBuyOnlyByAction = (productId: string): void => {
         setOrderData((prev) => ({
             ...prev,
             items: prev.items.map((item) =>
@@ -293,13 +306,18 @@ const CreateOrder = () => {
                     groupId: currentUser.groupId,
                     title: orderData.title.trim(),
                     comment: orderData.comment.trim(),
-                    createdBy: currentUser.uid,
                     items: validItems,
                 });
 
                 showSuccess("Список успешно создан!", "Успешно", () => { setShouldBlock(false); navigate(`/order-details/${order.id}`); });
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
@@ -313,6 +331,11 @@ const CreateOrder = () => {
             return;
         }
 
+        if (!orderId) {
+            showError("Не указан идентификатор списка для обновления");
+            return;
+        }
+
         await withLoading(async () => {
             try {
                 await ordersService.updateOrder(orderId, {
@@ -323,7 +346,13 @@ const CreateOrder = () => {
 
                 showSuccess("Список успешно обновлен!", "Успешно", () => { setShouldBlock(false); navigate(`/order-details/${orderId}`); });
             } catch (error) {
-                showError(error.message);
+                if (isFirebaseError(error)) {
+                    showError(getErrorMessage(error));
+                } else if (error instanceof Error) {
+                    showError(error.message);
+                } else {
+                    showError(String(error));
+                }
             }
         });
     };
@@ -332,11 +361,11 @@ const CreateOrder = () => {
         setSearchQuery("");
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async (): Promise<void> => {
         if (isEditing) {
-            handleUpdateOrder();
+            await handleUpdateOrder();
         } else {
-            handleCreateOrder();
+            await handleCreateOrder();
         }
     };
 
@@ -347,7 +376,7 @@ const CreateOrder = () => {
                     <IconButton edge="start" onClick={() => confirmIfNeeded(() => navigate(-1))} sx={{ mr: 2 }} size="large">
                         <ArrowBack/>
                     </IconButton>
-                    <Typography variant="h7" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                    <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         {isEditing ? "Редактировать список" : "Новый список"}
                     </Typography>
                 </Toolbar>
@@ -418,7 +447,6 @@ const CreateOrder = () => {
                         }}>
                             <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
                                 <ListItem
-                                    button="true"
                                     onClick={() => handleToggleCategory(category)}
                                     sx={{
                                         backgroundColor: '#e3f2fd',
