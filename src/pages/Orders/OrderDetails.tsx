@@ -71,11 +71,11 @@ const OrderDetails: FC = () => {
                 setOrder(orderData);
             } catch (error) {
                 if (isFirebaseError(error)) {
-                    showError(getErrorMessage(error));
+                    showError(getErrorMessage(error), 'Ошибка', () => navigate(-1));
                 } else if (error instanceof Error) {
-                    showError(error.message);
+                    showError(error.message, 'Ошибка', () => navigate(-1));
                 } else {
-                    showError(String(error));
+                    showError(String(error), 'Ошибка', () => navigate(-1));
                 }
             }
         });
@@ -83,7 +83,7 @@ const OrderDetails: FC = () => {
 
     useEffect(() => {
         if (orderId) {
-            loadOrder();
+            void loadOrder();
         }
     }, [orderId, loadOrder]);
 
@@ -333,6 +333,13 @@ const OrderDetails: FC = () => {
         return (
             <Box sx={{ p: 3 }}>
                 <Typography variant="h6">Загрузка...</Typography>
+                <AlertDialog
+                    open={alertState.open}
+                    onClose={hideAlert}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                />
             </Box>
         );
     }

@@ -58,7 +58,7 @@ const Layout: FC<Props> = ({ children }) => {
 
     const confirmIfNeeded = useCallback((action: () => void) => {
         if (shouldBlock) {
-            setPendingAction(action);
+            setPendingAction(() => action);
             setNavGuardOpen(true);
         } else {
             action && action();

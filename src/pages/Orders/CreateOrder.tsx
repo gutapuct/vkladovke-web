@@ -43,7 +43,7 @@ interface ShortOrderData extends Omit<Order, 'id' | 'createdAt' | 'completedAt' 
 
 const CreateOrder: FC = () => {
     const navigate = useNavigate();
-    const { orderId } = useParams<{ orderId: string }>();
+    const { orderId } = useParams<{ orderId: string | undefined }>();
     const location = useLocation();
     const { withLoading } = useLoading();
     const { currentUser } = useAuth();
