@@ -483,7 +483,6 @@ const CreateOrder: FC = () => {
                                           sx={{ '&:last-child': { mb: 0 } }}>
                                     <Box sx={{ '&:last-child': { mb: 0 } }}>
                                         {categoryItems.map((item, index) => {
-                                            const { unit } = getProductInfo(item.productId);
                                             const backgroundColor = item.quantity > 0
                                                 ? (item.buyOnlyByAction ? '#ffebee' : '#e8f5e8')
                                                 : 'transparent';
@@ -566,20 +565,6 @@ const CreateOrder: FC = () => {
                                                                     <AddIcon fontSize="small"/>
                                                                 </IconButton>
                                                             </Box>
-
-                                                            {/* Текст с единицами измерения */}
-                                                            <Typography
-                                                                variant="body2"
-                                                                sx={{
-                                                                    width: 16,
-                                                                    textAlign: 'center',
-                                                                    color: 'text.secondary',
-                                                                    fontSize: '0.8rem',
-                                                                    fontStyle: 'italic'
-                                                                }}
-                                                            >
-                                                                {unit}
-                                                            </Typography>
 
                                                             {/* Иконка корзины для акции */}
                                                             <IconButton

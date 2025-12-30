@@ -28,14 +28,12 @@ interface Props {
     onDelete: (item: IOrderItem) => void;
     onComplete: (productId: string, complete: boolean) => void;
     getProductNameById: (productId: string) => string;
-    getProductInfo: (productId: string) => { unit: string };
 }
 
-const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getProductNameById, getProductInfo }) => {
+const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getProductNameById }) => {
     const [showActions, setShowActions] = useState(false);
     const [showComment, setShowComment] = useState(false);
     const commentTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const { unit } = getProductInfo(item.productId);
 
     const isCompleted = item.isCompleted;
 
@@ -139,14 +137,6 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                     </Box>
                     
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
-                        <Typography
-                            variant="body2"
-                            color="textSecondary"
-                            sx={{ textDecoration: isCompleted ? "line-through" : "none" }}
-                        >
-                            {item.quantity} {unit}
-                        </Typography>
-
                         {item.buyOnlyByAction && (
                             <Chip
                                 label="по акции"

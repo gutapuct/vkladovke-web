@@ -44,7 +44,6 @@ const Products: FC = () => {
     const height = useVisualViewportHeight();
     const { withLoading } = useLoading();
     const {
-        units,
         categories,
         activeProducts,
         addProductToContext,
@@ -63,7 +62,7 @@ const Products: FC = () => {
     const [productToEdit, setProductToEdit] = useState<Product | undefined>(undefined);
     const [expandedCategories, setExpandedCategories] = useState(new Set<string>());
 
-    const defaultNewProduct: NewProduct = { name: "", categoryId: "", unitId: "" };
+    const defaultNewProduct: NewProduct = { name: "", categoryId: "" };
     const [newProduct, setNewProduct] = useState({ ...defaultNewProduct });
 
     const toggleAddProduct = (): void => setIsModalAddProductOpen(!isModalAddProductOpen);
@@ -225,7 +224,6 @@ const Products: FC = () => {
                                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                                         <Box sx={{ p: 2 }}>
                                             {categoryProducts.map((product) => {
-                                                const { unit } = getProductInfo(product.id);
                                                 const isEditing = productToEdit?.id === product.id;
 
                                                 return (
@@ -278,25 +276,6 @@ const Products: FC = () => {
                                                                             ))}
                                                                         </Select>
                                                                     </FormControl>
-                                                                    <FormControl fullWidth size="medium">
-                                                                        <InputLabel>Единица измерения</InputLabel>
-                                                                        <Select
-                                                                            value={productToEdit.unitId}
-                                                                            onChange={(e) =>
-                                                                                setProductToEdit({
-                                                                                    ...productToEdit,
-                                                                                    unitId: e.target.value,
-                                                                                })
-                                                                            }
-                                                                            label="Единица измерения"
-                                                                        >
-                                                                            {Object.entries(units).map(([id, name]) => (
-                                                                                <MenuItem key={id} value={id}>
-                                                                                    {name}
-                                                                                </MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
                                                                     <Button
                                                                         variant="contained"
                                                                         startIcon={<SaveIcon/>}
@@ -337,11 +316,6 @@ const Products: FC = () => {
                                                                                     mt: 1,
                                                                                 }}
                                                                             >
-                                                                                <Chip
-                                                                                    label={unit}
-                                                                                    variant="outlined"
-                                                                                    size="small"
-                                                                                />
                                                                             </Box>
                                                                         </Box>
                                                                         <Box
@@ -466,21 +440,6 @@ const Products: FC = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth>
-                            <InputLabel>Единица измерения</InputLabel>
-                            <Select
-                                value={newProduct.unitId}
-                                onChange={(e) => setNewProduct({ ...newProduct, unitId: e.target.value })}
-                                label="Единица измерения"
-                            >
-                                <MenuItem value="">Выберите единицу измерения</MenuItem>
-                                {Object.entries(units).map(([id, name]) => (
-                                    <MenuItem key={id} value={id}>
-                                        {name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
                     </Box>
                 </DialogContent>
 
@@ -497,7 +456,7 @@ const Products: FC = () => {
                     <Button
                         onClick={handleAddProduct}
                         variant="contained"
-                        disabled={!newProduct.name || !newProduct.categoryId || !newProduct.unitId}
+                        disabled={!newProduct.name || !newProduct.categoryId}
                         fullWidth
                         size="large"
                         sx={{ borderRadius: 2, ml: 1 }}

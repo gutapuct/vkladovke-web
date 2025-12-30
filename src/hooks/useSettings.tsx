@@ -1,17 +1,15 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import { settingsService } from "../services/settingsService";
-import { DEFAULT_UNIT, NO_NAME } from "../utils/constants";
+import { NO_NAME } from "../utils/constants";
 import { Product } from "../services/settingsService";
 
 const SettingsContext = createContext<SettingsProviderValue | null>(null);
 
 export interface ProductInfo {
     category: string;
-    unit: string;
 }
 
 interface SettingsProviderValue {
-    units: Record<string, string>;
     categories: Record<string, string>;
     products: Product[];
     activeProducts: Product[];
@@ -65,14 +63,12 @@ interface Props {
 }
 
 export const SettingsProvider: FC<Props> = ({ children }) => {
-    const [units, setUnits] = useState<Record<string, string>>({});
     const [categories, setCategories] = useState<Record<string, string>>({});
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 
     const catchSettings = useCallback(async (): Promise<void> => {
         const settings = await settingsService.getSettings();
-        setUnits(settings.units);
         setCategories(settings.categories);
     }, []);
 
@@ -107,7 +103,7 @@ export const SettingsProvider: FC<Props> = ({ children }) => {
             prev.map((item) =>
                 item.id !== product.id
                     ? item
-                    : { ...item, name: product.name, categoryId: product.categoryId, unitId: product.unitId }
+                    : { ...item, name: product.name, categoryId: product.categoryId }
             )
         );
     }, []);
@@ -121,17 +117,15 @@ export const SettingsProvider: FC<Props> = ({ children }) => {
         const product = products.find((p) => p.id === productId);
 
         if (!product) {
-            return { category: NO_NAME, unit: DEFAULT_UNIT };
+            return { category: NO_NAME };
         }
 
         return {
             category: categories[product.categoryId] || NO_NAME,
-            unit: units[product.unitId] || DEFAULT_UNIT,
         };
     };
 
     const value: SettingsProviderValue = {
-        units,
         categories,
         products,
         activeProducts: products.filter((x) => !x.isDeleted),

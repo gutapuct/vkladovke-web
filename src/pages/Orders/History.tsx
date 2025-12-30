@@ -188,7 +188,7 @@ const History: FC = () => {
                                             {/* Последние 3 товара для preview */}
                                             {order.items &&
                                                 order.items.slice(0, 3).map((item) => {
-                                                    const { category, unit } = getProductInfo(item.productId);
+                                                    const { category } = getProductInfo(item.productId);
 
                                                     return (
                                                         <ListItem
@@ -222,11 +222,7 @@ const History: FC = () => {
                                                                         mt: 0.5,
                                                                     }}
                                                                 >
-                                                                    <span>
-                                                                        {item.quantity} {unit}
-                                                                    </span>
-                                                                    <span>•</span>
-                                                                    <span>{category}</span>
+                                                                    {category}
                                                                 </Typography>
                                                             </Box>
                                                             <Chip

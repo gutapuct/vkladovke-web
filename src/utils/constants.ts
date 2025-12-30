@@ -1,6 +1,4 @@
 export const NO_NAME = "Неизвестно";
-export const DEFAULT_UNIT = "шт.";
-
 export const FIREBASE_COLLECTION_USERS = "users";
 export const FIREBASE_DOCUMENT_INVITATION_PART = '_invitation';
 

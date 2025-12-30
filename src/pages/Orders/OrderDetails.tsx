@@ -476,7 +476,6 @@ const OrderDetails: FC = () => {
                                                         onDelete={handleOpenDeleteItem}
                                                         onComplete={handleCompleteItem}
                                                         getProductNameById={getProductNameById}
-                                                        getProductInfo={getProductInfo}
                                                     />
                                                 ))}
                                             </List>
@@ -567,7 +566,6 @@ const OrderDetails: FC = () => {
                                                         onDelete={handleOpenDeleteItem}
                                                         onComplete={handleCompleteItem}
                                                         getProductNameById={getProductNameById}
-                                                        getProductInfo={getProductInfo}
                                                     />
                                                 ))}
                                             </List>

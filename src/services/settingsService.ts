@@ -19,7 +19,6 @@ export interface Product {
     id: string;
     name: string;
     categoryId: string;
-    unitId: string;
     isDeleted: boolean;
 }
 
@@ -27,7 +26,6 @@ export interface NewProduct extends Omit<Product, 'id' | 'isDeleted'> {
 }
 
 interface Settings {
-    units: Record<string, string>;
     categories: Record<string, string>;
 }
 
@@ -94,7 +92,6 @@ export const settingsService: SettingsService = {
                     ...item,
                     name: product.name,
                     categoryId: product.categoryId,
-                    unitId: product.unitId,
                 }
                 : item
         );
