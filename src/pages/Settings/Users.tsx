@@ -9,7 +9,7 @@ import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
 
 const Users: FC = () => {
-    const { currentUser } = useAuth();
+    const currentUser = useAuth().getVerifiedCurrentUser();
     const { withLoading } = useLoading();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 

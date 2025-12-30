@@ -49,8 +49,8 @@ const Signup: FC = () => {
 
         await withLoading(async () => {
             try {
-                const response = await signup(formData.email, formData.password);
-                await emailVerification(response);
+                const user = await signup(formData.email, formData.password);
+                await emailVerification(user);
 
                 showInfo(
                     `На указанный email адрес (${formData.email}) выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.`,

@@ -27,7 +27,7 @@ import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore
 
 const History: FC = () => {
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const currentUser = useAuth().getVerifiedCurrentUser();
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();
     const { getProductInfo, getProductNameById } = useSettings();

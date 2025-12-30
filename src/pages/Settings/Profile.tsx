@@ -12,7 +12,8 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 const Profile: FC = () => {
     const [canChangeName, setCanChangeName] = useState(false);
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-    const { currentUser, changeDisplayName, logout } = useAuth();
+    const { getVerifiedCurrentUser, changeDisplayName, logout } = useAuth();
+    const currentUser = getVerifiedCurrentUser();
     const [tempName, setTempName] = useState("");
     const { withLoading } = useLoading();
     const { alertState, showError, hideAlert } = useAlert();

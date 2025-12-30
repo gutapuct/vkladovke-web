@@ -9,7 +9,9 @@ import { useAlert } from "../../hooks/useAlert";
 import React, { FC, MouseEventHandler } from "react";
 
 const Confirm: FC = () => {
-    const { currentUser, logout, emailVerification } = useAuth();
+    const { getVerifiedCurrentUser, logout, emailVerification } = useAuth();
+    const currentUser = getVerifiedCurrentUser();
+    
     const { withLoading } = useLoading();
     const { alertState, showError, showInfo, hideAlert } = useAlert();
     const navigate = useNavigate();
@@ -18,7 +20,7 @@ const Confirm: FC = () => {
         e.preventDefault();
         await withLoading(async () => {
             try {
-                await emailVerification(currentUser.auth.currentUser);
+                await emailVerification(auth.currentUser!);
                 showInfo(
                     "На ваш email адрес выслано письмо с подтверждением. Пожалуйста, зайдите в почту и подтвердите регистрацию.",
                     "Подтвердите регистрацию"
@@ -45,7 +47,7 @@ const Confirm: FC = () => {
 
     const handleBack = async (): Promise<void> => {
         await withLoading(async () => {
-            await logout(auth);
+            await logout();
             hideAlert();
             navigate("/login");
         });

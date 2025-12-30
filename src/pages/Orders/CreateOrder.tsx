@@ -46,7 +46,7 @@ const CreateOrder: FC = () => {
     const { orderId } = useParams<{ orderId: string | undefined }>();
     const location = useLocation();
     const { withLoading } = useLoading();
-    const { currentUser } = useAuth();
+    const currentUser = useAuth().getVerifiedCurrentUser();
     const { activeProducts, getProductNameById, getProductInfo, sortCategories } = useSettings();
     const { alertState, showError, showSuccess, hideAlert } = useAlert();
 

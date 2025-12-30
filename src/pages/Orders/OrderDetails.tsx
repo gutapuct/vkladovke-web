@@ -79,7 +79,7 @@ const OrderDetails: FC = () => {
                 }
             }
         });
-    }, [orderId, withLoading, showError]);
+    }, [orderId, withLoading, showError, navigate]);
 
     useEffect(() => {
         if (orderId) {

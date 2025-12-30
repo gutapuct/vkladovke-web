@@ -12,7 +12,7 @@ import { formatFirebaseTimestamp, dateFormats } from "../utils/datetimeHelper";
 
 const Main: FC = () => {
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const currentUser = useAuth().getVerifiedCurrentUser();
     const { alertState, showError, hideAlert } = useAlert();
     const { withLoading, loading } = useLoading();
     const [orders, setOrders] = useState<Order[]>([]);
@@ -43,7 +43,7 @@ const Main: FC = () => {
     }, [currentUser, withLoading, showError]);
 
     useEffect(() => {
-        catchOrders();
+        void catchOrders();
     }, [catchOrders]);
 
     if (loading) {
