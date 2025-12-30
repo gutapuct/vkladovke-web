@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/vkladovke-web/static/css/main.0705e07e.css",
-    "main.js": "/vkladovke-web/static/js/main.1c627efa.js",
+    "main.js": "/vkladovke-web/static/js/main.83739ae3.js",
     "index.html": "/vkladovke-web/index.html",
     "main.0705e07e.css.map": "/vkladovke-web/static/css/main.0705e07e.css.map",
-    "main.1c627efa.js.map": "/vkladovke-web/static/js/main.1c627efa.js.map"
+    "main.83739ae3.js.map": "/vkladovke-web/static/js/main.83739ae3.js.map"
   },
   "entrypoints": [
     "static/css/main.0705e07e.css",
-    "static/js/main.1c627efa.js"
+    "static/js/main.83739ae3.js"
   ]
 }
