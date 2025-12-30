@@ -77,13 +77,14 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
         <>
             <Box
                 sx={{
-                    p: 2,
+                    py: 0.75,
+                    px: 1,
                     borderBottom: "1px solid",
                     borderColor: "grey.100",
                     backgroundColor: backgroundColor,
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: 2,
+                    alignItems: "center",
+                    gap: 1,
                     transition: "background-color 0.2s",
                 }}
             >
@@ -97,7 +98,6 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                             color: "success.main",
                         },
                         flexShrink: 0,
-                        mt: 0.5,
                     }}
                 />
 
@@ -116,7 +116,6 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                                 cursor: item.comment?.trim() ? 'pointer' : 'default',
                                 flexShrink: 1,
                             }}
-
                         >
                             {getProductNameById(item.productId)}
                         </Typography>
@@ -136,21 +135,21 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                         )}
                     </Box>
                     
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
-                        {item.buyOnlyByAction && (
+                    {item.buyOnlyByAction && (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5, flexWrap: "wrap" }}>
                             <Chip
                                 label="по акции"
                                 size="small"
                                 variant="outlined"
                                 sx={{ color: "red", borderColor: "red" }}
                             />
-                        )}
-                    </Box>
+                        </Box>
+                    )}
                 </Box>
 
                 {/* Кнопка меню действий */}
                 {!order.isCompleted && (
-                    <IconButton onClick={() => setShowActions(true)} size="small" sx={{ flexShrink: 0, mt: 0.5 }}>
+                    <IconButton onClick={() => setShowActions(true)} size="small" sx={{ flexShrink: 0, p: 0.5 }}>
                         <MoreIcon />
                     </IconButton>
                 )}

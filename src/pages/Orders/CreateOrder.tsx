@@ -504,7 +504,7 @@ const CreateOrder: FC = () => {
                                                         <Box sx={{
                                                             flex: 1,
                                                             minWidth: 0,
-                                                            pr: 1,
+                                                            px: 1,
                                                             display: 'flex',
                                                             alignItems: 'center'
                                                         }}>
@@ -574,6 +574,7 @@ const CreateOrder: FC = () => {
                                                                     opacity: item.quantity > 0 ? 1 : 0.3,
                                                                     width: 32,
                                                                     height: 32,
+                                                                    ml: -1
                                                                 }}
                                                                 disabled={item.quantity === 0}
                                                             >

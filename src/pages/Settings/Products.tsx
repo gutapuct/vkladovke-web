@@ -194,7 +194,7 @@ const Products: FC = () => {
 
                         return (
                             <Card key={category} variant="outlined" sx={{ borderRadius: 3 }}>
-                                <CardContent sx={{ p: 0 }}>
+                                <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
                                     <ListItem
                                         onClick={() => handleToggleCategory(category)}
                                         sx={{
@@ -222,135 +222,119 @@ const Products: FC = () => {
                                         {isExpanded ? <ExpandLess/> : <ExpandMore/>}
                                     </ListItem>
                                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                        <Box sx={{ p: 2 }}>
-                                            {categoryProducts.map((product) => {
+                                        <Box sx={{ px: 2 }}>
+                                            {categoryProducts.map((product, index) => {
                                                 const isEditing = productToEdit?.id === product.id;
+                                                const isLast = index === categoryProducts.length - 1;
 
                                                 return (
-                                                    <Card
+                                                    <Box
                                                         key={product.id}
-                                                        variant="outlined"
                                                         sx={{
-                                                            borderRadius: 2,
-                                                            mb: 2,
-                                                            "&:last-child": { mb: 0 },
+                                                            py: 1,
+                                                            pb: isLast ? 0 : 1,
+                                                            borderBottom: isLast ? "none" : "1px solid",
+                                                            borderColor: "grey.200",
                                                         }}
                                                     >
-                                                        <CardContent sx={{ py: 2, px: 2 }}>
-                                                            {isEditing ? (
-                                                                <Box
-                                                                    sx={{
-                                                                        display: "flex",
-                                                                        flexDirection: "column",
-                                                                        gap: 2,
-                                                                    }}
-                                                                >
-                                                                    <TextField
-                                                                        value={productToEdit.name}
+                                                        {isEditing ? (
+                                                            <Box
+                                                                sx={{
+                                                                    display: "flex",
+                                                                    flexDirection: "column",
+                                                                    gap: 2,
+                                                                }}
+                                                            >
+                                                                <TextField
+                                                                    value={productToEdit.name}
+                                                                    onChange={(e) =>
+                                                                        setProductToEdit({
+                                                                            ...productToEdit,
+                                                                            name: e.target.value,
+                                                                        })
+                                                                    }
+                                                                    label="Название товара"
+                                                                    fullWidth
+                                                                    size="medium"
+                                                                />
+                                                                <FormControl fullWidth size="medium">
+                                                                    <InputLabel>Категория</InputLabel>
+                                                                    <Select
+                                                                        value={productToEdit.categoryId}
                                                                         onChange={(e) =>
                                                                             setProductToEdit({
                                                                                 ...productToEdit,
-                                                                                name: e.target.value,
+                                                                                categoryId: e.target.value,
                                                                             })
                                                                         }
-                                                                        label="Название товара"
-                                                                        fullWidth
-                                                                        size="medium"
-                                                                    />
-                                                                    <FormControl fullWidth size="medium">
-                                                                        <InputLabel>Категория</InputLabel>
-                                                                        <Select
-                                                                            value={productToEdit.categoryId}
-                                                                            onChange={(e) =>
-                                                                                setProductToEdit({
-                                                                                    ...productToEdit,
-                                                                                    categoryId: e.target.value,
-                                                                                })
-                                                                            }
-                                                                            label="Категория"
-                                                                        >
-                                                                            {sortedCategoriesEntries.map(([id, name]) => (
-                                                                                <MenuItem key={id} value={id}>
-                                                                                    {name}
-                                                                                </MenuItem>
-                                                                            ))}
-                                                                        </Select>
-                                                                    </FormControl>
-                                                                    <Button
-                                                                        variant="contained"
-                                                                        startIcon={<SaveIcon/>}
-                                                                        onClick={handleSaveProductToEdit}
-                                                                        fullWidth
-                                                                        size="large"
-                                                                        sx={{ borderRadius: 2 }}
+                                                                        label="Категория"
                                                                     >
-                                                                        Сохранить
-                                                                    </Button>
+                                                                        {sortedCategoriesEntries.map(([id, name]) => (
+                                                                            <MenuItem key={id} value={id}>
+                                                                                {name}
+                                                                            </MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                                <Button
+                                                                    variant="contained"
+                                                                    startIcon={<SaveIcon/>}
+                                                                    onClick={handleSaveProductToEdit}
+                                                                    fullWidth
+                                                                    size="large"
+                                                                    sx={{ borderRadius: 2 }}
+                                                                >
+                                                                    Сохранить
+                                                                </Button>
+                                                            </Box>
+                                                        ) : (
+                                                            <Box
+                                                                sx={{
+                                                                    display: "flex",
+                                                                    justifyContent: "space-between",
+                                                                    alignItems: "center",
+                                                                }}
+                                                            >
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    sx={{
+                                                                        fontWeight: 500,
+                                                                        wordBreak: "break-word",
+                                                                        mr: 2,
+                                                                    }}
+                                                                >
+                                                                    {product.name}
+                                                                </Typography>
+                                                                <Box
+                                                                    sx={{
+                                                                        display: "flex",
+                                                                        flexShrink: 0,
+                                                                    }}
+                                                                >
+                                                                    <IconButton
+                                                                        color="primary"
+                                                                        onClick={() =>
+                                                                            handleEditProduct(product)
+                                                                        }
+                                                                        size="small"
+                                                                    >
+                                                                        <EditIcon/>
+                                                                    </IconButton>
+                                                                    <IconButton
+                                                                        color="error"
+                                                                        onClick={() =>
+                                                                            handleOpenRemoveProductDialog(
+                                                                                product
+                                                                            )
+                                                                        }
+                                                                        size="small"
+                                                                    >
+                                                                        <DeleteIcon/>
+                                                                    </IconButton>
                                                                 </Box>
-                                                            ) : (
-                                                                <>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            justifyContent: "space-between",
-                                                                            alignItems: "flex-start",
-                                                                        }}
-                                                                    >
-                                                                        <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
-                                                                            <Typography
-                                                                                variant="h6"
-                                                                                sx={{
-                                                                                    fontSize: "1.1rem",
-                                                                                    fontWeight: 600,
-                                                                                    wordBreak: "break-word",
-                                                                                    lineHeight: 1.3,
-                                                                                }}
-                                                                            >
-                                                                                {product.name}
-                                                                            </Typography>
-                                                                            <Box
-                                                                                sx={{
-                                                                                    display: "flex",
-                                                                                    gap: 1,
-                                                                                    flexWrap: "wrap",
-                                                                                    mt: 1,
-                                                                                }}
-                                                                            >
-                                                                            </Box>
-                                                                        </Box>
-                                                                        <Box
-                                                                            sx={{
-                                                                                display: "flex",
-                                                                                gap: 0.5,
-                                                                                flexShrink: 0,
-                                                                            }}
-                                                                        >
-                                                                            <IconButton
-                                                                                color="primary"
-                                                                                onClick={() =>
-                                                                                    handleEditProduct(product)
-                                                                                }
-                                                                                size="small"
-                                                                            >
-                                                                                <EditIcon/>
-                                                                            </IconButton>
-                                                                            <IconButton
-                                                                                color="error"
-                                                                                onClick={() =>
-                                                                                    handleOpenRemoveProductDialog(
-                                                                                        product
-                                                                                    )
-                                                                                }
-                                                                                size="small"
-                                                                            >
-                                                                                <DeleteIcon/>
-                                                                            </IconButton>
-                                                                        </Box>
-                                                                    </Box>
-                                                                </>
-                                                            )}
-                                                        </CardContent>
-                                                    </Card>
+                                                            </Box>
+                                                        )}
+                                                    </Box>
                                                 );
                                             })}
                                         </Box>
