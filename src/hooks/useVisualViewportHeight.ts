@@ -1,29 +1,52 @@
-import { useState, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, useCallback } from "react";
 
-export const useVisualViewportHeight = (): number | undefined => {
-    const [height, setHeight] = useState<number | undefined>(undefined);
+export interface VisualViewportState {
+    height: number | undefined;
+    offsetTop: number;
+    isKeyboardOpen: boolean;
+}
+
+export const useVisualViewportHeight = (): VisualViewportState => {
+    const [state, setState] = useState<VisualViewportState>({
+        height: undefined,
+        offsetTop: 0,
+        isKeyboardOpen: false,
+    });
+
+    const updateState = useCallback(() => {
+        if (!window.visualViewport) {
+            setState({ height: undefined, offsetTop: 0, isKeyboardOpen: false });
+            return;
+        }
+
+        const vv = window.visualViewport;
+        const windowHeight = window.innerHeight;
+        const isKeyboardOpen = vv.height < windowHeight * 0.75;
+
+        setState({
+            height: vv.height,
+            offsetTop: vv.offsetTop,
+            isKeyboardOpen,
+        });
+    }, []);
 
     useLayoutEffect(() => {
-        const updateHeight = () => {
-            if (!window.visualViewport) {
-                setHeight(undefined);
-                return;
-            }
+        updateState();
 
-            setHeight(window.visualViewport.height);
-        };
+        const handleResize = () => updateState();
+        const handleScroll = () => updateState();
 
-        updateHeight();
+        window.visualViewport?.addEventListener("resize", handleResize);
+        window.visualViewport?.addEventListener("scroll", handleScroll);
 
-        window.visualViewport?.addEventListener("resize", updateHeight);
-
-        const timeout: NodeJS.Timeout = setTimeout(updateHeight, 300);
+        const timeout = setTimeout(updateState, 300);
 
         return () => {
             clearTimeout(timeout);
-            window.visualViewport?.removeEventListener("resize", updateHeight);
+            window.visualViewport?.removeEventListener("resize", handleResize);
+            window.visualViewport?.removeEventListener("scroll", handleScroll);
         };
-    }, []);
+    }, [updateState]);
 
-    return height;
+    return state;
 };

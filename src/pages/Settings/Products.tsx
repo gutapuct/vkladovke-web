@@ -41,7 +41,7 @@ import { useAlert } from "../../hooks/useAlert";
 import { useVisualViewportHeight } from "../../hooks/useVisualViewportHeight";
 
 const Products: FC = () => {
-    const height = useVisualViewportHeight();
+    const { height } = useVisualViewportHeight();
     const { withLoading } = useLoading();
     const {
         categories,

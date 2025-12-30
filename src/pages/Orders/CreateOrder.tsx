@@ -632,7 +632,32 @@ const CreateOrder: FC = () => {
             </Box>
 
             {/* Диалог ввода комментария к товару */}
-            <Dialog open={commentDialogOpen} onClose={closeCommentDialog} fullWidth>
+            <Dialog
+                open={commentDialogOpen}
+                onClose={closeCommentDialog}
+                fullWidth
+                sx={{
+                    "& .MuiDialog-container": {
+                        alignItems: "flex-start",
+                    },
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(2px)",
+                    },
+                }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            margin: "20px",
+                            marginTop: "20px",
+                            maxWidth: "calc(100% - 40px)",
+                            width: "100%",
+                            borderRadius: 3,
+                            boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+                        },
+                    },
+                }}
+            >
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -645,9 +670,9 @@ const CreateOrder: FC = () => {
                         minRows={3}
                     />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeCommentDialog}>Отмена</Button>
-                    <Button onClick={saveComment} variant="contained">Сохранить</Button>
+                <DialogActions sx={{ p: 2, gap: 1 }}>
+                    <Button onClick={closeCommentDialog} variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>Отмена</Button>
+                    <Button onClick={saveComment} variant="contained" sx={{ flex: 1, borderRadius: 2 }}>Сохранить</Button>
                 </DialogActions>
             </Dialog>
 
