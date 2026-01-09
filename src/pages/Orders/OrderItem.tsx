@@ -118,6 +118,12 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                             }}
                         >
                             {getProductNameById(item.productId)}
+                            <Chip
+                                label={item.quantity}
+                                size="small"
+                                variant="filled"
+                                sx={{ml: 1}}
+                            />
                         </Typography>
                         {item.comment?.trim() && (
                             <Tooltip
@@ -134,7 +140,7 @@ const OrderItem: FC<Props> = ({ item, order, onEdit, onDelete, onComplete, getPr
                             </Tooltip>
                         )}
                     </Box>
-                    
+
                     {item.buyOnlyByAction && (
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5, flexWrap: "wrap" }}>
                             <Chip
