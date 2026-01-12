@@ -1,7 +1,20 @@
-import { doc, setDoc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    collection,
+    getDocs,
+    query,
+    where, orderBy
+} from "firebase/firestore";
 import { db } from "../utils/firebase_firestore";
 import { newGuid } from "../utils/guidHelper";
-import { FIREBASE_COLLECTION_USERS, FIREBASE_DOCUMENT_INVITATION_PART } from "../utils/constants";
+import {
+    FIREBASE_COLLECTION_USERS,
+    FIREBASE_DOCUMENT_INVITATION_PART
+} from "../utils/constants";
 
 export interface User {
     displayName: string;
@@ -24,6 +37,7 @@ interface UserService {
     getInvitationToApply: (currentUser: User) => Promise<Invitation | null>;
     cancelInvitation: (currentUser: User) => Promise<void>;
     applyInvitation: (currentUser: User) => Promise<void>;
+    getGroupUsers: (groupId: string) => Promise<User[]>;
 }
 
 export const userService: UserService = {
@@ -54,6 +68,29 @@ export const userService: UserService = {
             return userSnap.data() as User;
         } else {
             throw new Error("Пользователь не найден");
+        }
+    },
+
+    getGroupUsers: async (groupId: string): Promise<User[]> => {
+        try {
+            const q = query(
+                collection(db, FIREBASE_COLLECTION_USERS),
+                where("groupId", "==", groupId),
+                orderBy("displayName", "asc")
+            );
+            const querySnapshot = await getDocs(q);
+
+            const users: User[] = [];
+
+            querySnapshot.forEach((doc) => {
+                const user = doc.data() as User;
+                users.push(user);
+            });
+
+            return users;
+        } catch (error) {
+            console.error("Ошибка получения пользователей:", error);
+            throw error;
         }
     },
 

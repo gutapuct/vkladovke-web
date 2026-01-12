@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Invitation, userService } from "../../services/userService";
+import { Invitation, User, userService } from "../../services/userService";
 import { useAuth } from "../../hooks/useAuth";
 import { useLoading } from "../../hooks/LoadingContext";
 import { Box, Button, TextField, Typography, Card, CardContent, Chip } from "@mui/material";
@@ -15,15 +15,22 @@ const Users: FC = () => {
 
     const [invitation, setInvitation] = useState<Invitation | null>();
     const [emailToInvite, setEmailToInvite] = useState("");
+    const [groupUsers, setGroupUsers] = useState<User[] | null>();
 
     const catchInvitation = useCallback(async () => {
         const response = await userService.getInvitationToApply(currentUser);
         setInvitation(response);
     }, [currentUser]);
 
+    const catchGroupUsers = useCallback(async () => {
+        const response = await userService.getGroupUsers(currentUser.groupId);
+        setGroupUsers(response);
+    }, [currentUser]);
+
     useEffect(() => {
         void catchInvitation();
-    }, [catchInvitation]);
+        void catchGroupUsers();
+    }, [catchInvitation, catchGroupUsers]);
 
     const sendInvitation = async () => {
         try {
@@ -158,9 +165,21 @@ const Users: FC = () => {
                         <Chip label={currentUser.groupId} size="small" variant="outlined" />
                     </Box>
 
-                    <Typography variant="body2" color="textSecondary">
-                        Все пользователи в вашей группе имеют доступ к общим спискам покупок.
-                    </Typography>
+                    {groupUsers === undefined && (
+                        <Typography variant="body2" color="textSecondary">
+                            Загрузка списка пользователей...
+                        </Typography>
+                    )}
+
+                    {groupUsers && groupUsers.length > 0 && (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            {groupUsers.map((user) => (
+                                <Typography key={user.email} variant="body2" color="textSecondary">
+                                    {user.displayName} ({user.email})
+                                </Typography>
+                            ))}
+                        </Box>
+                    )}
                 </CardContent>
             </Card>
 
