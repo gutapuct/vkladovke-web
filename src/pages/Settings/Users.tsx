@@ -7,6 +7,7 @@ import { Add as AddIcon } from "@mui/icons-material";
 import { getErrorMessage, isFirebaseError } from "../../utils/firebase_firestore";
 import AlertDialog from "../../components/AlertDialog";
 import { useAlert } from "../../hooks/useAlert";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const Users: FC = () => {
     const currentUser = useAuth().getVerifiedCurrentUser();
@@ -16,21 +17,23 @@ const Users: FC = () => {
     const [invitation, setInvitation] = useState<Invitation | null>();
     const [emailToInvite, setEmailToInvite] = useState("");
     const [groupUsers, setGroupUsers] = useState<User[] | null>();
+    const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
+    const [leaveGroupMessage, setLeaveGroupMessage] = useState("");
 
     const catchInvitation = useCallback(async () => {
         const response = await userService.getInvitationToApply(currentUser);
         setInvitation(response);
     }, [currentUser]);
 
-    const catchGroupUsers = useCallback(async () => {
-        const response = await userService.getGroupUsers(currentUser.groupId);
+    const catchGroupUsers = useCallback(async (groupId: string) => {
+        const response = await userService.getGroupUsers(groupId);
         setGroupUsers(response);
-    }, [currentUser]);
+    }, []);
 
     useEffect(() => {
         void catchInvitation();
-        void catchGroupUsers();
-    }, [catchInvitation, catchGroupUsers]);
+        void catchGroupUsers(currentUser.groupId);
+    }, [catchInvitation, catchGroupUsers, currentUser.groupId]);
 
     const sendInvitation = async () => {
         try {
@@ -51,6 +54,22 @@ const Users: FC = () => {
     };
 
     const applyInvitation = async (): Promise<void> => {
+        const otherUsers = (groupUsers ?? []).filter((user) => user.email !== currentUser.email);
+
+        if (otherUsers.length > 0) {
+            const othersList = otherUsers.map((user) => `${user.displayName} (${user.email})`).join(", ");
+
+            setLeaveGroupMessage(
+                `В вашей текущей группе уже есть другие пользователи: ${othersList}. Если вы примете приглашение, вы выйдете из этой группы. Продолжить?`
+            );
+            setLeaveGroupDialogOpen(true);
+            return;
+        }
+
+        await performApplyInvitation();
+    };
+
+    const performApplyInvitation = async (): Promise<void> => {
         try {
             await withLoading(async (): Promise<void> => {
                 await userService.applyInvitation(currentUser);
@@ -190,6 +209,23 @@ const Users: FC = () => {
                 message={alertState.message}
                 type={alertState.type}
                 autoClose={alertState.autoClose}
+            />
+
+            <ConfirmDialog
+                open={leaveGroupDialogOpen}
+                onClose={() => setLeaveGroupDialogOpen(false)}
+                onConfirm={() => {
+                    setLeaveGroupDialogOpen(false);
+                    performApplyInvitation().then(() => {
+                        if (invitation) {
+                            void catchGroupUsers(invitation.groupId)
+                        }
+                    });
+                }}
+                title="Выход из текущей группы"
+                message={leaveGroupMessage}
+                confirmText="Подтвердить"
+                cancelText="Отмена"
             />
         </Box>
     );
