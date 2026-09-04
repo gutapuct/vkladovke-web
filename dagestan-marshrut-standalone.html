@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8F%94</text></svg>">
+<title>Дагестан на машине</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --bg:#e9ece6; --surface:#f6f8f3; --raised:#ffffff;
+  --ink:#1b2422; --muted:#586460; --faint:#8a958f;
+  --line:#d6dccf; --line-strong:#c2caba;
+  --accent:#16605b; --accent-ink:#0e3f3b;
+  --z-sulak:#1c7a73; --z-mount:#b1602c; --z-kubachi:#8a5a86; --z-derbent:#2c597e;
+  --warn:#a4462a; --warn-bg:#f2e2da;
+  --child:#3c6d51; --child-bg:#e2ecdf;
+  --shadow:0 1px 2px rgba(27,36,34,.04),0 6px 20px -12px rgba(27,36,34,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111716; --surface:#19211f; --raised:#212b28;
+  --ink:#e7ece7; --muted:#9ba7a2; --faint:#6c7974;
+  --line:#2b3632; --line-strong:#3a4742;
+  --accent:#53b7b0; --accent-ink:#8fd6d0;
+  --z-sulak:#46b2aa; --z-mount:#d6884a; --z-kubachi:#c08cbc; --z-derbent:#6ba2ce;
+  --warn:#e0855f; --warn-bg:#2d201b;
+  --child:#6fb489; --child-bg:#1b271f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 26px -14px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#111716; --surface:#19211f; --raised:#212b28;
+  --ink:#e7ece7; --muted:#9ba7a2; --faint:#6c7974;
+  --line:#2b3632; --line-strong:#3a4742;
+  --accent:#53b7b0; --accent-ink:#8fd6d0;
+  --z-sulak:#46b2aa; --z-mount:#d6884a; --z-kubachi:#c08cbc; --z-derbent:#6ba2ce;
+  --warn:#e0855f; --warn-bg:#2d201b;
+  --child:#6fb489; --child-bg:#1b271f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 26px -14px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:clamp(20px,4vw,44px) clamp(16px,4vw,32px) 72px}
+
+h1,h2,h3,h4{font-family:"Zilla Slab",Georgia,serif;font-weight:600;text-wrap:balance;margin:0}
+.eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:8px}
+.h1{font-size:clamp(38px,8vw,68px);line-height:.98;letter-spacing:-.01em;margin:.28em 0 .12em}
+.h1 span{color:var(--accent)}
+.sub{font-size:clamp(17px,2.4vw,20px);color:var(--muted);max-width:62ch}
+.sub b{color:var(--ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13.5px;color:var(--muted)}
+.chip b{color:var(--ink);font-weight:600}
+.chip .mono{font-size:12.5px;color:var(--ink)}
+
+section{margin-top:44px}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(22px,3.4vw,28px)}
+.sec-head .n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--faint)}
+.lead{color:var(--muted);max-width:70ch;margin:-6px 0 22px}
+.lead b{color:var(--ink)}
+
+.vhead{display:flex;align-items:center;gap:12px;margin:38px 0 4px;padding:10px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--vc,var(--accent))}
+.vhead .vtag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--vc,var(--accent));font-weight:500}
+.vhead h3{font-size:20px}
+.vhead .vmeta{margin-left:auto;font-size:12.5px;color:var(--muted);font-family:"JetBrains Mono",monospace}
+.va{--vc:var(--accent)} .vb{--vc:var(--z-kubachi)}
+
+.thread{display:flex;align-items:stretch;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px;overflow-x:auto}
+.node{flex:1 1 0;min-width:120px;padding:13px 15px;border-radius:10px;position:relative}
+.node+.node{margin-left:2px}
+.node .stage{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.node .base{font-family:"Zilla Slab",serif;font-weight:600;font-size:18px;margin-top:3px;color:var(--ink)}
+.node .nights{font-size:12px;color:var(--muted);margin-top:2px}
+.node .dot{width:10px;height:10px;border-radius:50%;background:var(--zc);margin-bottom:9px;box-shadow:0 0 0 4px color-mix(in srgb,var(--zc) 20%,transparent)}
+.node::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:13px;z-index:1}
+.node:last-child::after{display:none}
+.z-sulak{--zc:var(--z-sulak)}.z-mount{--zc:var(--z-mount)}.z-kubachi{--zc:var(--z-kubachi)}.z-derbent{--zc:var(--z-derbent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--raised)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14.5px;vertical-align:middle}
+thead th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:500;background:var(--surface)}
+tbody tr:last-child td{border-bottom:none}
+td .place{font-family:"Zilla Slab",serif;font-weight:600;font-size:16px;display:flex;align-items:center;gap:9px}
+td .place::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--zc,var(--accent));flex:none}
+.na{color:var(--faint)}
+td.c{font-family:"JetBrains Mono",monospace;font-weight:500;text-align:center}
+tr.tot td{font-weight:600;background:var(--surface)}
+tr.tot .mono{color:var(--accent)}
+
+.days{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.day{display:grid;grid-template-columns:112px 1fr;background:var(--raised);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:var(--shadow)}
+.day .rail{background:var(--surface);border-right:1px solid var(--line);padding:16px 15px;position:relative}
+.day .rail::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--zc,var(--accent))}
+.rail .dnum{font-family:"Zilla Slab",serif;font-weight:700;font-size:28px;line-height:1;color:var(--ink)}
+.rail .dnum small{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.rail .date{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink);margin-top:8px;font-weight:500}
+.rail .dow{font-size:11px;color:var(--muted)}
+.rail .ztag{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--zc,var(--accent));font-weight:500}
+.day .body{padding:16px 19px}
+.day .title{font-size:18px;font-weight:600;font-family:"Zilla Slab",serif;line-height:1.15}
+.leg{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.leg .mono{color:var(--ink);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.leg .conf{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.pois{list-style:none;margin:13px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pois li{display:flex;gap:11px;align-items:baseline}
+.pois .mk{flex:none;width:6px;height:6px;border-radius:50%;background:var(--zc,var(--accent));transform:translateY(6px)}
+.pois .pt{font-weight:600}
+.pois .meta{color:var(--muted);font-size:13.5px}
+.tag{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-left:2px;white-space:nowrap}
+.dur{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.note{margin-top:13px;border-radius:10px;padding:10px 13px;font-size:13.5px;display:flex;gap:9px;align-items:flex-start}
+.note .ic{flex:none;font-size:14px;line-height:1.4}
+.note.child{background:var(--child-bg);color:color-mix(in srgb,var(--child) 78%,var(--ink))}
+.note.warn{background:var(--warn-bg);color:color-mix(in srgb,var(--warn) 72%,var(--ink))}
+.note b{font-weight:600}
+.day[data-z="sulak"]{--zc:var(--z-sulak)}.day[data-z="mount"]{--zc:var(--z-mount)}.day[data-z="kubachi"]{--zc:var(--z-kubachi)}.day[data-z="derbent"]{--zc:var(--z-derbent)}
+.samedays{background:var(--surface);border:1px dashed var(--line-strong);border-radius:12px;padding:13px 18px;font-size:13.5px;color:var(--muted);margin-top:14px}
+.samedays b{color:var(--ink)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.card{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:17px 19px;box-shadow:var(--shadow)}
+.card h3{font-size:18px;margin-bottom:4px}
+.card h4{font-size:16px;display:flex;align-items:center;gap:9px}
+.card h4::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--zc,var(--accent));flex:none}
+.card .kick{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+.card p{margin:.5em 0;color:var(--muted);font-size:14px}
+.card ul{margin:.4em 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.card li{font-size:13.5px;padding-left:20px;position:relative}
+.pro::before{content:"+";position:absolute;left:2px;color:var(--child);font-weight:700}
+.con::before{content:"–";position:absolute;left:3px;color:var(--warn);font-weight:700}
+
+/* hotels */
+.lodge h4{margin-bottom:2px}
+.lsub{font-size:12px;color:var(--faint);margin:2px 0 10px;font-family:"JetBrains Mono",monospace}
+.hotels{display:flex;flex-direction:column;gap:0}
+.hotel{display:grid;grid-template-columns:auto 1fr;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.hotel:last-child{border-bottom:none}
+.rate{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:12px;color:#fff;border-radius:6px;padding:3px 6px;text-align:center;min-width:34px;background:var(--child)}
+.rate.mid{background:var(--z-mount)}
+.hn{font-weight:600}
+.hn .revs{font-family:"JetBrains Mono",monospace;font-weight:400;font-size:11.5px;color:var(--faint);margin-left:6px}
+.ebadge{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+.ebadge.brk{color:var(--z-mount);background:color-mix(in srgb,var(--z-mount) 15%,transparent)}
+.hnote{font-size:12.5px;color:var(--muted);margin-top:1px}
+.lnote{margin-top:11px;font-size:12.5px;color:var(--faint);border-top:1px solid var(--line);padding-top:9px}
+
+/* budget */
+.budget th:not(:first-child),.budget td:not(:first-child){text-align:right;font-family:"JetBrains Mono",monospace;white-space:nowrap}
+.budget td:first-child{font-weight:600}
+.budget .bn{font-size:12.5px;color:var(--muted);font-weight:400;font-family:"Figtree",sans-serif;text-align:left!important;white-space:normal}
+.budget tr.tot td{font-size:15.5px}
+.budget tr.tot .mono{color:var(--accent);font-size:15.5px}
+
+.opt{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.opt:last-child{border-bottom:none}
+.opt .oi{flex:none;width:38px;height:38px;border-radius:9px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:17px}
+.opt .on{font-weight:600}
+.opt .od{color:var(--muted);font-size:13.5px;margin-top:1px}
+.obadge{font-family:"JetBrains Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+.b-skip{background:var(--warn-bg);color:var(--warn)}
+.b-opt{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.b-add{background:var(--child-bg);color:var(--child)}
+.b-in{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+
+.done{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+.done:last-child{border-bottom:none}
+.done .dk{color:var(--child);font-weight:700;flex:none}
+.done b{font-weight:600}
+.done span{color:var(--muted);font-size:14px}
+
+footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+@media (max-width:560px){
+  .day{grid-template-columns:1fr}
+  .day .rail{border-right:none;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;padding:12px 15px}
+  .day .rail::before{width:100%;height:4px;bottom:auto}
+  .rail .dnum{font-size:21px}.rail .date{margin-top:0}.rail .ztag{margin-top:0;margin-left:auto}
+}
+@media (prefers-reduced-motion:no-preference){
+  .day,.card{transition:transform .18s ease,box-shadow .18s ease}
+  .day:hover,.card:hover{transform:translateY(-1px)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Семейное авто‑путешествие · 8 ночей</div>
+  <h1 class="h1"><span>Дагестан</span> на машине</h1>
+  <p class="sub"><b>12 → 20 сентября 2026.</b> Кольцо от Каспия в горы и обратно к морю, с трёхлетним ребёнком и своей машиной. Два варианта: <b>А</b> — спокойное кольцо, <b>Б</b> — то же плюс Кубачи. Переезды сверены по картам, жильё — по реальным отзывам.</p>
+  <div class="chips">
+    <span class="chip">👨‍👩‍👧 <b>3 человека</b> · ребёнок 3 года</span>
+    <span class="chip">✈️ Прилёт <span class="mono">12.09 · 12:40</span></span>
+    <span class="chip">🛫 Вылет <span class="mono">20.09 · 19:00</span></span>
+    <span class="chip">🚗 Авто из аэропорта <b>Уйташ</b></span>
+    <span class="chip">💰 Бюджет <span class="mono">≈100–165 тыс ₽</span></span>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section>
+  <div class="sec-head"><span class="n">Обзор</span><h2>Два варианта одного кольца</h2></div>
+  <p class="lead">Порядок совпал с вашим замыслом (север → горы → Дербент) — он же оптимальный: финиш у моря рядом с аэропортом. Разница только на юге: <b>А</b> оставляет 2 ночи в Гунибе и Кубачи пропускает; <b>Б</b> ужимает Гуниб до 1 ночи и добавляет ночь в Кубачи.</p>
+
+  <div class="vhead va"><span class="vtag">Вариант А</span><h3>Сбалансированное кольцо</h3><span class="vmeta">4 базы · рекомендую</span></div>
+  <div class="thread" style="margin-top:8px">
+    <div class="node z-sulak"><div class="dot"></div><div class="stage">Старт · север</div><div class="base">Сулак</div><div class="nights">2 ночи</div></div>
+    <div class="node z-mount"><div class="dot"></div><div class="stage">Горы I</div><div class="base">Хунзах</div><div class="nights">2 ночи</div></div>
+    <div class="node z-mount"><div class="dot"></div><div class="stage">Горы II</div><div class="base">Гуниб</div><div class="nights">2 ночи</div></div>
+    <div class="node z-derbent"><div class="dot"></div><div class="stage">Финиш · море</div><div class="base">Дербент</div><div class="nights">2 ночи</div></div>
+  </div>
+
+  <div class="vhead vb"><span class="vtag">Вариант Б</span><h3>С Кубачи и Кала‑Корейш</h3><span class="vmeta">5 баз · плотнее</span></div>
+  <div class="thread" style="margin-top:8px">
+    <div class="node z-sulak"><div class="dot"></div><div class="stage">Старт</div><div class="base">Сулак</div><div class="nights">2 ночи</div></div>
+    <div class="node z-mount"><div class="dot"></div><div class="stage">Горы I</div><div class="base">Хунзах</div><div class="nights">2 ночи</div></div>
+    <div class="node z-mount"><div class="dot"></div><div class="stage">Горы II</div><div class="base">Гуниб</div><div class="nights">1 ночь</div></div>
+    <div class="node z-kubachi"><div class="dot"></div><div class="stage">Мастера</div><div class="base">Кубачи</div><div class="nights">1 ночь</div></div>
+    <div class="node z-derbent"><div class="dot"></div><div class="stage">Финиш · море</div><div class="base">Дербент</div><div class="nights">2 ночи</div></div>
+  </div>
+</section>
+
+<!-- NIGHTS TABLE -->
+<section>
+  <div class="sec-head"><span class="n">Для бронирования</span><h2>Где и сколько ночей</h2></div>
+  <p class="lead">Даты — ночи заезда. Конкретные дома с отзывами — ниже, в разделе «Жильё».</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>База</th><th>Ночи заезда</th><th style="text-align:center">Вар. А</th><th style="text-align:center">Вар. Б</th><th>Зачем здесь</th></tr></thead>
+    <tbody>
+      <tr><td><span class="place" style="--zc:var(--z-sulak)">Сулак <span class="na" style="font-weight:400">· Дубки</span></span></td><td class="mono">12, 13 сен</td><td class="c">2</td><td class="c">2</td><td>Каньон, катер, Чиркейская ГЭС</td></tr>
+      <tr><td><span class="place" style="--zc:var(--z-mount)">Хунзах</span></td><td class="mono">14, 15 сен</td><td class="c">2</td><td class="c">2</td><td>Плато, водопады Тобот и Матлас</td></tr>
+      <tr><td><span class="place" style="--zc:var(--z-mount)">Гуниб <span class="na" style="font-weight:400">· Чох</span></span></td><td class="mono">16 (+17) сен</td><td class="c">2</td><td class="c">1</td><td>Крепость, Чох, аулы</td></tr>
+      <tr><td><span class="place" style="--zc:var(--z-kubachi)">Кубачи</span></td><td class="mono">17 сен</td><td class="c na">—</td><td class="c">1</td><td>Село мастеров, Кала‑Корейш</td></tr>
+      <tr><td><span class="place" style="--zc:var(--z-derbent)">Дербент</span></td><td class="mono">18, 19 сен</td><td class="c">2</td><td class="c">2</td><td>Нарын‑Кала, море, Табасаран</td></tr>
+      <tr class="tot"><td>Итого ночей</td><td></td><td class="c mono">8</td><td class="c mono">8</td><td>выезд в аэропорт 20 сентября</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- VARIANT A DAYS -->
+<section>
+  <div class="sec-head"><span class="n">По дням</span><h2>Вариант А — подробно</h2></div>
+  <p class="lead">Отмеченные <span class="mono" style="color:var(--accent)">Яндекс</span> перегоны сверены по картам; остальные — оценка. 👶 — про ребёнка, ⚠️ — безопасность и сезон.</p>
+
+  <div class="days">
+    <div class="day" data-z="sulak">
+      <div class="rail"><div class="dnum"><small>День</small>1</div><div class="date">12.09<div class="dow">сб</div></div><div class="ztag">Прилёт</div></div>
+      <div class="body">
+        <div class="title">Прилёт и первый вечер над каньоном</div>
+        <div class="leg">Уйташ 12:40 → авто → Сарыкум → Сулак <span class="mono">≈90 км · 2.5–3 ч</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Бархан Сарыкум</span> <span class="tag">природа</span> <span class="dur">1–1.5 ч</span><div class="meta">Песчаная «пустыня» с экотропой по пути из аэропорта.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Заселение, каньон на закате</span> <span class="tag">виды</span><div class="meta">Дубки — смотровая на самый глубокий каньон Европы.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Первый день лёгкий — ребёнок с дороги. Сарыкум по желанию; если малыш спит — сразу на базу.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="sulak">
+      <div class="rail"><div class="dnum"><small>День</small>2</div><div class="date">13.09<div class="dow">вс</div></div><div class="ztag">Сулак</div></div>
+      <div class="body">
+        <div class="title">Сулакский каньон целиком</div>
+        <div class="leg">радиалки от базы <span class="mono">≈60 км</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Катер по каньону</span> <span class="tag">актив</span> <span class="dur">1.5–2 ч</span><div class="meta">От Зубутли по бирюзовой воде между тысячеметровых стен.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Главрыба</span> <span class="tag">еда</span> <span class="dur">1–1.5 ч</span><div class="meta">Форелевое хозяйство — обед, пруды, канатка.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Пещера Нохъо</span> <span class="tag">актив</span> <span class="dur">1 ч</span><div class="meta">Тоннели и подвесной мост над каньоном.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Чиркейская ГЭС и водохранилище</span> <span class="tag">виды</span> <span class="dur">0.5–1 ч</span></div></li>
+        </ul>
+        <div class="note warn"><span class="ic">⚠️</span><div>На катер — <b>детский спасжилет</b> (уточнить заранее). На Дубках ограждения не сплошные — держать за руку.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="mount">
+      <div class="rail"><div class="dnum"><small>День</small>3</div><div class="date">14.09<div class="dow">пн</div></div><div class="ztag">Переезд → горы</div></div>
+      <div class="body">
+        <div class="title">Спуск с севера на Хунзахское плато</div>
+        <div class="leg">Сулак → Ирганай → Хунзах <span class="mono conf">Яндекс · 177 км · 4 ч</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Ирганайское водохранилище</span> <span class="tag">фото‑стоп</span> <span class="dur">30 мин</span><div class="meta">Бирюзовая гладь в ущелье — остановка на полпути, обед.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Водопад Тобот</span> <span class="tag">водопад</span> <span class="dur">30–60 мин</span><div class="meta">Срывается с края плато у Хунзаха — вечерняя прогулка.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Самый длинный перегон. Выезжать после завтрака, остановки каждые 1–1.5 ч, вода от укачивания.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="mount">
+      <div class="rail"><div class="dnum"><small>День</small>4</div><div class="date">15.09<div class="dow">вт</div></div><div class="ztag">Хунзах</div></div>
+      <div class="body">
+        <div class="title">Плато водопадов — день без больших переездов</div>
+        <div class="leg">радиалки от базы <span class="mono">≈60 км</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Матласские водопады и Каменная чаша</span> <span class="tag">природа</span> <span class="dur">2 ч</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Озеро Мочох</span> <span class="tag">природа</span> <span class="dur">1 ч</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Хунзахская крепость · Белые журавли</span> <span class="tag">культура</span> <span class="dur">1 ч</span><div class="meta">Мемориал и виды на плато — по силам с коляской.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Ровный «разгрузочный» день после долгой дороги — можно подстроить под дневной сон.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="mount">
+      <div class="rail"><div class="dnum"><small>День</small>5</div><div class="date">16.09<div class="dow">ср</div></div><div class="ztag">Переезд → Гуниб</div></div>
+      <div class="body">
+        <div class="title">Через башни Гоора и теснину в Гуниб</div>
+        <div class="leg">Хунзах → Гоор → Кахиб → Датуна → Карадах → Гуниб <span class="mono">≈110 км · 4 ч с осмотром</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Гоорские башни («язык тролля»)</span> <span class="tag">виды</span> <span class="dur">1–1.5 ч</span><div class="meta">Боевые башни и знаменитый скальный выступ.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Старый Кахиб и Датунская церковь</span> <span class="tag">культура</span> <span class="dur">1–1.5 ч</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Карадахская теснина</span> <span class="tag">природа</span> <span class="dur">1.5 ч</span><div class="meta">«Ворота чудес» — узкий каньон пешком по руслу.</div></div></li>
+        </ul>
+        <div class="note warn"><span class="ic">⚠️</span><div>«Язык тролля» — <b>отвесный обрыв</b>: ребёнка на руки, к краю не подходить. При усталости — снять Карадах и приехать в Гуниб пораньше.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="mount">
+      <div class="rail"><div class="dnum"><small>День</small>6</div><div class="date">17.09<div class="dow">чт</div></div><div class="ztag">Гуниб · спокойно</div></div>
+      <div class="body">
+        <div class="title">Неспешный день в сердце горного Дагестана</div>
+        <div class="leg">радиалки от базы <span class="mono">≈50 км</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Гунибская крепость · Царская дорога · т. Айвазовского</span> <span class="tag">культура</span> <span class="dur">2 ч</span><div class="meta">Прогулочные виды без набора высоты.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Чох и Чохские террасы</span> <span class="tag">село</span> <span class="dur">1.5 ч</span><div class="meta">Один из красивейших аулов, древние террасы.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Смотровая на Гамсутль <span class="na">(без подъёма)</span></span> <span class="tag">опц</span> <span class="dur">1 ч</span><div class="meta">Панорама аула‑призрака с дороги/склона — увидеть визитку без пешего подъёма.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Подъём на сам Гамсутль исключили — день лёгкий, под ритм малыша. ⚠️ Салтинский водопад в сентябре часто <b>маловоден</b> — как бонус, если будет вода.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>7</div><div class="date">18.09<div class="dow">пт</div></div><div class="ztag">Переезд → море</div></div>
+      <div class="body">
+        <div class="title">Из гор к Каспию, вечер в старом городе</div>
+        <div class="leg">Гуниб → Дербент <span class="mono conf">Яндекс · 174 км · 3.5 ч</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Крепость Нарын‑Кала</span> <span class="tag">ЮНЕСКО</span> <span class="dur">2 ч</span><div class="meta">Приезжаем к обеду — вторая половина дня на цитадель.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Старый город и магалы</span> <span class="tag">город</span><div class="meta">Узкие кварталы, чайные, ужин у моря.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Переезд короче, чем кажется (3.5 ч по трассе) — к обеду уже в Дербенте.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>8</div><div class="date">19.09<div class="dow">сб</div></div><div class="ztag">Море + водопады</div></div>
+      <div class="body">
+        <div class="title">Поровну: Табасаран утром, Каспий днём</div>
+        <div class="leg">радиалка в Табасаран <span class="mono">≈45 км · 1.5 ч в одну сторону</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Крепость Семи братьев и Ханагский водопад</span> <span class="tag">Табасаран</span> <span class="dur">утро, 3–4 ч</span><div class="meta">Легенда Хучни и самый большой равнинный водопад — выезд пораньше.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Экраноплан «Лунь»</span> <span class="tag">вау</span> <span class="dur">1 ч</span><div class="meta">Гигантский «корабль‑самолёт» на берегу — восторг для ребёнка.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Пляж / Каспийское море</span> <span class="tag">отдых</span><div class="meta">Вторая половина дня — расслабленно у воды.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Если утренний выезд не задастся — Табасаран легко снять и весь день оставить морю и городу.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>9</div><div class="date">20.09<div class="dow">вс</div></div><div class="ztag">Вылет</div></div>
+      <div class="body">
+        <div class="title">Последнее утро и дорога в аэропорт</div>
+        <div class="leg">Дербент → Уйташ <span class="mono">≈125 км · 2.5 ч</span> · вылет 19:00</div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Неспешное утро: Джума‑мечеть / пляж / рынок</span> <span class="tag">отдых</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Опц. Самурский лиановый лес</span> <span class="tag">природа</span> <span class="dur">2–3 ч</span><div class="meta">Только при очень раннем выезде — он южнее Дербента.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Буфер: выезд из Дербента <b>не позже 14:00</b> (дорога + сдача авто + регистрация).</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VARIANT B DAYS -->
+<section>
+  <div class="sec-head"><span class="n">По дням</span><h2>Вариант Б — что меняется</h2></div>
+  <p class="lead">Первая половина поездки — <b>день в день как в варианте А</b>. Отличия с 6‑го дня: вместо второй ночи в Гунибе едем в Кубачи и цепляем Табасаран по пути к морю.</p>
+
+  <div class="samedays">📋 <b>Дни 1–5 (12–16 сен)</b> — идентичны варианту А: Сулак ×2 → Хунзах ×2 → переезд с Гоором в Гуниб. Разница лишь в том, что в Гунибе теперь <b>одна ночь</b>.</div>
+
+  <div class="days">
+    <div class="day" data-z="mount">
+      <div class="rail"><div class="dnum"><small>День</small>5</div><div class="date">16.09<div class="dow">ср</div></div><div class="ztag">→ Гуниб (1 ночь)</div></div>
+      <div class="body">
+        <div class="title">Переезд в Гуниб + вечер в крепости</div>
+        <div class="leg">Хунзах → Гоор → Карадах → Гуниб <span class="mono">≈110 км · 4 ч</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">По пути — как в А</span> <span class="tag">Гоор · Кахиб · Карадах</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Вечер: Гунибская крепость, Царская дорога</span> <span class="tag">культура</span></div></li>
+        </ul>
+        <div class="note warn"><span class="ic">⚠️</span><div>Гуниб сжат до вечера и утра — на Чох останется мало времени (посмотрите утром перед выездом).</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="kubachi">
+      <div class="rail"><div class="dnum"><small>День</small>6</div><div class="date">17.09<div class="dow">чт</div></div><div class="ztag">→ Кубачи</div></div>
+      <div class="body">
+        <div class="title">К мастерам сквозь горы Дахадаевского района</div>
+        <div class="leg">Чох утром → Гуниб → Кубачи <span class="mono conf">Яндекс · 118 км · 4 ч</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Кубачи</span> <span class="tag">село мастеров</span> <span class="dur">2 ч</span><div class="meta">Всемирно известное село оружейников и ювелиров, музей.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Кала‑Корейш</span> <span class="tag">городище</span> <span class="dur">2–3 ч</span><div class="meta">Древняя столица на скальном мысу — грунтовка + пеший подъём.</div></div></li>
+        </ul>
+        <div class="note warn"><span class="ic">⚠️</span><div>Два четырёхчасовых горных перегона подряд (дни 5 и 6) — тяжеловато для малыша. Кала‑Корейш труднодоступен: с ребёнком, возможно, ограничиться Кубачи.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>7</div><div class="date">18.09<div class="dow">пт</div></div><div class="ztag">→ Дербент</div></div>
+      <div class="body">
+        <div class="title">Спуск к морю через Табасаран</div>
+        <div class="leg">Кубачи → Хучни → Дербент <span class="mono conf">Яндекс · 75 км · 2 ч</span> <span class="mono">+ Табасаран</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Крепость Семи братьев и Ханагский водопад</span> <span class="tag">по пути</span> <span class="dur">2–3 ч</span><div class="meta">Хучни лежит прямо на дороге Кубачи → Дербент — без крюка.</div></div></li>
+          <li><span class="mk"></span><div><span class="pt">Дербент: заселение, Нарын‑Кала</span> <span class="tag">город</span><div class="meta">Вечер в старом городе.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>Приятный бонус Б: Табасаран берётся по пути, не отдельным днём.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>8</div><div class="date">19.09<div class="dow">сб</div></div><div class="ztag">Дербент · море</div></div>
+      <div class="body">
+        <div class="title">Дербент и Каспий — целый день</div>
+        <div class="leg">по городу и берегу <span class="mono">≈40 км</span></div>
+        <ul class="pois">
+          <li><span class="mk"></span><div><span class="pt">Старый город, Джума‑мечеть, магалы</span> <span class="tag">культура</span> <span class="dur">2–3 ч</span></div></li>
+          <li><span class="mk"></span><div><span class="pt">Экраноплан «Лунь» и пляж</span> <span class="tag">отдых</span><div class="meta">Море и отдых перед вылетом — Табасаран уже позади.</div></div></li>
+        </ul>
+        <div class="note child"><span class="ic">👶</span><div>В Б этот день полностью на море и город — компенсация за плотную середину.</div></div>
+      </div>
+    </div>
+
+    <div class="day" data-z="derbent">
+      <div class="rail"><div class="dnum"><small>День</small>9</div><div class="date">20.09<div class="dow">вс</div></div><div class="ztag">Вылет</div></div>
+      <div class="body">
+        <div class="title">Последнее утро и дорога в аэропорт</div>
+        <div class="leg">Дербент → Уйташ <span class="mono">≈125 км · 2.5 ч</span> · вылет 19:00</div>
+        <ul class="pois"><li><span class="mk"></span><div><span class="pt">Неспешное утро → аэропорт</span> <span class="tag">отдых</span><div class="meta">Как в А: выезд не позже 14:00.</div></div></li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LODGING BY BASE -->
+<section>
+  <div class="sec-head"><span class="n">Жильё</span><h2>Реальные варианты по базам</h2></div>
+  <p class="lead">Отобрал по вашим приоритетам: <b>высокий рейтинг и много отзывов</b>, этно‑стиль в приоритете. Рядом с названием — оценка и число отзывов на Яндекс.Картах (на сентябрь 2026). <span class="ebadge">этно</span> — аутентичный колорит, <span class="ebadge brk">завтрак</span> — подтверждён в отзывах. Цены и наличие завтрака уточняйте в карточке при брони.</p>
+  <div class="grid2">
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--z-sulak)">Сулак · Дубки</h4>
+      <div class="lsub">виды на каньон · этно‑колорита мало</div>
+      <div class="hotels">
+        <div class="hotel"><span class="rate">4.9</span><div><div class="hn">Каньон <span class="revs">1145 отзывов</span></div><div class="hnote">Гостиница у обрыва, «замечательная локация для осмотра каньона».</div></div></div>
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Сулакский Каньон <span class="revs">133 · апарты</span></div><div class="hnote">Квартиры посуточно, до смотровой 15 минут пешком.</div></div></div>
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Гостиница Дубки <span class="revs">70 отзывов</span></div><div class="hnote">Награда «Хорошее место 2026».</div></div></div>
+      </div>
+      <div class="lnote">Внизу у воды (Зубутли) — эко‑базы и старт катеров, бронировать напрямую.</div>
+    </div>
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--z-mount)">Хунзах</h4>
+      <div class="lsub">лучший выбор жилья в горах</div>
+      <div class="hotels">
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Тобот <span class="revs">1466 отзывов</span></div><div class="hnote">«Самая классная гостиница за всё путешествие по Кавказу».</div></div></div>
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Цидук <span class="revs">285 отзывов</span></div><div class="hnote">Чистые номера, есть с видом на горы.</div></div></div>
+        <div class="hotel"><span class="rate mid">4.6</span><div><div class="hn">Древний Хунзах <span class="ebadge brk">завтрак</span> <span class="revs">30</span></div><div class="hnote">«Завтраки вкуснейшие, с национальной кухней».</div></div></div>
+      </div>
+      <div class="lnote">Ещё: «У Амины» 5.0 (гост. дом), гостевой дом у Матласа 4.9 · 56 — ближе к водопадам.</div>
+    </div>
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--z-mount)">Гуниб · Чох</h4>
+      <div class="lsub">этно‑сердце маршрута</div>
+      <div class="hotels">
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Этнодом <span class="ebadge">этно</span> <span class="revs">1283 отзыва</span></div><div class="hnote">Село Чох. Топ по отзывам и аутентике — бронировать заранее.</div></div></div>
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Чох Россо <span class="revs">118 отзывов</span></div><div class="hnote">«Лучший отель от суеты, вид из номера невероятный».</div></div></div>
+        <div class="hotel"><span class="rate">4.9</span><div><div class="hn">Гостевой дом Нахибашева <span class="revs">71 отзыв</span></div><div class="hnote">Село Чох, семейный формат.</div></div></div>
+      </div>
+      <div class="lnote">В самом Гунибе — «Гостевой Гуниб» 4.6 и гостиницы попроще; в Чохе колорит и кухня лучше.</div>
+    </div>
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--z-kubachi)">Кубачи <span class="obadge b-opt" style="margin-left:6px">только Б</span></h4>
+      <div class="lsub">скромно, но с рейтингом</div>
+      <div class="hotels">
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Гостевой дом — Кубачи <span class="revs">286 отзывов</span></div><div class="hnote">Самый популярный в селе.</div></div></div>
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Этно <span class="ebadge">этно</span> <span class="revs">88 отзывов</span></div><div class="hnote">Награда «Хорошее место 2026».</div></div></div>
+        <div class="hotel"><span class="rate">4.9</span><div><div class="hn">Кубачи <span class="revs">103 · гостиница</span></div><div class="hnote">Также: дом Кадиалиева Гаджи 5.0 · 94.</div></div></div>
+      </div>
+      <div class="lnote">Предложений мало — бронировать заранее и напрямую.</div>
+    </div>
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--z-derbent)">Дербент · старый город</h4>
+      <div class="lsub">полный выбор, у крепости и моря</div>
+      <div class="hotels">
+        <div class="hotel"><span class="rate">5.0</span><div><div class="hn">Олд Сити (Old City) <span class="revs">523 отзыва</span></div><div class="hnote">«Хорошее место 2026», «в самом красивом месте города».</div></div></div>
+        <div class="hotel"><span class="rate mid">4.7</span><div><div class="hn">Старый город <span class="revs">143 отзыва</span></div><div class="hnote">Стильный современный интерьер.</div></div></div>
+        <div class="hotel"><span class="rate mid">4.6</span><div><div class="hn">Old Town Derbent <span class="revs">84 отзыва</span></div><div class="hnote">«Хорошее место 2026», номера каждый в своём стиле.</div></div></div>
+      </div>
+      <div class="lnote">Здесь же — квартиры/апартаменты посуточно (кухня, удобно с ребёнком) и отели у моря.</div>
+    </div>
+
+    <div class="card lodge">
+      <h4 style="--zc:var(--accent)">Как бронировать</h4>
+      <div class="lsub">сервисы под РФ</div>
+      <div class="hotels">
+        <div class="hotel" style="grid-template-columns:1fr"><div><div class="hn">Отели и гостиницы</div><div class="hnote">Островок, Яндекс&nbsp;Путешествия, 101hotels — там же фильтр «С завтраком».</div></div></div>
+        <div class="hotel" style="grid-template-columns:1fr"><div><div class="hn">Дома и квартиры</div><div class="hnote">Суточно.ру, Авито, Циан посуточно.</div></div></div>
+        <div class="hotel" style="grid-template-columns:1fr"><div><div class="hn">Гостевые дома в сёлах</div><div class="hnote">Часто только Telegram / звонок хозяину — писать заранее.</div></div></div>
+      </div>
+      <div class="lnote">Booking для брони внутри РФ не работает. Названия выше ищите в этих сервисах — там будут цены и фото.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- BUDGET -->
+<section>
+  <div class="sec-head"><span class="n">Смета</span><h2>Прикидка бюджета</h2></div>
+  <p class="lead">На троих, 8 ночей, <b>без авиабилетов</b>. Цены — сентябрь 2026, ориентировочные (эконом → комфорт). Разница между А и Б — копеечная: только пробег.</p>
+  <div class="tablewrap">
+  <table class="budget">
+    <thead><tr><th>Статья</th><th>Эконом</th><th>Комфорт</th><th class="bn">Из чего</th></tr></thead>
+    <tbody>
+      <tr><td>Аренда авто · 8 сут</td><td>20 000</td><td>36 000</td><td class="bn">седан от 2500 ₽/сут; кроссовер 3500–4500 (рекомендую — грунтовки, клиренс)</td></tr>
+      <tr><td>Топливо</td><td>13 000</td><td>16 000</td><td class="bn">≈1300–1500 км, АИ‑95 ≈99 ₽/л, расход ~11 л/100 км</td></tr>
+      <tr><td>Жильё · 8 ночей</td><td>26 000</td><td>48 000</td><td class="bn">гостевые дома и отели 3000–6000 ₽/ночь</td></tr>
+      <tr><td>Питание · 9 дней</td><td>27 000</td><td>40 000</td><td class="bn">кафе и нацкухня; часть завтраков в стоимости жилья</td></tr>
+      <tr><td>Активности, входные</td><td>8 000</td><td>15 000</td><td class="bn">катер по Сулаку, Нарын‑Кала, Сарыкум, парковки, гиды</td></tr>
+      <tr><td>Прочее</td><td>5 000</td><td>12 000</td><td class="bn">сувениры (Кубачи, сыр), симка, чаевые, запас</td></tr>
+      <tr class="tot"><td>Итого на семью</td><td class="mono">≈100 000</td><td class="mono">≈165 000</td><td class="bn">типично ~120–130 тыс при среднем комфорте</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="lead" style="margin-top:14px">Вариант <b>Б</b> дороже примерно на <b>2–4 тыс ₽</b> (лишний пробег через Кубачи + возможные сборы за Кала‑Корейш). Авиабилеты Москва↔Махачкала в сентябре обычно 6–12 тыс ₽/чел в одну сторону — добавьте отдельно, если считаете «всё включено».</p>
+</section>
+
+<!-- OPTIONAL / DROPPED -->
+<section>
+  <div class="sec-head"><span class="n">Гибкость</span><h2>Что вошло, что нет</h2></div>
+  <div class="card">
+    <div class="opt"><div class="oi">🕌</div><div><span class="on">Ахты · Ахтынские бани · Шалбуздаг</span><span class="obadge b-skip">пропуск</span><div class="od">Крайний юг: +2 дня и 250+ км в один конец. Шалбуздаг (4000 м) — не для трёхлетки.</div></div></div>
+    <div class="opt"><div class="oi">⛰️</div><div><span class="on">Подъём на Гамсутль</span><span class="obadge b-skip">убран</span><div class="od">Пеший набор высоты с малышом исключили. Аул — со смотровой снизу (день 6, опционально).</div></div></div>
+    <div class="opt"><div class="oi">💧</div><div><span class="on">Табасаран: крепость Семи братьев · Ханагский водопад</span><span class="obadge b-in">включено</span><div class="od">В А — радиалка из Дербента (день 8, утро). В Б — по пути Кубачи → Дербент, без крюка.</div></div></div>
+    <div class="opt"><div class="oi">🏺</div><div><span class="on">Кубачи + Кала‑Корейш</span><span class="obadge b-opt">только вариант Б</span><div class="od">Ради них Б ужимает Гуниб до 1 ночи и добавляет два плотных горных дня.</div></div></div>
+  </div>
+</section>
+
+<!-- A vs B -->
+<section>
+  <div class="sec-head"><span class="n">Сравнение</span><h2>А или Б</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="kick">Вариант А · рекомендую</div>
+      <h3>Сбалансированное кольцо</h3>
+      <ul>
+        <li class="pro">4 базы — вещи разбираем 4 раза</li>
+        <li class="pro">Каждый переезд ≤ 4 ч, между ними отдых</li>
+        <li class="pro">2 полных дня у моря, спокойный ритм для малыша</li>
+        <li class="con">Кубачи и Кала‑Корейш за бортом</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="kick">Вариант Б · для любопытных</div>
+      <h3>С Кубачи и Кала‑Корейш</h3>
+      <ul>
+        <li class="pro">Село мастеров + древнее городище</li>
+        <li class="pro">Табасаран берётся по пути, не отдельным днём</li>
+        <li class="con">Два 4‑часовых горных дня подряд (5 и 6)</li>
+        <li class="con">Гуниб/Чох скомканы, +1 сбор вещей</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DECISIONS -->
+<section>
+  <div class="sec-head"><span class="n">Учтено</span><h2>Ваши решения</h2></div>
+  <div class="card">
+    <div class="done"><span class="dk">✓</span><div><b>Гамсутль без подъёма.</b> <span>День 6 — спокойный: крепость, Чох, смотровая на аул снизу.</span></div></div>
+    <div class="done"><span class="dk">✓</span><div><b>Финал поровну.</b> <span>День 8 варианта А: Табасаран утром, Каспий и экраноплан днём.</span></div></div>
+    <div class="done"><span class="dk">✓</span><div><b>Оба варианта расписаны.</b> <span>А (4 базы) и Б (5 баз с Кубачи) — по дням.</span></div></div>
+    <div class="done"><span class="dk">✓</span><div><b>Жильё по отзывам.</b> <span>Реальные дома с рейтингом ≥4.6, этно в приоритете — по каждой базе.</span></div></div>
+    <div class="done"><span class="dk">✓</span><div><b>Бюджет прикинут.</b> <span>≈100–165 тыс ₽ на троих без авиабилетов.</span></div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="legend">
+    <span><i style="background:var(--z-sulak)"></i>Сулак</span>
+    <span><i style="background:var(--z-mount)"></i>Горы</span>
+    <span><i style="background:var(--z-kubachi)"></i>Кубачи</span>
+    <span><i style="background:var(--z-derbent)"></i>Дербент</span>
+  </div>
+  <div>Переезды и жильё — по Яндекс.Картам (сен 2026) · цены ориентировочные · v3</div>
+</footer>
+
+</div>
+</body>
+</html>
